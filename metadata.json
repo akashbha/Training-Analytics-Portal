@@ -1,7 +1,0 @@
-{
-  "name": "Training Analytics Portal",
-  "description": "Production-ready Training Analytics Portal tracking trainee session performance, batch progress, SQL analytics, and real-time WebSocket updates.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-

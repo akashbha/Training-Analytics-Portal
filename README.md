@@ -2,7 +2,7 @@
 
 A full-stack, enterprise-grade training management and analytics portal designed for tracking trainee session performance, batch progress, evaluator scoring, and real-time operational metrics.
 
-Built with **FastAPI** (Python) and **React 19 / Vite** (Tailwind CSS, Recharts).
+Built with **FastAPI** (Python) and **React** (Vite, Tailwind CSS, Recharts).
 
 ---
 
@@ -22,7 +22,7 @@ Built with **FastAPI** (Python) and **React 19 / Vite** (Tailwind CSS, Recharts)
 
 ```text
 training-analytics-portal/
-├── backend/                       # FastAPI Backend
+├── backend/                       # FastAPI Backend (Python)
 │   ├── alembic/                   # Database migrations and revision scripts
 │   ├── alembic.ini                # Alembic configuration
 │   ├── app/
@@ -33,24 +33,31 @@ training-analytics-portal/
 │   │   ├── routers/               # API endpoints (auth, analytics, batches, trainees, sessions)
 │   │   ├── schemas/               # Pydantic models for request/response validation
 │   │   └── services/              # Business logic and aggregation services
+│   ├── scripts/                   # Data simulation and utility scripts
+│   ├── tests/                     # Pytest suite for backend APIs and services
 │   ├── requirements.txt           # Python backend dependencies
 │   └── .env.example               # Backend environment variable template
 │
-├── training-portal/frontend/      # React Application Source
+├── frontend/                      # React Frontend Application (Vite + Tailwind CSS)
 │   ├── src/
 │   │   ├── api/                   # Axios API clients and interceptors
 │   │   ├── components/            # Reusable UI widgets, cards, charts, and tables
-│   │   ├── context/               # AuthProvider and global UI contexts
-│   │   ├── hooks/                 # Custom React hooks (WebSockets, data fetching)
-│   │   └── pages/                 # Full dashboard pages (Admin, Trainee, Sessions, Batches)
-│   └── package.json               # Frontend submodule package definitions
+│   │   ├── context/               # AuthProvider and LiveContext (WebSockets)
+│   │   ├── hooks/                 # Custom React hooks (real-time updates, analytics)
+│   │   ├── pages/                 # Full dashboard pages (Admin, Trainee, Sessions, Batches)
+│   │   ├── App.jsx                # Application routing and role guards
+│   │   ├── index.css              # Global styles and Tailwind imports
+│   │   └── main.jsx               # React DOM entry point
+│   ├── index.html                 # HTML5 document template
+│   ├── package.json               # Frontend dependencies and scripts
+│   ├── vite.config.js             # Vite bundler configuration
+│   ├── tailwind.config.js         # Tailwind CSS design system configuration
+│   ├── postcss.config.js          # PostCSS plugins
+│   └── .env.example               # Frontend environment variable template
 │
-├── src/                           # Root application entry point for Vite
-├── index.html                     # HTML5 root shell
-├── package.json                   # Root package definitions & Vite dev server
-├── vite.config.ts                 # Vite bundler and Tailwind configuration
-├── tsconfig.json                  # TypeScript compiler settings
-├── .env.example                   # Root environment variable template
+├── package.json                   # Root monorepo orchestration scripts
+├── .gitignore                     # Repository-wide ignore rules
+├── LICENSE                        # MIT License
 └── README.md                      # Project documentation
 ```
 
@@ -121,26 +128,23 @@ cd training-analytics-portal
 
 ### 3. Frontend Setup (React + Vite)
 
-1. In a new terminal window, navigate to the project root directory:
-   ```bash
-   cd training-analytics-portal
-   ```
+You can run the frontend in two ways:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+#### Option A: Directly from root (Convenient)
+```bash
+npm install
+npm run dev
+```
 
-3. Setup environment configuration:
-   ```bash
-   cp .env.example .env
-   ```
+#### Option B: From the `frontend` folder
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-4. Launch the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The application will be live at `http://localhost:3000` (or `http://localhost:5173`).*
+*The application will be live at `http://localhost:3000`.*
 
 ---
 
@@ -156,7 +160,7 @@ cd training-analytics-portal
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Access token lifespan in minutes | `1440` (24 hours) |
 | `ALLOWED_ORIGINS` | Permitted CORS frontend origins | `http://localhost:3000,http://127.0.0.1:3000` |
 
-### Frontend (`.env` or `training-portal/frontend/.env`)
+### Frontend (`frontend/.env`)
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
@@ -177,12 +181,11 @@ Once the backend server is running, interactive API documentation is automatical
 
 | Command | Action |
 | :--- | :--- |
-| `npm run dev` | Starts the frontend development server |
-| `npm run build` | Compiles production assets into `dist/` |
-| `npm run preview` | Previews the production build locally |
-| `npm run lint` | Runs TypeScript type checking |
-| `python -m app.db.seed` | Seeds database with initial mock batches, trainees, and records |
-| `pytest` | Runs backend test suite |
+| `npm run dev` | Starts the frontend dev server from root |
+| `npm run build` | Compiles frontend production assets |
+| `cd backend && uvicorn app.main:app --reload` | Starts the backend API server |
+| `cd backend && python -m app.db.seed` | Seeds database with initial batches and users |
+| `cd backend && pytest` | Runs the backend test suite |
 
 ---
 
