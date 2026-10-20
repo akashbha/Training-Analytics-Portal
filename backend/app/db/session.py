@@ -6,10 +6,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 
+engine_kwargs = {"echo": False}
+if "sqlite" in settings.sync_database_url:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs["pool_pre_ping"] = True
+
 sync_engine = create_engine(
     settings.sync_database_url,
-    pool_pre_ping=True,
-    echo=False
+    **engine_kwargs
 )
 
 SyncSessionLocal = sessionmaker(

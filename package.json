@@ -7,6 +7,8 @@
     "dev": "npm --prefix frontend run dev",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
+    "backend": "cd backend && .\\venv\\Scripts\\uvicorn app.main:app --reload --port 8000",
+    "seed": "cd backend && .\\venv\\Scripts\\python -m app.db.seed",
     "install:frontend": "npm --prefix frontend install"
   },
   "keywords": [

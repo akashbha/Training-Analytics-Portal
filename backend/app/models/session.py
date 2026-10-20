@@ -55,7 +55,6 @@ class Session(Base):
         Index("ix_sessions_module_id", "module_id"),
         Index("ix_sessions_created_at", "created_at"),
         Index("ix_sessions_trainee_module_created", "trainee_id", "module_id", "created_at"),
-        Index("ix_sessions_created_by", "created_by"),
     )
 
     def __repr__(self) -> str:

@@ -309,7 +309,7 @@ def seed_database(reset: bool = False) -> None:
             SELECT 
                 b.name AS batch_name,
                 COUNT(s.id) AS session_count,
-                ROUND(AVG((s.score / m.max_score) * 100)::numeric, 2) AS avg_score_pct
+                ROUND(CAST(AVG((s.score / m.max_score) * 100) AS NUMERIC), 2) AS avg_score_pct
             FROM batches b
             JOIN trainees t ON t.batch_id = b.id
             LEFT JOIN sessions s ON s.trainee_id = t.id
