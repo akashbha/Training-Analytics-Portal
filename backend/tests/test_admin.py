@@ -1,5 +1,5 @@
-"""Comprehensive unit and integration test suite for Stage 9b: Admin Role and Audit Logs.
-Validates permission matrix, safety invariants, inactive user rejections, and audit log tracking.
+"""Integration test suite verifying administrative role constraints, safety invariants, and audit logging.
+Validates permission matrix, self-demotion guards, inactive user rejections, and compliance audit trail.
 """
 
 from datetime import date
@@ -236,6 +236,14 @@ def test_change_password_endpoint(client, trainer_headers):
         headers=trainer_headers
     )
     assert ok.status_code == 200
+
+    # Revert password back so subsequent test suites have consistent state
+    revert = client.post(
+        "/auth/change-password",
+        json={"current_password": "NewTrainer@123", "new_password": "Trainer@123"},
+        headers=trainer_headers
+    )
+    assert revert.status_code == 200
 
 def test_audit_logs_written_and_queried(client, admin_headers, db_session):
     """Audit logs must be written for entity mutations and queryable at GET /admin/audit-logs."""

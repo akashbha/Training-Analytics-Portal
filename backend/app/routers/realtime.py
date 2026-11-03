@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
 from app.core.security import decode_access_token
 from app.core.realtime import manager
-from app.core.deps import require_admin
+from app.core.deps import require_staff
 from app.db.session import SyncSessionLocal
 from app.models.user import User
 
@@ -39,7 +39,9 @@ async def websocket_endpoint(
         return
 
     # Reject inactive users with code 4401
-    db = SyncSessionLocal()
+    from app.core.deps import get_db
+    override = websocket.app.dependency_overrides.get(get_db)
+    db = next(override()) if override else SyncSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.is_active:
@@ -70,6 +72,6 @@ async def websocket_endpoint(
 
 @router.get("/realtime/health", tags=["System"])
 @router.get("/health/realtime", tags=["System"])
-def realtime_health(admin: User = Depends(require_admin)):
+def realtime_health(staff: User = Depends(require_staff)):
     """Returns connected_clients, messages_sent, and uptime_seconds (Admin only)."""
     return manager.get_health_stats()

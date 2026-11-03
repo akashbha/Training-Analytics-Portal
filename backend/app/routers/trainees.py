@@ -85,14 +85,33 @@ def update_trainee(
     trainee_id: int,
     payload: TraineeUpdate,
     db: Session = Depends(get_db),
-    staff: User = Depends(require_staff)
+    current_user: User = Depends(get_current_user)
 ):
-    """Updates trainee profile or reassigns batch (Staff only)."""
+    """Updates trainee profile. Trainees may edit their own profile; staff may edit any trainee and reassign cohorts."""
+    is_staff = current_user.role in ("trainer", "admin")
+    if not is_staff:
+        if current_user.trainee_id != trainee_id:
+            raise AppException(
+                code="FORBIDDEN_RESOURCE_ACCESS",
+                message="Trainees are restricted to editing only their own profile",
+                status_code=403
+            )
+        # Disallow batch re-assignment for trainees
+        if payload.batch_id is not None:
+            service_temp = TraineeService(db)
+            existing_t = service_temp.get_trainee(trainee_id)
+            if payload.batch_id != existing_t.batch_id:
+                raise AppException(
+                    code="FORBIDDEN_BATCH_REASSIGNMENT",
+                    message="Trainees cannot reassign their own cohort batch",
+                    status_code=403
+                )
+
     service = TraineeService(db)
     trainee = service.update_trainee(trainee_id, payload)
     create_audit_log(
         db=db,
-        user_id=staff.id,
+        user_id=current_user.id,
         action="trainee_updated",
         entity_type="trainee",
         entity_id=trainee.id,

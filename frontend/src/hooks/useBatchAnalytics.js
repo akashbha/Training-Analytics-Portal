@@ -10,47 +10,167 @@ const isNetworkFailure = (err) =>
 
 // Sample cohorts for preview environments when backend on localhost:8000 is not reachable
 const PREVIEW_BATCHES = [
-  { id: 1, name: "Cohort Alpha (Core Full-Stack)", start_date: "2026-01-15", end_date: "2026-06-30" },
-  { id: 2, name: "Cohort Beta (AI & Data Systems)", start_date: "2026-02-01", end_date: "2026-07-31" },
-  { id: 3, name: "Cohort Gamma (Cloud Architecture)", start_date: "2026-03-01", end_date: "2026-08-31" },
+  { id: 1, name: "Batch A - Web Core", start_date: "2026-07-01", end_date: "2026-11-18", trainee_count: 10 },
+  { id: 2, name: "Batch B - Data Systems", start_date: "2026-07-15", end_date: "2026-12-02", trainee_count: 10 },
+  { id: 3, name: "Batch C - Cloud Native", start_date: "2026-07-22", end_date: "2026-12-09", trainee_count: 10 },
+  { id: 4, name: "Batch D - Full Stack (Foundational)", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
+  { id: 5, name: "Batch E - DevOps & Architecture", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
 ];
 
 const PREVIEW_SUMMARY = {
-  1: { trainee_count: 24, avg_score_pct: 78.4, pass_rate_pct: 87.5, session_count: 142, avg_score_change_pct: 5.2 },
-  2: { trainee_count: 18, avg_score_pct: 71.2, pass_rate_pct: 79.0, session_count: 98, avg_score_change_pct: -2.1 },
-  3: { trainee_count: 15, avg_score_pct: 84.0, pass_rate_pct: 93.3, session_count: 65, avg_score_change_pct: 8.4 },
+  1: { trainee_count: 10, avg_score_pct: 78.4, pass_rate_pct: 87.5, session_count: 142, avg_score_change_pct: 5.2 },
+  2: { trainee_count: 10, avg_score_pct: 71.2, pass_rate_pct: 79.0, session_count: 98, avg_score_change_pct: -2.1 },
+  3: { trainee_count: 10, avg_score_pct: 84.0, pass_rate_pct: 93.3, session_count: 65, avg_score_change_pct: 8.4 },
+  4: { trainee_count: 10, avg_score_pct: 76.5, pass_rate_pct: 82.0, session_count: 84, avg_score_change_pct: 3.1 },
+  5: { trainee_count: 10, avg_score_pct: 86.8, pass_rate_pct: 95.0, session_count: 112, avg_score_change_pct: 6.7 },
 };
 
-const PREVIEW_WEEKLY = [
-  { week_start: "2026-08-15", avg_score_pct: 64.2, session_count: 12 },
-  { week_start: "2026-08-22", avg_score_pct: 68.5, session_count: 15 },
-  { week_start: "2026-08-29", avg_score_pct: 71.0, session_count: 18 },
-  { week_start: "2026-09-05", avg_score_pct: 73.8, session_count: 20 },
-  { week_start: "2026-09-12", avg_score_pct: 76.4, session_count: 22 },
-  { week_start: "2026-09-19", avg_score_pct: 79.1, session_count: 25 },
-  { week_start: "2026-09-26", avg_score_pct: 84.5, session_count: 30 },
-  { week_start: "2026-10-03", avg_score_pct: 82.0, session_count: 20 },
-];
+const PREVIEW_WEEKLY = {
+  1: [
+    { week_start: "2026-08-15", avg_score_pct: 64.2, session_count: 12 },
+    { week_start: "2026-08-22", avg_score_pct: 68.5, session_count: 15 },
+    { week_start: "2026-08-29", avg_score_pct: 71.0, session_count: 18 },
+    { week_start: "2026-09-05", avg_score_pct: 73.8, session_count: 20 },
+    { week_start: "2026-09-12", avg_score_pct: 76.4, session_count: 22 },
+    { week_start: "2026-09-19", avg_score_pct: 79.1, session_count: 25 },
+    { week_start: "2026-09-26", avg_score_pct: 84.5, session_count: 30 },
+    { week_start: "2026-10-03", avg_score_pct: 82.0, session_count: 20 },
+  ],
+  2: [
+    { week_start: "2026-08-15", avg_score_pct: 58.0, session_count: 8 },
+    { week_start: "2026-08-22", avg_score_pct: 62.4, session_count: 11 },
+    { week_start: "2026-08-29", avg_score_pct: 66.8, session_count: 14 },
+    { week_start: "2026-09-05", avg_score_pct: 68.0, session_count: 16 },
+    { week_start: "2026-09-12", avg_score_pct: 71.5, session_count: 18 },
+    { week_start: "2026-09-19", avg_score_pct: 74.0, session_count: 20 },
+    { week_start: "2026-09-26", avg_score_pct: 72.8, session_count: 22 },
+    { week_start: "2026-10-03", avg_score_pct: 75.2, session_count: 15 },
+  ],
+  3: [
+    { week_start: "2026-08-15", avg_score_pct: 72.0, session_count: 10 },
+    { week_start: "2026-08-22", avg_score_pct: 75.5, session_count: 12 },
+    { week_start: "2026-08-29", avg_score_pct: 78.0, session_count: 15 },
+    { week_start: "2026-09-05", avg_score_pct: 81.2, session_count: 18 },
+    { week_start: "2026-09-12", avg_score_pct: 83.6, session_count: 20 },
+    { week_start: "2026-09-19", avg_score_pct: 85.0, session_count: 24 },
+    { week_start: "2026-09-26", avg_score_pct: 88.4, session_count: 26 },
+    { week_start: "2026-10-03", avg_score_pct: 86.5, session_count: 21 },
+  ],
+  4: [
+    { week_start: "2026-08-15", avg_score_pct: 62.5, session_count: 9 },
+    { week_start: "2026-08-22", avg_score_pct: 65.0, session_count: 12 },
+    { week_start: "2026-08-29", avg_score_pct: 69.2, session_count: 15 },
+    { week_start: "2026-09-05", avg_score_pct: 72.1, session_count: 17 },
+    { week_start: "2026-09-12", avg_score_pct: 75.0, session_count: 21 },
+    { week_start: "2026-09-19", avg_score_pct: 77.8, session_count: 23 },
+    { week_start: "2026-09-26", avg_score_pct: 80.2, session_count: 25 },
+    { week_start: "2026-10-03", avg_score_pct: 79.5, session_count: 18 },
+  ],
+  5: [
+    { week_start: "2026-08-15", avg_score_pct: 75.0, session_count: 14 },
+    { week_start: "2026-08-22", avg_score_pct: 78.4, session_count: 17 },
+    { week_start: "2026-08-29", avg_score_pct: 81.6, session_count: 20 },
+    { week_start: "2026-09-05", avg_score_pct: 84.2, session_count: 22 },
+    { week_start: "2026-09-12", avg_score_pct: 87.0, session_count: 26 },
+    { week_start: "2026-09-19", avg_score_pct: 89.5, session_count: 28 },
+    { week_start: "2026-09-26", avg_score_pct: 92.1, session_count: 32 },
+    { week_start: "2026-10-03", avg_score_pct: 90.8, session_count: 25 },
+  ],
+};
 
-const PREVIEW_BANDS = [
-  { label: "Excellent", percent: 45.8, count: 11 },
-  { label: "Average", percent: 41.7, count: 10 },
-  { label: "Struggling", percent: 12.5, count: 3 },
-];
+const PREVIEW_BANDS = {
+  1: [
+    { label: "Excellent (≥85%)", percent: 45.8, count: 5 },
+    { label: "Competent (70-84%)", percent: 41.7, count: 4 },
+    { label: "Remediation (<70%)", percent: 12.5, count: 1 },
+  ],
+  2: [
+    { label: "Excellent (≥85%)", percent: 30.0, count: 3 },
+    { label: "Competent (70-84%)", percent: 50.0, count: 5 },
+    { label: "Remediation (<70%)", percent: 20.0, count: 2 },
+  ],
+  3: [
+    { label: "Excellent (≥85%)", percent: 60.0, count: 6 },
+    { label: "Competent (70-84%)", percent: 30.0, count: 3 },
+    { label: "Remediation (<70%)", percent: 10.0, count: 1 },
+  ],
+  4: [
+    { label: "Excellent (≥85%)", percent: 40.0, count: 4 },
+    { label: "Competent (70-84%)", percent: 40.0, count: 4 },
+    { label: "Remediation (<70%)", percent: 20.0, count: 2 },
+  ],
+  5: [
+    { label: "Excellent (≥85%)", percent: 70.0, count: 7 },
+    { label: "Competent (70-84%)", percent: 20.0, count: 2 },
+    { label: "Remediation (<70%)", percent: 10.0, count: 1 },
+  ],
+};
 
-const PREVIEW_ATTENTION = [
-  { trainee_id: 101, name: "Alex Chen", avg_score_pct: 54.2, trend: "critical_low" },
-  { trainee_id: 102, name: "Jordan Taylor", avg_score_pct: 58.0, trend: "falling" },
-  { trainee_id: 103, name: "Samantha Reed", avg_score_pct: 59.5, trend: "struggling" },
-];
+const PREVIEW_ATTENTION = {
+  1: [
+    { trainee_id: 6, name: "Jeffery Wagner", avg_score_pct: 54.2, trend: "critical_low", avatar_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80", focus_module: "PostgreSQL Schema & Query Optimization" },
+    { trainee_id: 7, name: "Anthony Gonzalez", avg_score_pct: 58.0, trend: "falling", avatar_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80", focus_module: "Python Fundamentals & Loops" },
+    { trainee_id: 8, name: "Debra Gardner", avg_score_pct: 59.5, trend: "struggling", avatar_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80", focus_module: "React State Architecture" },
+  ],
+  2: [
+    { trainee_id: 16, name: "Lindsay Blair", avg_score_pct: 52.4, trend: "critical_low", avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80", focus_module: "Distributed Data Pipelines" },
+    { trainee_id: 17, name: "Amanda Dudley", avg_score_pct: 56.8, trend: "falling", avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80", focus_module: "SQL Indexing & Query Tuning" },
+    { trainee_id: 18, name: "Nicholas Arnold", avg_score_pct: 58.9, trend: "struggling", avatar_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80", focus_module: "ETL Batch Ingestion Systems" },
+  ],
+  3: [
+    { trainee_id: 26, name: "Mitchell Clark", avg_score_pct: 51.5, trend: "critical_low", avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80", focus_module: "Kubernetes Pod Lifecycle & Scheduling" },
+    { trainee_id: 27, name: "Joseph Zuniga", avg_score_pct: 55.0, trend: "falling", avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80", focus_module: "Terraform Infrastructure Modules" },
+    { trainee_id: 28, name: "Deborah Lynch", avg_score_pct: 58.2, trend: "struggling", avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80", focus_module: "Service Mesh & Envoy Ingress" },
+  ],
+  4: [
+    { trainee_id: 36, name: "Jason Hahn", avg_score_pct: 53.8, trend: "critical_low", avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80", focus_module: "Async Event Loop & Concurrency" },
+    { trainee_id: 37, name: "Nancy Edwards", avg_score_pct: 57.4, trend: "falling", avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", focus_module: "JWT Auth & API Gateways" },
+    { trainee_id: 38, name: "Diana Foster", avg_score_pct: 59.1, trend: "struggling", avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80", focus_module: "React Redux State Synchronization" },
+  ],
+  5: [
+    { trainee_id: 46, name: "Daniel Burton", avg_score_pct: 52.0, trend: "critical_low", avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80", focus_module: "CI/CD Pipeline Artifact Caching" },
+    { trainee_id: 47, name: "Laura Henderson", avg_score_pct: 56.2, trend: "falling", avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80", focus_module: "Prometheus Metrics & Alerting" },
+    { trainee_id: 48, name: "Bryan James", avg_score_pct: 58.5, trend: "struggling", avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80", focus_module: "Multi-Stage Docker Layer Optimization" },
+  ],
+};
 
-const PREVIEW_LEADERBOARD = [
-  { rank: 1, trainee_id: 201, name: "Elena Rostova", avg_score_pct: 94.6, session_count: 14, status: "on_track" },
-  { rank: 2, trainee_id: 202, name: "Marcus Vance", avg_score_pct: 91.2, session_count: 12, status: "on_track" },
-  { rank: 3, trainee_id: 203, name: "Chloe Bennett", avg_score_pct: 88.5, session_count: 11, status: "on_track" },
-  { rank: 4, trainee_id: 204, name: "David Kim", avg_score_pct: 82.0, session_count: 10, status: "on_track" },
-  { rank: 5, trainee_id: 205, name: "Priya Patel", avg_score_pct: 79.4, session_count: 9, status: "on_track" },
-];
+const PREVIEW_LEADERBOARD = {
+  1: [
+    { rank: 1, trainee_id: 1, name: "Danielle Johnson", avg_score_pct: 94.6, session_count: 14, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", specialization: "Web Core Lead Architect" },
+    { rank: 2, trainee_id: 2, name: "Joshua Walker", avg_score_pct: 91.2, session_count: 12, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80", specialization: "TypeScript & State Engine" },
+    { rank: 3, trainee_id: 3, name: "Jill Rhodes", avg_score_pct: 88.5, session_count: 11, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80", specialization: "React Component Systems" },
+    { rank: 4, trainee_id: 4, name: "Patricia Miller", avg_score_pct: 84.0, session_count: 10, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80", specialization: "RESTful API Integration" },
+    { rank: 5, trainee_id: 5, name: "Robert Johnson", avg_score_pct: 81.4, session_count: 9, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80", specialization: "Frontend Performance Profiler" },
+  ],
+  2: [
+    { rank: 1, trainee_id: 11, name: "Linda Wolfe", avg_score_pct: 95.8, session_count: 15, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80", specialization: "Distributed Database Systems" },
+    { rank: 2, trainee_id: 12, name: "Matthew Moore", avg_score_pct: 93.1, session_count: 13, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80", specialization: "PostgreSQL Engine Optimization" },
+    { rank: 3, trainee_id: 13, name: "Susan Rogers", avg_score_pct: 89.4, session_count: 12, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", specialization: "Data Pipeline & ETL Streams" },
+    { rank: 4, trainee_id: 14, name: "Christopher Davis", avg_score_pct: 85.2, session_count: 10, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80", specialization: "ACID Transaction Engineering" },
+    { rank: 5, trainee_id: 15, name: "Melanie Munoz", avg_score_pct: 82.7, session_count: 9, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80", specialization: "Columnar Storage Indexer" },
+  ],
+  3: [
+    { rank: 1, trainee_id: 21, name: "Janet Williams", avg_score_pct: 96.4, session_count: 16, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80", specialization: "Cloud Native & Microservices" },
+    { rank: 2, trainee_id: 22, name: "Jeremy Roberts", avg_score_pct: 92.5, session_count: 14, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80", specialization: "Kubernetes Cluster Orchestrator" },
+    { rank: 3, trainee_id: 23, name: "Christopher Hall", avg_score_pct: 88.9, session_count: 11, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80", specialization: "Terraform Infrastructure Lead" },
+    { rank: 4, trainee_id: 24, name: "Craig Ramirez", avg_score_pct: 86.1, session_count: 10, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80", specialization: "gRPC & Service Mesh Networking" },
+    { rank: 5, trainee_id: 25, name: "Cynthia Diaz", avg_score_pct: 83.0, session_count: 9, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", specialization: "Distributed Resilience Patterns" },
+  ],
+  4: [
+    { rank: 1, trainee_id: 31, name: "Veronica Bowman", avg_score_pct: 94.2, session_count: 13, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80", specialization: "Full-Stack System Design" },
+    { rank: 2, trainee_id: 32, name: "Angela Cohen", avg_score_pct: 91.0, session_count: 12, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80", specialization: "Async Python & React State" },
+    { rank: 3, trainee_id: 33, name: "Megan Parsons", avg_score_pct: 87.8, session_count: 11, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80", specialization: "API Security & JWT Systems" },
+    { rank: 4, trainee_id: 34, name: "Jeremy Johnson", avg_score_pct: 84.5, session_count: 10, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80", specialization: "SQLAlchemy & ORM Patterns" },
+    { rank: 5, trainee_id: 35, name: "Leslie Adams", avg_score_pct: 81.2, session_count: 9, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80", specialization: "Modern Frontend Bundlers" },
+  ],
+  5: [
+    { rank: 1, trainee_id: 41, name: "Anna Baker", avg_score_pct: 97.1, session_count: 16, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80", specialization: "DevOps & SRE Principal" },
+    { rank: 2, trainee_id: 42, name: "Brenda Hurst", avg_score_pct: 93.8, session_count: 14, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80", specialization: "Automated Deployment Pipelines" },
+    { rank: 3, trainee_id: 43, name: "Reginald Robinson", avg_score_pct: 90.2, session_count: 13, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80", specialization: "Site Reliability & Prometheus" },
+    { rank: 4, trainee_id: 44, name: "Whitney Hicks", avg_score_pct: 86.4, session_count: 11, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80", specialization: "Multi-Cloud Networking" },
+    { rank: 5, trainee_id: 45, name: "Christopher Williams", avg_score_pct: 82.9, session_count: 10, status: "on_track", avatar_url: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80", specialization: "Docker Security & Hardening" },
+  ],
+};
 
 /**
  * Hook to retrieve all cohorts and manage the active cohort selector with localStorage persistence.
@@ -167,7 +287,7 @@ export function useBatchWeekly(batchId, weeks = 8) {
       setData(res.data || []);
     } catch (err) {
       if (isNetworkFailure(err)) {
-        setData(PREVIEW_WEEKLY);
+        setData(PREVIEW_WEEKLY[batchId] || PREVIEW_WEEKLY[1] || []);
       } else {
         setError(err.message || "Failed to load weekly trends");
       }
@@ -200,7 +320,7 @@ export function useBatchBands(batchId) {
       setData(res.data || []);
     } catch (err) {
       if (isNetworkFailure(err)) {
-        setData(PREVIEW_BANDS);
+        setData(PREVIEW_BANDS[batchId] || PREVIEW_BANDS[1] || []);
       } else {
         setError(err.message || "Failed to load score distribution bands");
       }
@@ -229,13 +349,20 @@ export function useBatchAttention(batchId) {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get(`/analytics/batches/${batchId}/attention`);
+      // Query the trained ML Early-Warning attention endpoint (Synopsis Section 10)
+      const res = await apiClient.get(`/analytics/batches/${batchId}/ml-attention`);
       setData(res.data || []);
     } catch (err) {
       if (isNetworkFailure(err)) {
-        setData(PREVIEW_ATTENTION);
+        setData(PREVIEW_ATTENTION[batchId] || PREVIEW_ATTENTION[1] || []);
       } else {
-        setError(err.message || "Failed to load attention roster");
+        // Fallback to traditional attention endpoint if ML service is cold
+        try {
+          const fallbackRes = await apiClient.get(`/analytics/batches/${batchId}/attention`);
+          setData(fallbackRes.data || []);
+        } catch {
+          setError(err.message || "Failed to load ML attention roster");
+        }
       }
     } finally {
       setLoading(false);
@@ -266,7 +393,7 @@ export function useBatchLeaderboard(batchId, limit = 10) {
       setData(res.data || []);
     } catch (err) {
       if (isNetworkFailure(err)) {
-        setData(PREVIEW_LEADERBOARD);
+        setData(PREVIEW_LEADERBOARD[batchId] || PREVIEW_LEADERBOARD[1] || []);
       } else {
         setError(err.message || "Failed to load batch leaderboard");
       }
@@ -300,7 +427,8 @@ export function useBatchTopPerformer(batchId) {
       setData(items.length > 0 ? items[0] : null);
     } catch (err) {
       if (isNetworkFailure(err)) {
-        setData(PREVIEW_LEADERBOARD[0]);
+        const cohortLeaderboard = PREVIEW_LEADERBOARD[batchId] || PREVIEW_LEADERBOARD[1] || [];
+        setData(cohortLeaderboard[0] || null);
       } else {
         setError(err.message || "Failed to load top performer");
       }

@@ -55,16 +55,40 @@ def realtime_dataset(db_session):
     alice_token = create_access_token(data={"sub": str(u_alice.id), "role": "trainee", "trainee_id": t_alice.id})
     bob_token = create_access_token(data={"sub": str(u_bob.id), "role": "trainee", "trainee_id": t_bob.id})
 
-    return {
-        "batch": batch,
-        "mod": mod,
-        "t_alice": t_alice,
-        "t_bob": t_bob,
-        "trainer_token": trainer_token,
-        "alice_token": alice_token,
-        "bob_token": bob_token,
-        "trainer_headers": {"Authorization": f"Bearer {trainer_token}"},
-    }
+    try:
+        yield {
+            "batch": batch,
+            "mod": mod,
+            "t_alice": t_alice,
+            "t_bob": t_bob,
+            "trainer_token": trainer_token,
+            "alice_token": alice_token,
+            "bob_token": bob_token,
+            "trainer_headers": {"Authorization": f"Bearer {trainer_token}"},
+        }
+    finally:
+        for u in [u_trainer, u_alice, u_bob]:
+            try:
+                db_session.delete(u)
+            except Exception:
+                pass
+        for t in [t_alice, t_bob]:
+            try:
+                db_session.delete(t)
+            except Exception:
+                pass
+        try:
+            db_session.delete(mod)
+        except Exception:
+            pass
+        try:
+            db_session.delete(batch)
+        except Exception:
+            pass
+        try:
+            db_session.commit()
+        except Exception:
+            db_session.rollback()
 
 def test_websocket_valid_token_connects(client, realtime_dataset):
     """Verifies that a valid JWT connects to /ws without raising an exception."""

@@ -1,5 +1,5 @@
 """Service layer coordinating business logic for Trainee entities.
-Enforces email uniqueness, cohort existence validation, and paginated searches.
+Enforces email uniqueness, cohort existence validation, and profile customization.
 """
 
 import math
@@ -11,6 +11,22 @@ from app.schemas.trainee import TraineeCreate, TraineeUpdate, TraineeResponse
 from app.schemas.common import PaginatedResponse
 from app.models.trainee import Trainee
 from app.core.exceptions import AppException
+
+def _to_response(t: Trainee, batch_name: Optional[str] = None) -> TraineeResponse:
+    b_name = batch_name or (t.batch.name if t.batch else None)
+    return TraineeResponse(
+        id=t.id,
+        name=t.name,
+        email=t.email,
+        batch_id=t.batch_id,
+        batch_name=b_name,
+        session_count=len(t.sessions) if t.sessions is not None else 0,
+        phone=t.phone,
+        bio=t.bio,
+        specialization=t.specialization,
+        avatar_url=t.avatar_url,
+        github_url=t.github_url,
+    )
 
 class TraineeService:
     """Service handling trainee lifecycle, cohort assignment, and uniqueness rules."""
@@ -40,17 +56,7 @@ class TraineeService:
         )
         pages = math.ceil(total / page_size) if total > 0 else 1
 
-        response_items = [
-            TraineeResponse(
-                id=t.id,
-                name=t.name,
-                email=t.email,
-                batch_id=t.batch_id,
-                batch_name=t.batch.name if t.batch else None,
-                session_count=len(t.sessions) if t.sessions is not None else 0
-            )
-            for t in items
-        ]
+        response_items = [_to_response(t) for t in items]
 
         return PaginatedResponse(
             items=response_items,
@@ -65,14 +71,7 @@ class TraineeService:
         trainee = self.repo.get_by_id(trainee_id)
         if not trainee:
             raise AppException(code="TRAINEE_NOT_FOUND", message=f"Trainee with ID {trainee_id} not found", status_code=404)
-        return TraineeResponse(
-            id=trainee.id,
-            name=trainee.name,
-            email=trainee.email,
-            batch_id=trainee.batch_id,
-            batch_name=trainee.batch.name if trainee.batch else None,
-            session_count=len(trainee.sessions) if trainee.sessions is not None else 0
-        )
+        return _to_response(trainee)
 
     def create_trainee(self, trainee_in: TraineeCreate) -> TraineeResponse:
         """Validates email uniqueness and batch validity before creating trainee."""
@@ -96,17 +95,15 @@ class TraineeService:
         trainee = Trainee(
             name=trainee_in.name.strip(),
             email=clean_email,
-            batch_id=trainee_in.batch_id
+            batch_id=trainee_in.batch_id,
+            phone=trainee_in.phone.strip() if trainee_in.phone else None,
+            bio=trainee_in.bio.strip() if trainee_in.bio else None,
+            specialization=trainee_in.specialization.strip() if trainee_in.specialization else None,
+            avatar_url=trainee_in.avatar_url,
+            github_url=trainee_in.github_url.strip() if trainee_in.github_url else None,
         )
         created = self.repo.create(trainee)
-        return TraineeResponse(
-            id=created.id,
-            name=created.name,
-            email=created.email,
-            batch_id=created.batch_id,
-            batch_name=batch.name,
-            session_count=0
-        )
+        return _to_response(created, batch.name)
 
     def update_trainee(self, trainee_id: int, trainee_in: TraineeUpdate) -> TraineeResponse:
         """Updates trainee properties while ensuring email uniqueness."""
@@ -129,6 +126,21 @@ class TraineeService:
         if trainee_in.name:
             trainee.name = trainee_in.name.strip()
 
+        if trainee_in.phone is not None:
+            trainee.phone = trainee_in.phone.strip() if trainee_in.phone else None
+
+        if trainee_in.bio is not None:
+            trainee.bio = trainee_in.bio.strip() if trainee_in.bio else None
+
+        if trainee_in.specialization is not None:
+            trainee.specialization = trainee_in.specialization.strip() if trainee_in.specialization else None
+
+        if trainee_in.avatar_url is not None:
+            trainee.avatar_url = trainee_in.avatar_url if trainee_in.avatar_url else None
+
+        if trainee_in.github_url is not None:
+            trainee.github_url = trainee_in.github_url.strip() if trainee_in.github_url else None
+
         if trainee_in.batch_id is not None:
             batch = self.batch_repo.get_by_id(trainee_in.batch_id)
             if not batch:
@@ -141,14 +153,7 @@ class TraineeService:
 
         updated = self.repo.update(trainee)
         batch = self.batch_repo.get_by_id(updated.batch_id)
-        return TraineeResponse(
-            id=updated.id,
-            name=updated.name,
-            email=updated.email,
-            batch_id=updated.batch_id,
-            batch_name=batch.name if batch else None,
-            session_count=len(updated.sessions) if updated.sessions is not None else 0
-        )
+        return _to_response(updated, batch.name if batch else None)
 
     def delete_trainee(self, trainee_id: int) -> None:
         """Deletes a trainee and cascading session records."""

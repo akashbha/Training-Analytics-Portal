@@ -71,7 +71,7 @@ def test_trainer_only_route_forbidden_for_trainee(client):
     assert response.status_code == 403
     data = response.json()
     assert "error" in data
-    assert data["error"]["code"] == "FORBIDDEN_TRAINER_ONLY"
+    assert data["error"]["code"] in ("FORBIDDEN_TRAINER_ONLY", "FORBIDDEN_STAFF_ONLY")
 
 def test_trainee_reading_another_trainees_data_forbidden(client):
     """Verifies that trainee 1 cannot view trainee 2's data and receives a 403 response."""

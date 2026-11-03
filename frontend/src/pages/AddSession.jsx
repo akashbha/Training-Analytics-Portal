@@ -523,28 +523,28 @@ export function AddSession() {
             </Card>
           </div>
 
-          {/* RIGHT: Dark Purple Card for CSV Ingestion (5 Cols) */}
+          {/* RIGHT: White Card for CSV Ingestion (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <Card variant="dark" className="border border-purple-400/20 shadow-lg p-7">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-5">
+            <Card variant="white" className="border border-slate-200/80 shadow-sm p-7">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-5">
                 <div className="flex items-center space-x-2">
-                  <FileSpreadsheet className="w-5 h-5 text-purple-200" />
-                  <h2 className="text-base font-extrabold text-white">Bulk CSV Ingestion</h2>
+                  <FileSpreadsheet className="w-5 h-5 text-brand" />
+                  <h2 className="text-base font-extrabold text-slate-900">Bulk CSV Ingestion</h2>
                 </div>
                 {/* Download Template Link */}
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="inline-flex items-center space-x-1 text-[11px] font-bold text-purple-200 hover:text-white underline cursor-pointer"
+                  className="inline-flex items-center space-x-1 text-[11px] font-bold text-brand hover:text-brand-dark underline cursor-pointer"
                 >
                   <Download className="w-3 h-3" />
                   <span>Download template</span>
                 </button>
               </div>
 
-              <p className="text-xs text-purple-200/80 mb-5 leading-relaxed">
+              <p className="text-xs text-slate-500 mb-5 leading-relaxed">
                 Upload comma-separated evaluation files. Headers required:{" "}
-                <code className="text-white bg-white/10 px-1 py-0.5 rounded text-[10px]">
+                <code className="text-slate-800 bg-slate-100 px-1 py-0.5 rounded text-[10px] font-mono">
                   trainee_email,module_name,score,errors,time_seconds
                 </code>
               </p>
@@ -555,10 +555,10 @@ export function AddSession() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-3xl p-6 text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
                   isDragging
-                    ? "border-white bg-white/15 scale-[1.01]"
-                    : "border-purple-300/40 hover:border-purple-200 bg-white/5 hover:bg-white/10"
+                    ? "border-brand bg-indigo-50/50 scale-[1.01]"
+                    : "border-slate-300 hover:border-brand bg-slate-50 hover:bg-slate-100/70"
                 }`}
               >
                 <input
@@ -568,26 +568,26 @@ export function AddSession() {
                   accept=".csv"
                   className="hidden"
                 />
-                <UploadCloud className="w-9 h-9 text-purple-200 mx-auto mb-2" />
-                <p className="text-xs font-bold text-white">
+                <UploadCloud className="w-9 h-9 text-brand mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-800">
                   {csvFile ? csvFile.name : "Drag & drop CSV file here, or click to browse"}
                 </p>
-                <p className="text-[10px] text-purple-300/70 mt-1">
+                <p className="text-[10px] text-slate-400 mt-1">
                   Supports .csv files up to 5 MB
                 </p>
               </div>
 
               {/* CSV Selection Status & Upload Button */}
               {csvFile && (
-                <div className="mt-4 flex items-center justify-between p-3 rounded-2xl bg-white/10 border border-white/10">
-                  <div className="text-xs text-white truncate max-w-[200px]">
+                <div className="mt-4 flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="text-xs text-slate-800 font-medium truncate max-w-[200px]">
                     {csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)
                   </div>
                   <button
                     type="button"
                     onClick={handleCsvUpload}
                     disabled={csvUploading}
-                    className="px-4 py-1.5 rounded-full bg-white hover:bg-purple-100 text-brand font-bold text-xs shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                    className="px-4 py-1.5 rounded-full bg-brand hover:bg-brand-dark text-white font-bold text-xs shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                   >
                     {csvUploading && <Spinner size="sm" />}
                     <span>Upload CSV</span>
@@ -597,25 +597,25 @@ export function AddSession() {
 
               {/* Upload Error Banner */}
               {csvError && (
-                <div className="mt-4 p-3 rounded-2xl bg-rose-500/20 border border-rose-400 text-xs text-rose-200 font-semibold flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-300 shrink-0" />
+                <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
                   <span>{csvError}</span>
                 </div>
               )}
 
               {/* CSV Results Summary & Error Table */}
               {csvResult && (
-                <div className="mt-5 pt-4 border-t border-white/10 space-y-3">
+                <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                       Batch Ingestion Result
                     </span>
                     <div className="flex items-center space-x-2 text-xs font-extrabold">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {csvResult.inserted} Inserted
                       </span>
                       {csvResult.failed > 0 && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                        <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
                           {csvResult.failed} Failed
                         </span>
                       )}
@@ -624,17 +624,17 @@ export function AddSession() {
 
                   {/* Row Errors Table */}
                   {csvResult.errors && csvResult.errors.length > 0 && (
-                    <div className="mt-3 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                      <div className="px-3 py-2 bg-white/10 text-[10px] font-bold text-purple-200 uppercase tracking-wider">
+                    <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                      <div className="px-3 py-2 bg-slate-100 text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                         Row Validation Errors ({csvResult.errors.length})
                       </div>
-                      <div className="max-h-44 overflow-y-auto divide-y divide-white/5 text-[11px]">
+                      <div className="max-h-44 overflow-y-auto divide-y divide-slate-200 text-[11px]">
                         {csvResult.errors.map((err, i) => (
-                          <div key={i} className="p-2.5 flex items-start space-x-2 text-rose-200">
-                            <span className="font-extrabold text-white shrink-0">
+                          <div key={i} className="p-2.5 flex items-start space-x-2 text-rose-700">
+                            <span className="font-extrabold text-slate-900 shrink-0">
                               Row #{err.row}:
                             </span>
-                            <span className="text-purple-200/90">{err.message}</span>
+                            <span className="text-slate-600">{err.message}</span>
                           </div>
                         ))}
                       </div>

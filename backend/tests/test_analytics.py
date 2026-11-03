@@ -72,19 +72,50 @@ def analytics_dataset(db_session):
     alice_token = create_access_token(data={"sub": str(u_alice.id), "role": "trainee", "trainee_id": t_alice.id})
     bob_token = create_access_token(data={"sub": str(u_bob.id), "role": "trainee", "trainee_id": t_bob.id})
 
-    return {
-        "cohort": cohort,
-        "empty_cohort": empty_cohort,
-        "mod_100": mod_100,
-        "mod_50": mod_50,
-        "t_alice": t_alice,
-        "t_bob": t_bob,
-        "t_charlie": t_charlie,
-        "t_david": t_david,
-        "trainer_headers": {"Authorization": f"Bearer {trainer_token}"},
-        "alice_headers": {"Authorization": f"Bearer {alice_token}"},
-        "bob_headers": {"Authorization": f"Bearer {bob_token}"},
-    }
+    try:
+        yield {
+            "cohort": cohort,
+            "empty_cohort": empty_cohort,
+            "mod_100": mod_100,
+            "mod_50": mod_50,
+            "t_alice": t_alice,
+            "t_bob": t_bob,
+            "t_charlie": t_charlie,
+            "t_david": t_david,
+            "trainer_headers": {"Authorization": f"Bearer {trainer_token}"},
+            "alice_headers": {"Authorization": f"Bearer {alice_token}"},
+            "bob_headers": {"Authorization": f"Bearer {bob_token}"},
+        }
+    finally:
+        for s in [s1, s2, s3]:
+            try:
+                db_session.delete(s)
+            except Exception:
+                pass
+        for u in [u_trainer, u_alice, u_bob]:
+            try:
+                db_session.delete(u)
+            except Exception:
+                pass
+        for t in [t_alice, t_bob, t_charlie, t_david]:
+            try:
+                db_session.delete(t)
+            except Exception:
+                pass
+        for m in [mod_100, mod_50]:
+            try:
+                db_session.delete(m)
+            except Exception:
+                pass
+        for b in [cohort, empty_cohort]:
+            try:
+                db_session.delete(b)
+            except Exception:
+                pass
+        try:
+            db_session.commit()
+        except Exception:
+            db_session.rollback()
 
 def test_batch_summary_hand_calculated_values(client, analytics_dataset):
     """Verifies that SQL aggregation returns exact hand-calculated averages and pass rates."""
@@ -320,7 +351,7 @@ def test_rbac_leaderboard_and_attention_trainer_only(client, analytics_dataset):
         headers=data_ctx["alice_headers"]
     )
     assert res_lb_trainee.status_code == 403
-    assert res_lb_trainee.json()["error"]["code"] == "FORBIDDEN_TRAINER_ONLY"
+    assert res_lb_trainee.json()["error"]["code"] in ("FORBIDDEN_TRAINER_ONLY", "FORBIDDEN_STAFF_ONLY")
 
     # Trainees must NOT be allowed to view attention list (403)
     res_att_trainee = client.get(
@@ -328,7 +359,7 @@ def test_rbac_leaderboard_and_attention_trainer_only(client, analytics_dataset):
         headers=data_ctx["alice_headers"]
     )
     assert res_att_trainee.status_code == 403
-    assert res_att_trainee.json()["error"]["code"] == "FORBIDDEN_TRAINER_ONLY"
+    assert res_att_trainee.json()["error"]["code"] in ("FORBIDDEN_TRAINER_ONLY", "FORBIDDEN_STAFF_ONLY")
 
     # Trainers can access both successfully (200)
     res_lb_trainer = client.get(

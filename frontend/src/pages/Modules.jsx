@@ -176,18 +176,18 @@ export function Modules() {
 
   return (
     <div className="space-y-6">
-      {/* Dark Purple Hero Card */}
-      <Card variant="dark">
+      {/* White Hero Card */}
+      <Card variant="white" className="border border-slate-200/80 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 text-purple-200 text-xs font-bold uppercase tracking-wider mb-2">
-              <BookOpen className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/80 text-brand text-xs font-bold uppercase tracking-wider mb-2">
+              <BookOpen className="w-3.5 h-3.5 text-brand" />
               <span>Curriculum Management</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               Assessment Modules
             </h1>
-            <p className="text-xs sm:text-sm text-purple-200 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
               Configure curriculum evaluation benchmarks, positive maximum scores, and module specifications.
             </p>
           </div>
@@ -195,7 +195,7 @@ export function Modules() {
           {isAdmin && (
             <button
               onClick={handleOpenAdd}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-white text-brand hover:bg-purple-50 rounded-full text-xs font-extrabold shadow-sm transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-brand hover:bg-brand-dark text-white rounded-full text-xs font-extrabold shadow-sm transition-all cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Add Module</span>

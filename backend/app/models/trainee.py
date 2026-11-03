@@ -1,9 +1,10 @@
 """SQLAlchemy 2.0 ORM model for trainees enrolled in batches.
 Represents individual learners linked to a cohort, indexed on batch_id for fast analytics filtering.
+Includes personal details (phone, bio, specialization, avatar_url, github_url).
 """
 
 from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import Integer, String, ForeignKey, Index
+from sqlalchemy import Integer, String, Text, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -23,6 +24,11 @@ class Trainee(Base):
         ForeignKey("batches.id", ondelete="CASCADE"),
         nullable=False
     )
+    phone: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    specialization: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    avatar_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    github_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     batch: Mapped["Batch"] = relationship("Batch", back_populates="trainees")
     sessions: Mapped[List["Session"]] = relationship(

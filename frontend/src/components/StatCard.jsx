@@ -9,6 +9,7 @@ export function StatCard({
   title,
   value,
   subtext,
+  badge,
   icon: Icon,
   loading = false,
   variant = "white",
@@ -41,7 +42,7 @@ export function StatCard({
       <Card variant={variant} className={`animate-pulse ${className}`}>
         <div className="flex items-center justify-between">
           <div className={`h-4 w-24 rounded ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>
-          {Icon && <div className={`w-8 h-8 rounded-full ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>}
+          <div className={`h-4 w-12 rounded ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>
         </div>
         <div className={`h-9 w-32 rounded mt-4 ${isDark ? "bg-white/30" : "bg-slate-300"}`}></div>
         {subtext && <div className={`h-3 w-40 rounded mt-2 ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>}
@@ -52,7 +53,7 @@ export function StatCard({
   const flashStyles = flashing
     ? isDark
       ? "ring-2 ring-purple-300 bg-white/15 scale-[1.02] transition-all duration-300"
-      : "ring-2 ring-brand/60 bg-purple-50/90 shadow-md scale-[1.02] transition-all duration-300"
+      : "ring-2 ring-blue-500/50 bg-blue-50/50 scale-[1.02] transition-all duration-300"
     : "transition-all duration-300";
 
   return (
@@ -62,25 +63,27 @@ export function StatCard({
     >
       <div className="flex items-center justify-between">
         <span
-          className={`text-xs font-semibold tracking-wide uppercase ${
-            isDark ? "text-purple-200" : "text-slate-500"
+          className={`text-[11px] font-bold tracking-wider uppercase ${
+            isDark ? "text-purple-200" : "text-slate-400"
           }`}
         >
           {title}
         </span>
-        {Icon && (
+        {badge ? (
+          <div className="shrink-0">{badge}</div>
+        ) : Icon ? (
           <div
-            className={`p-2 rounded-2xl ${
-              isDark ? "bg-white/10 text-white" : "bg-brand-light text-brand"
+            className={`p-1.5 rounded-lg ${
+              isDark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-600"
             }`}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-4 h-4" />
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-3">
-        <div className="text-3xl font-extrabold tracking-tight transition-transform duration-300">
+        <div className="text-3xl font-extrabold tracking-tight transition-transform duration-300 text-slate-900">
           {value !== null && value !== undefined ? value : "—"}
         </div>
         {subtext && (

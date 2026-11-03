@@ -1,0 +1,77 @@
+{
+  "champion_model": "Random Forest",
+  "evaluation_metrics": {
+    "model": "Random Forest",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "confusion_matrix": [
+      [
+        8,
+        0
+      ],
+      [
+        0,
+        5
+      ]
+    ]
+  },
+  "candidate_comparison": [
+    {
+      "model": "Logistic Regression",
+      "accuracy": 0.9231,
+      "precision": 1.0,
+      "recall": 0.8,
+      "f1": 0.8889,
+      "confusion_matrix": [
+        [
+          8,
+          0
+        ],
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "confusion_matrix": [
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          5
+        ]
+      ]
+    }
+  ],
+  "feature_importances": {
+    "recent_avg_score": 0.3033,
+    "recent_error_rate": 0.2592,
+    "score_trend_slope": 0.1624,
+    "overall_avg_score": 0.0944,
+    "avg_error_rate": 0.0668,
+    "avg_time_seconds": 0.0529,
+    "performance_consistency": 0.0523,
+    "session_count": 0.0087
+  },
+  "sample_size": 49,
+  "features_used": [
+    "overall_avg_score",
+    "recent_avg_score",
+    "score_trend_slope",
+    "avg_error_rate",
+    "recent_error_rate",
+    "avg_time_seconds",
+    "performance_consistency",
+    "session_count"
+  ]
+}

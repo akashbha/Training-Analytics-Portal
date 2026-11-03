@@ -8,7 +8,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { LiveProvider } from "./context/LiveContext.jsx";
 import { Layout } from "./components/Layout.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
+import { LandingPage } from "./pages/LandingPage.jsx";
 import { Dashboard } from "./pages/Dashboard.jsx";
+import { AdminDashboard } from "./pages/AdminDashboard.jsx";
 import { TraineeDashboard } from "./pages/TraineeDashboard.jsx";
 import { Batches } from "./pages/Batches.jsx";
 import { Trainees } from "./pages/Trainees.jsx";
@@ -16,7 +18,7 @@ import { AddSession } from "./pages/AddSession.jsx";
 import { Modules } from "./pages/Modules.jsx";
 import { Users } from "./pages/Users.jsx";
 import { AuditLogs } from "./pages/AuditLogs.jsx";
-import { UnauthorizedPage } from "./pages/Placeholders.jsx";
+import { UnauthorizedPage } from "./pages/UnauthorizedPage.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 
 // ProtectedRoute: Blocks unauthenticated visitors and redirects to /login
@@ -69,14 +71,22 @@ function RoleRoute({ children, required = "staff" }) {
   return children;
 }
 
-// HomeRoute: Renders Dashboard for staff, TraineeDashboard for trainees
+// HomeRoute: Renders AdminDashboard for admin, Dashboard for trainer, TraineeDashboard for trainee
 function HomeRoute() {
-  const { user, isStaff } = useAuth();
+  const { user, isStaff, isAdmin } = useAuth();
 
   if (!isStaff) {
     return (
       <Layout>
         <TraineeDashboard traineeId={user?.trainee_id} />
+      </Layout>
+    );
+  }
+
+  if (isAdmin) {
+    return (
+      <Layout>
+        <AdminDashboard />
       </Layout>
     );
   }
@@ -109,21 +119,56 @@ function TraineeDetailRoute() {
   );
 }
 
+// RootRoute: Shows LandingPage if not logged in; shows appropriate Dashboard if logged in
+function RootRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LandingPage />;
+  }
+
+  return <HomeRoute />;
+}
+
 export function App() {
   return (
     <AuthProvider>
       <LiveProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Login Route */}
+            {/* Public Landing & Login Routes: Root is the Home Screen */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Root Route: Staff Dashboard or Trainee Performance Dashboard */}
+            {/* Authenticated Dashboard Route (Routes by Role) */}
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <HomeRoute />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Explicit Admin Dashboard Route */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute required="admin">
+                    <Layout>
+                      <AdminDashboard />
+                    </Layout>
+                  </RoleRoute>
                 </ProtectedRoute>
               }
             />

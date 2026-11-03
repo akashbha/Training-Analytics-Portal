@@ -70,7 +70,7 @@ class AnalyticsRepository:
                 (SELECT COUNT(*) FROM cohort_trainees) AS trainee_count,
                 COUNT(sm.id) AS session_count,
                 ROUND(CAST(AVG(sm.score_pct) AS NUMERIC), 1) AS avg_score_pct,
-                ROUND(CAST(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 ELSE 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
+                ROUND(CAST(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
                 ROUND(CAST(AVG(sm.errors) AS NUMERIC), 1) AS avg_errors,
                 ROUND(CAST(AVG(sm.time_seconds) AS NUMERIC), 1) AS avg_time_seconds,
                 ROUND(CAST(pc.recent_avg - pc.prior_avg AS NUMERIC), 1) AS avg_score_change_pct
@@ -106,7 +106,7 @@ class AnalyticsRepository:
                 (SELECT COUNT(*) FROM cohort_trainees) AS trainee_count,
                 COUNT(sm.id) AS session_count,
                 ROUND(AVG(sm.score_pct), 1) AS avg_score_pct,
-                ROUND(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 ELSE 0.0 END), 1) AS pass_rate_pct,
+                ROUND(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END), 1) AS pass_rate_pct,
                 ROUND(AVG(sm.errors), 1) AS avg_errors,
                 ROUND(AVG(sm.time_seconds), 1) AS avg_time_seconds,
                 ROUND(pc.recent_avg - pc.prior_avg, 1) AS avg_score_change_pct

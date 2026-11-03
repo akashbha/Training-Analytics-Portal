@@ -166,3 +166,34 @@ def get_analytics_overview(
     """Aggregates multi-batch performance, pass rates, and today's activity metrics (Staff only)."""
     service = AnalyticsService(db)
     return service.get_overview()
+
+# =========================================================================
+# Machine Learning Early-Warning Prediction Endpoints (Synopsis Section 10)
+# =========================================================================
+@router.get("/batches/{batch_id}/ml-attention")
+def get_batch_ml_attention_endpoint(
+    batch_id: int,
+    limit: int = Query(10, ge=1, le=50, description="Max flagged trainees to return"),
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Predicts trainees requiring early trainer intervention using trained ML pipeline with cold-start fallback (Staff only)."""
+    from app.ml.predictor import get_batch_ml_attention
+    return get_batch_ml_attention(db, batch_id=batch_id, limit=limit)
+
+@router.get("/trainees/{trainee_id}/ml-prediction")
+def get_trainee_ml_prediction_endpoint(
+    trainee_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Returns granular ML risk score, probability, and contributing risk factors for a trainee."""
+    verify_trainee_access(trainee_id, current_user)
+    from app.ml.predictor import predict_trainee_attention
+    return predict_trainee_attention(db, trainee_id=trainee_id)
+
+@router.get("/ml/model-info")
+def get_ml_model_info(staff: User = Depends(require_staff)):
+    """Returns candidate comparison, evaluation metrics (Recall, F1, Confusion Matrix), and feature importances."""
+    from app.ml.predictor import get_metrics_summary
+    return get_metrics_summary()

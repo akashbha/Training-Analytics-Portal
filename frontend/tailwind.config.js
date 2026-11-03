@@ -8,17 +8,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#5B3FA8",
-          dark: "#4A3290",
-          light: "#EDE8FA",
-          page: "#E4DCF7",
+          DEFAULT: "#2563EB",
+          dark: "#1D4ED8",
+          light: "#EFF6FF",
+          page: "#F8FAFC",
         },
       },
       fontFamily: {
-        sans: ["'Plus Jakarta Sans'", "sans-serif"],
-      },
-      borderRadius: {
-        "3xl": "1.5rem",
+        sans: ["'Outfit'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["'Outfit'", "sans-serif"],
       },
     },
   },

@@ -10,11 +10,11 @@ export function Card({
   className = "",
   ...props
 }) {
-  const baseStyles = "rounded-3xl transition-shadow";
+  const baseStyles = "rounded-xl transition-all";
   const variants = {
-    white: "bg-white text-slate-900 shadow-sm border border-purple-100/60 p-6",
-    dark: "bg-brand-dark text-white shadow-md p-6",
-    light: "bg-brand-light text-slate-900 p-6",
+    white: "bg-white text-slate-900 shadow-sm border border-slate-200/80 p-6",
+    dark: "bg-slate-900 text-white shadow-md p-6",
+    light: "bg-slate-50 text-slate-900 border border-slate-200/60 p-6",
   };
 
   const selectedVariant = variants[variant] || variants.white;
