@@ -63,9 +63,10 @@ class SessionService:
         to_date: Optional[date] = None
     ) -> PaginatedResponse[SessionResponse]:
         """Queries database for paginated sessions with relational filtering."""
-        sessions, total = self.repo.get_all(
-            page=page,
-            page_size=page_size,
+        skip = (page - 1) * page_size
+        sessions, total = self.repo.list(
+            skip=skip,
+            limit=page_size,
             trainee_id=trainee_id,
             module_id=module_id,
             batch_id=batch_id,

@@ -50,6 +50,8 @@ class SessionRepository:
         items = query.order_by(Session.created_at.desc()).offset(skip).limit(limit).all()
         return items, total
 
+    get_all = list
+
     def get_by_id(self, session_id: int) -> Optional[Session]:
         """Retrieves a single session entity with related trainee and module loaded."""
         return self.db.query(Session).options(
