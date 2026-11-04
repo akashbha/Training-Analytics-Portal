@@ -4,7 +4,7 @@ Validates role assignments, trainee 1-to-1 linkage, and password reset responses
 
 from datetime import datetime
 from typing import Optional, Any
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class AdminUserResponse(BaseModel):
     """Rich user account schema with linked trainee details."""
@@ -15,8 +15,7 @@ class AdminUserResponse(BaseModel):
     trainee_id: Optional[int] = None
     trainee_name: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AdminUserCreate(BaseModel):
     """Payload schema for administrative user account provisioning."""
@@ -51,5 +50,4 @@ class AuditLogResponse(BaseModel):
     details: Optional[Any] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

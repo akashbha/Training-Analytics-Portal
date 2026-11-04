@@ -4,12 +4,12 @@ Supports profile customization details: phone, bio, specialization, avatar_url, 
 """
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class TraineeBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=120, example="Jane Doe")
-    email: EmailStr = Field(..., example="jane.doe@example.com")
-    batch_id: int = Field(..., example=1)
+    name: str = Field(..., min_length=1, max_length=120, json_schema_extra={"example": "Jane Doe"})
+    email: EmailStr = Field(..., json_schema_extra={"example": "jane.doe@example.com"})
+    batch_id: int = Field(..., json_schema_extra={"example": 1})
     phone: Optional[str] = Field(None, max_length=40)
     bio: Optional[str] = Field(None, max_length=1000)
     specialization: Optional[str] = Field(None, max_length=120)
@@ -42,5 +42,4 @@ class TraineeResponse(BaseModel):
     avatar_url: Optional[str] = None
     github_url: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

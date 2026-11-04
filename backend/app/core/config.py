@@ -2,7 +2,7 @@
 Provides environment-based configuration for database connection strings, JWT security, and production guards.
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, model_validator
 import os
 
@@ -49,8 +49,6 @@ class Settings(BaseSettings):
             )
         return self
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

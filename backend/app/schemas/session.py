@@ -4,14 +4,14 @@ Validates score bounds, non-negative error counts, positive durations, and CSV r
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class SessionCreate(BaseModel):
-    trainee_id: int = Field(..., example=1)
-    module_id: int = Field(..., example=2)
-    score: float = Field(..., ge=0, example=85.5)
-    errors: int = Field(..., ge=0, example=2)
-    time_seconds: int = Field(..., gt=0, example=1200)
+    trainee_id: int = Field(..., json_schema_extra={"example": 1})
+    module_id: int = Field(..., json_schema_extra={"example": 2})
+    score: float = Field(..., ge=0, json_schema_extra={"example": 85.5})
+    errors: int = Field(..., ge=0, json_schema_extra={"example": 2})
+    time_seconds: int = Field(..., gt=0, json_schema_extra={"example": 1200})
     created_at: Optional[datetime] = None
 
 class SessionResponse(BaseModel):
@@ -29,8 +29,7 @@ class SessionResponse(BaseModel):
     created_at: datetime
     created_by: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class BulkRowError(BaseModel):
     row: int

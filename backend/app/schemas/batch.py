@@ -4,12 +4,12 @@ Validates cohort date ranges and enforces non-blank unique cohort names.
 
 from datetime import date
 from typing import Optional
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 class BatchBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100, example="Batch Alpha")
-    start_date: date = Field(..., example="2026-01-15")
-    end_date: date = Field(..., example="2026-06-15")
+    name: str = Field(..., min_length=1, max_length=100, json_schema_extra={"example": "Batch Alpha"})
+    start_date: date = Field(..., json_schema_extra={"example": "2026-01-15"})
+    end_date: date = Field(..., json_schema_extra={"example": "2026-06-15"})
 
     @model_validator(mode="after")
     def validate_dates(self) -> "BatchBase":
@@ -38,5 +38,4 @@ class BatchResponse(BaseModel):
     end_date: date
     trainee_count: Optional[int] = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

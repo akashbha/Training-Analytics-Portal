@@ -3,12 +3,12 @@ Enforces request validation rules, email formatting, and output serialization co
 """
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class LoginRequest(BaseModel):
     """Payload schema for authenticating with email and password."""
-    email: EmailStr = Field(..., example="trainer@example.com")
-    password: str = Field(..., min_length=1, example="Trainer@123")
+    email: EmailStr = Field(..., json_schema_extra={"example": "trainer@example.com"})
+    password: str = Field(..., min_length=1, json_schema_extra={"example": "Trainer@123"})
 
 class ChangePasswordRequest(BaseModel):
     """Payload schema for authenticated user password change."""
@@ -23,8 +23,7 @@ class UserResponse(BaseModel):
     is_active: bool = True
     trainee_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TokenResponse(BaseModel):
     """Bearer token response payload returned upon successful login."""

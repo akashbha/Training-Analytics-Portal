@@ -3,11 +3,11 @@ Validates non-empty module titles and enforces strictly positive maximum scores.
 """
 
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class ModuleBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=150, example="Python Fundamentals")
-    max_score: float = Field(..., gt=0, example=100.0)
+    name: str = Field(..., min_length=1, max_length=150, json_schema_extra={"example": "Python Fundamentals"})
+    max_score: float = Field(..., gt=0, json_schema_extra={"example": 100.0})
 
 class ModuleCreate(ModuleBase):
     pass
@@ -22,5 +22,4 @@ class ModuleResponse(BaseModel):
     max_score: float
     session_count: Optional[int] = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
