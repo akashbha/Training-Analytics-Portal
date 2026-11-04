@@ -119,6 +119,8 @@ class SessionService:
             return False, "INVALID_TIME", f"Time duration ({time_seconds}s) cannot be negative", 422
         if time_seconds > MAX_SESSION_TIME_SECONDS:
             return False, "TIME_EXCEEDS_LIMIT", f"Session time ({time_seconds}s) exceeds maximum allowed duration of {MAX_SESSION_TIME_SECONDS}s (4 hours)", 422
+        if target_date > datetime.now(timezone.utc).date():
+            return False, "FUTURE_SESSION_DATE", f"Session date ({target_date.isoformat()}) cannot be in the future", 422
         if check_db_duplicate:
             existing_dup = self.repo.get_by_trainee_module_date(
                 trainee_id=trainee.id,

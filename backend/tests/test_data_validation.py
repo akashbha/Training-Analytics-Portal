@@ -284,3 +284,21 @@ def test_admin_data_quality_detects_flagged_records(client, db_session):
     dup_flags = [r for r in data["flagged_records"] if r["rule_violated"] == "duplicate_sessions"]
     assert len(dup_flags) >= 1
 
+
+def test_future_session_date_rejected(client):
+    """Submitting session with date in the future must be rejected with HTTP 422."""
+    headers = get_trainer_headers()
+    future_date = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
+    payload = {
+        "trainee_id": 1,
+        "module_id": 1,
+        "score": 80.0,
+        "errors": 1,
+        "time_seconds": 1200,
+        "created_at": future_date,
+    }
+    res = client.post("/sessions", json=payload, headers=headers)
+    assert res.status_code == 422
+    assert "FUTURE_SESSION_DATE" in res.json()["error"]["code"]
+
+
