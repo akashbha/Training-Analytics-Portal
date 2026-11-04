@@ -4,7 +4,7 @@ Enforces staff access (trainer and admin) on cohort rosters, leaderboards, and a
 
 from datetime import date
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_current_user, require_staff
@@ -18,7 +18,8 @@ from app.schemas.analytics import (
     TraineeSummaryResponse,
     TraineeProgressItem,
     ModuleErrorItem,
-    BatchCompareItem
+    BatchCompareItem,
+    BatchHeatmapResponse
 )
 from app.services.analytics_service import AnalyticsService
 from app.repositories.trainee_repository import TraineeRepository
@@ -111,6 +112,34 @@ def get_batch_attention(
     """Returns up to 5 trainees needing attention with falling trends (Staff only)."""
     service = AnalyticsService(db)
     return service.get_batch_attention(batch_id)
+
+@router.get("/batches/{batch_id}/heatmap", response_model=BatchHeatmapResponse)
+def get_batch_heatmap(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Returns student x module performance heatmap matrix with score bands."""
+    verify_batch_access(batch_id, current_user, db)
+    service = AnalyticsService(db)
+    return service.get_batch_heatmap(batch_id)
+
+@router.get("/batches/{batch_id}/at-risk/export")
+def export_batch_at_risk_csv(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Exports at-risk cohort trainees with descriptive flag reasons as a downloadable CSV (Staff only)."""
+    service = AnalyticsService(db)
+    csv_content = service.export_batch_at_risk_csv(batch_id)
+    filename = f"at_risk_batch_{batch_id}.csv"
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
 
 @router.get("/trainees/{trainee_id}/summary", response_model=TraineeSummaryResponse)
 def get_trainee_summary(

@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.models.batch import Batch
 from app.models.trainee import Trainee
+from app.models.module import Module
+from app.models.session import Session as SessionModel
 from app.core.constants import PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_CUTOFF, COLD_START_SESSIONS
 
 class AnalyticsRepository:
@@ -1030,3 +1032,152 @@ class AnalyticsRepository:
             }
             for row in rows
         ]
+
+    def get_batch_heatmap(self, batch_id: int) -> Optional[Dict[str, Any]]:
+        """Constructs a Trainee x Module performance heatmap matrix.
+        Cells represent average score % per module; empty if no sessions (None, not 0.0).
+        """
+        from collections import defaultdict
+        batch = self.db.query(Batch).filter(Batch.id == batch_id).first()
+        if not batch:
+            return None
+
+        modules = self.db.query(Module).order_by(Module.id.asc()).all()
+        trainees = self.db.query(Trainee).filter(Trainee.batch_id == batch_id).order_by(Trainee.name.asc()).all()
+
+        sessions = (
+            self.db.query(
+                SessionModel.trainee_id,
+                SessionModel.module_id,
+                SessionModel.score,
+                Module.max_score
+            )
+            .join(Module, Module.id == SessionModel.module_id)
+            .join(Trainee, Trainee.id == SessionModel.trainee_id)
+            .filter(Trainee.batch_id == batch_id)
+            .all()
+        )
+
+        scores_by_pair = defaultdict(list)
+        for t_id, m_id, score, max_score in sessions:
+            pct = (score * 100.0 / max_score) if (max_score and max_score > 0) else score
+            scores_by_pair[(t_id, m_id)].append(pct)
+
+        rows = []
+        for t in trainees:
+            cells = []
+            for m in modules:
+                sc_list = scores_by_pair.get((t.id, m.id), [])
+                if not sc_list:
+                    score_pct = None
+                    band = None
+                else:
+                    score_pct = round(sum(sc_list) / len(sc_list), 1)
+                    if score_pct >= EXCELLENT_THRESHOLD:
+                        band = "excellent"
+                    elif score_pct >= PASS_THRESHOLD:
+                        band = "passing"
+                    else:
+                        band = "struggling"
+
+                cells.append({
+                    "module_id": m.id,
+                    "module_name": m.name,
+                    "score_pct": score_pct,
+                    "session_count": len(sc_list),
+                    "band": band
+                })
+
+            rows.append({
+                "trainee_id": t.id,
+                "trainee_name": t.name,
+                "cells": cells
+            })
+
+        return {
+            "batch_id": batch.id,
+            "batch_name": batch.name,
+            "modules": [{"id": m.id, "name": m.name} for m in modules],
+            "rows": rows
+        }
+
+    def get_batch_at_risk_list(self, batch_id: int) -> Optional[List[Dict[str, Any]]]:
+        """Returns all trainees flagged as at-risk in the batch with detailed flag reason text."""
+        batch = self.db.query(Batch).filter(Batch.id == batch_id).first()
+        if not batch:
+            return None
+
+        trainees = self.db.query(Trainee).filter(Trainee.batch_id == batch_id).order_by(Trainee.name.asc()).all()
+
+        at_risk_list = []
+        for t in trainees:
+            sessions = (
+                self.db.query(SessionModel, Module.max_score)
+                .join(Module, Module.id == SessionModel.module_id)
+                .filter(SessionModel.trainee_id == t.id)
+                .order_by(SessionModel.created_at.asc())
+                .all()
+            )
+
+            session_count = len(sessions)
+            if session_count == 0:
+                at_risk_list.append({
+                    "trainee_id": t.id,
+                    "name": t.name,
+                    "email": t.email,
+                    "batch_name": batch.name,
+                    "avg_score_pct": None,
+                    "session_count": 0,
+                    "flag_reason": "No assessments completed yet (Cold start)"
+                })
+                continue
+
+            scores = [
+                (s.score * 100.0 / m) if (m and m > 0) else s.score
+                for s, m in sessions
+            ]
+            avg_score = round(sum(scores) / len(scores), 1)
+
+            if session_count < COLD_START_SESSIONS:
+                if avg_score < COLD_START_CUTOFF:
+                    at_risk_list.append({
+                        "trainee_id": t.id,
+                        "name": t.name,
+                        "email": t.email,
+                        "batch_name": batch.name,
+                        "avg_score_pct": avg_score,
+                        "session_count": session_count,
+                        "flag_reason": f"Initial performance critical low ({avg_score:.1f}% < {COLD_START_CUTOFF:.1f}% cutoff)"
+                    })
+                continue
+
+            is_flagged = False
+            reasons = []
+
+            if avg_score < COLD_START_CUTOFF:
+                is_flagged = True
+                reasons.append(f"Critical low score ({avg_score:.1f}% < {COLD_START_CUTOFF:.1f}%)")
+            elif avg_score < PASS_THRESHOLD:
+                is_flagged = True
+                reasons.append(f"Score below passing threshold ({avg_score:.1f}% < {PASS_THRESHOLD:.1f}%)")
+
+            if session_count >= 6:
+                initial_3 = sum(scores[:3]) / 3.0
+                recent_3 = sum(scores[-3:]) / 3.0
+                slope = recent_3 - initial_3
+                if slope < -6.0:
+                    is_flagged = True
+                    reasons.append(f"Declining score trend ({slope:+.1f}% slope)")
+
+            if is_flagged:
+                at_risk_list.append({
+                    "trainee_id": t.id,
+                    "name": t.name,
+                    "email": t.email,
+                    "batch_name": batch.name,
+                    "avg_score_pct": avg_score,
+                    "session_count": session_count,
+                    "flag_reason": "; ".join(reasons)
+                })
+
+        return at_risk_list

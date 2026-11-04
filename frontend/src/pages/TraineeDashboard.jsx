@@ -223,6 +223,14 @@ export function TraineeDashboard({ traineeId: propId }) {
   const [remediationSubmitting, setRemediationSubmitting] = useState(false);
   const [remediationError, setRemediationError] = useState("");
 
+  // Module learning goals state
+  const [goals, setGoals] = useState([]);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+  const [goalForm, setGoalForm] = useState({ module_id: "", target_score: "75.0" });
+  const [goalSubmitting, setGoalSubmitting] = useState(false);
+  const [goalError, setGoalError] = useState("");
+  const [goalSuccess, setGoalSuccess] = useState(false);
+
   const loadRemediations = useCallback(async () => {
     if (!effectiveId) return;
     setRemediationsLoading(true);
@@ -236,26 +244,72 @@ export function TraineeDashboard({ traineeId: propId }) {
     }
   }, [effectiveId]);
 
-  useEffect(() => {
-    loadRemediations();
-  }, [loadRemediations]);
+  const loadGoals = useCallback(async () => {
+    if (!effectiveId) return;
+    setGoalsLoading(true);
+    try {
+      const res = await apiClient.get(`/trainees/${effectiveId}/goals`);
+      setGoals(res.data || []);
+    } catch {
+      setGoals([]);
+    } finally {
+      setGoalsLoading(false);
+    }
+  }, [effectiveId]);
 
   useEffect(() => {
-    if (isStaff) {
-      apiClient.get("/modules?page=1&page_size=100")
-        .then((res) => {
-          const list = res.data?.items || res.data || [];
-          setAllModules(list);
-          if (list.length > 0) {
-            setRemediationForm((prev) => ({
-              ...prev,
-              module_id: prev.module_id || String(list[0].id)
-            }));
-          }
-        })
-        .catch(() => {});
+    loadRemediations();
+    loadGoals();
+  }, [loadRemediations, loadGoals]);
+
+  useEffect(() => {
+    apiClient.get("/modules?page=1&page_size=100")
+      .then((res) => {
+        const list = res.data?.items || res.data || [];
+        setAllModules(list);
+        if (list.length > 0) {
+          setRemediationForm((prev) => ({
+            ...prev,
+            module_id: prev.module_id || String(list[0].id)
+          }));
+          setGoalForm((prev) => ({
+            ...prev,
+            module_id: prev.module_id || String(list[0].id)
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveGoal = async (e) => {
+    e.preventDefault();
+    if (!goalForm.module_id) return;
+    const targetScore = parseFloat(goalForm.target_score);
+    if (isNaN(targetScore) || targetScore < 0 || targetScore > 100) {
+      setGoalError("Target score must be between 0.0 and 100.0%");
+      return;
     }
-  }, [isStaff]);
+    setGoalSubmitting(true);
+    setGoalError("");
+    setGoalSuccess(false);
+    try {
+      await apiClient.post(`/trainees/${effectiveId}/goals`, {
+        module_id: Number(goalForm.module_id),
+        target_score: targetScore,
+      });
+      setGoalSuccess(true);
+      setTimeout(() => setGoalSuccess(false), 3000);
+      await loadGoals();
+    } catch (err) {
+      setGoalError(
+        err.response?.data?.error?.message ||
+        err.message ||
+        "Failed to establish learning goal"
+      );
+    } finally {
+      setGoalSubmitting(false);
+    }
+  };
 
   const handleCreateRemediation = async (e) => {
     e.preventDefault();
@@ -1163,7 +1217,189 @@ export function TraineeDashboard({ traineeId: propId }) {
         </div>
       </ChartCard>
 
-      {/* 5. RECENT ASSESSMENT EVALUATION LEDGER */}
+      {/* 5. MODULE LEARNING GOALS & TARGET PROGRESS (Step 8) */}
+      <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-100 gap-3">
+          <div>
+            <div className="flex items-center space-x-2">
+              <Target className="w-4 h-4 text-brand" />
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight uppercase">
+                Module Learning Goals & Target Progress
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Set target score thresholds per curriculum module and monitor verified best assessment scores toward your goal.
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold text-slate-400 self-start md:self-auto">
+            {goals.length} Module Goal{goals.length !== 1 ? "s" : ""} Defined
+          </span>
+        </div>
+
+        {/* Set / Update Goal Form */}
+        <form onSubmit={handleSaveGoal} className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+          <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
+            Establish or Update Module Target
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-6">
+              <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                Curriculum Module
+              </label>
+              <select
+                value={goalForm.module_id}
+                onChange={(e) => setGoalForm((prev) => ({ ...prev, module_id: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+              >
+                {allModules.map((m) => (
+                  <option key={m.id} value={String(m.id)}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                Target Score (%)
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                max="100"
+                value={goalForm.target_score}
+                onChange={(e) => setGoalForm((prev) => ({ ...prev, target_score: e.target.value }))}
+                placeholder="75.0"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+
+            <div className="sm:col-span-3">
+              <button
+                type="submit"
+                disabled={goalSubmitting || !goalForm.module_id}
+                className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1"
+              >
+                {goalSubmitting ? (
+                  <span>Saving...</span>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Target</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {goalError && (
+            <p className="mt-2 text-xs font-semibold text-rose-600">{goalError}</p>
+          )}
+          {goalSuccess && (
+            <div className="mt-2 flex items-center space-x-1.5 text-xs font-bold text-emerald-600">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Goal successfully saved and logged to audit trail!</span>
+            </div>
+          )}
+        </form>
+
+        {/* Active Goals Grid */}
+        <div className="mt-5">
+          {goalsLoading ? (
+            <div className="py-8 flex items-center justify-center space-x-2 text-xs text-slate-500">
+              <Spinner size="sm" />
+              <span>Loading module learning goals...</span>
+            </div>
+          ) : goals.length === 0 ? (
+            <div className="py-8 text-center text-xs text-slate-400">
+              No module targets established yet. Select a module above to define your first performance milestone.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {goals.map((g) => {
+                const isMet = g.best_score !== null && g.best_score >= g.target_score;
+                const hasScore = g.best_score !== null;
+                const cappedProgress = Math.min(100, Math.max(0, g.progress_pct || 0));
+
+                return (
+                  <div
+                    key={g.id}
+                    className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-slate-900 text-xs">
+                          {g.module_name || `Module #${g.module_id}`}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          Target: <strong className="text-slate-800">{g.target_score.toFixed(1)}%</strong>
+                          {" • "}
+                          Best Score:{" "}
+                          <strong className={hasScore ? "text-slate-900" : "text-slate-400"}>
+                            {hasScore ? `${g.best_score.toFixed(1)}%` : "0% (No sessions)"}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          isMet
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : hasScore
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : "bg-slate-100 text-slate-500 border-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            isMet ? "bg-emerald-500" : hasScore ? "bg-blue-500" : "bg-slate-400"
+                          }`}
+                        />
+                        <span>{isMet ? "Target Met" : hasScore ? "In Progress" : "No Sessions"}</span>
+                      </span>
+                    </div>
+
+                    {/* Progress Bar (capped at 100%) */}
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
+                        <span>Progress to Target</span>
+                        <span className="font-bold text-slate-900">{cappedProgress.toFixed(0)}%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isMet ? "bg-emerald-500" : "bg-blue-600"
+                          }`}
+                          style={{ width: `${cappedProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-500">
+                      <span>Updated {new Date(g.updated_at).toLocaleDateString()}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGoalForm({
+                            module_id: String(g.module_id),
+                            target_score: String(g.target_score),
+                          });
+                        }}
+                        className="font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
+                      >
+                        Edit Target →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* 6. RECENT ASSESSMENT EVALUATION LEDGER */}
       <ChartCard
         title="Assessment Evaluation Ledger"
         subtitle="Chronological record of verified test drills, scoring accuracy, and defect counts"

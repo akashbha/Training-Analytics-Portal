@@ -28,6 +28,7 @@ import {
   useBatchAttention,
   useBatchLeaderboard,
   useBatchTopPerformer,
+  useBatchHeatmap,
 } from "../hooks/useBatchAnalytics.js";
 import {
   RotateCw,
@@ -39,6 +40,8 @@ import {
   CheckCircle2,
   BrainCircuit,
   Sparkles,
+  Download,
+  LayoutGrid,
 } from "lucide-react";
 import { PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_SESSIONS, COLD_START_CUTOFF } from "../constants/thresholds.js";
 
@@ -131,6 +134,37 @@ export function Dashboard() {
     refetch: refetchTop,
   } = useBatchTopPerformer(selectedBatchId);
 
+  const {
+    data: heatmapData,
+    loading: heatmapLoading,
+    refetch: refetchHeatmap,
+  } = useBatchHeatmap(selectedBatchId);
+
+  const [exportingCsv, setExportingCsv] = useState(false);
+
+  const handleExportAtRiskCsv = async () => {
+    if (!selectedBatchId) return;
+    setExportingCsv(true);
+    try {
+      const res = await apiClient.get(`/analytics/batches/${selectedBatchId}/at-risk/export`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `batch_${selectedBatchId}_at_risk.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export at-risk CSV", err);
+    } finally {
+      setExportingCsv(false);
+    }
+  };
+
   // Live WebSocket debounced refetcher
   const debounceTimerRef = useRef(null);
   const silentRefetchAll = useCallback(() => {
@@ -140,6 +174,7 @@ export function Dashboard() {
     refetchAttention(true);
     refetchLeaderboard(true);
     refetchTop(true);
+    refetchHeatmap(true);
   }, [
     refetchSummary,
     refetchWeekly,
@@ -147,6 +182,7 @@ export function Dashboard() {
     refetchAttention,
     refetchLeaderboard,
     refetchTop,
+    refetchHeatmap,
   ]);
 
   useLiveEvent(
@@ -1010,9 +1046,21 @@ export function Dashboard() {
                   ML Intervention Alerts
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
-                {(attention || []).length} Trainees Flagged
-              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleExportAtRiskCsv}
+                  disabled={exportingCsv || !selectedBatchId}
+                  className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-200 cursor-pointer transition-colors disabled:opacity-50"
+                  title="Export CSV of at-risk cohort trainees with flag reason text"
+                >
+                  <Download className="w-3 h-3 text-slate-600" />
+                  <span>{exportingCsv ? "Exporting..." : "Export CSV"}</span>
+                </button>
+                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
+                  {(attention || []).length} Trainees Flagged
+                </span>
+              </div>
             </div>
 
             <p className="text-[11px] text-slate-500 mt-2">
@@ -1074,6 +1122,125 @@ export function Dashboard() {
           </div>
 
         </div>
+      </section>
+
+      {/* =========================================================================
+          4. STUDENT × MODULE PERFORMANCE HEATMAP (Step 8)
+          ========================================================================= */}
+      <section className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-2xs">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-100 gap-3">
+          <div>
+            <div className="flex items-center space-x-2">
+              <LayoutGrid className="w-4 h-4 text-brand" />
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight uppercase">
+                Student × Module Performance Heatmap
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Curriculum matrix displaying score distributions across modules. Empty cells represent modules with zero attempted sessions.
+            </p>
+          </div>
+
+          {/* Thresholds Legend */}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-200/70">
+            <span className="text-slate-400 font-bold uppercase text-[10px] mr-1">Bands:</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Excellent (≥{EXCELLENT_THRESHOLD}%)
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
+              Passing ({PASS_THRESHOLD}–{EXCELLENT_THRESHOLD - 0.1}%)
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200">
+              Struggling (&lt;{PASS_THRESHOLD}%)
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+              No Data (—)
+            </span>
+          </div>
+        </div>
+
+        {heatmapLoading ? (
+          <div className="py-12 flex items-center justify-center space-x-2 text-xs text-slate-500">
+            <RotateCw className="w-4 h-4 animate-spin text-brand" />
+            <span>Loading cohort heatmap matrix...</span>
+          </div>
+        ) : !heatmapData || !heatmapData.rows || heatmapData.rows.length === 0 ? (
+          <div className="py-12 text-center text-xs text-slate-400">
+            No student assessment records available for heatmap rendering in this cohort.
+          </div>
+        ) : (
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-left">
+                  <th className="py-2.5 px-3 font-bold text-slate-500 uppercase tracking-wider text-[11px] min-w-[170px]">
+                    Trainee
+                  </th>
+                  {(heatmapData.modules || []).map((m) => (
+                    <th
+                      key={m.id}
+                      className="py-2.5 px-3 font-bold text-slate-600 text-center tracking-tight text-[11px] min-w-[120px]"
+                    >
+                      {m.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {heatmapData.rows.map((row, rIdx) => {
+                  const avatarUrl = getTraineeAvatar({ trainee_id: row.trainee_id, name: row.trainee_name }, rIdx);
+                  return (
+                    <tr key={row.trainee_id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-2.5 px-3">
+                        <Link
+                          to={`/trainees/${row.trainee_id}`}
+                          className="flex items-center space-x-2.5 group"
+                        >
+                          <img
+                            src={avatarUrl}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover ring-1 ring-slate-200"
+                          />
+                          <span className="font-bold text-slate-900 group-hover:text-blue-600 truncate text-xs">
+                            {row.trainee_name}
+                          </span>
+                        </Link>
+                      </td>
+                      {(row.cells || []).map((cell) => {
+                        const hasScore = cell.score_pct !== null && cell.score_pct !== undefined;
+                        let bandClass = "bg-slate-50 text-slate-400 border-slate-200/60 font-normal";
+                        if (hasScore) {
+                          if (cell.band === "excellent" || cell.score_pct >= EXCELLENT_THRESHOLD) {
+                            bandClass = "bg-emerald-50 text-emerald-800 border-emerald-200 font-bold";
+                          } else if (cell.band === "passing" || cell.score_pct >= PASS_THRESHOLD) {
+                            bandClass = "bg-blue-50 text-blue-800 border-blue-200 font-bold";
+                          } else {
+                            bandClass = "bg-rose-50 text-rose-800 border-rose-200 font-bold";
+                          }
+                        }
+
+                        return (
+                          <td key={cell.module_id} className="py-2 px-2 text-center">
+                            <div
+                              className={`py-1.5 px-2 rounded-lg border text-xs transition-transform hover:scale-105 ${bandClass}`}
+                              title={
+                                hasScore
+                                  ? `${cell.module_name}: ${cell.score_pct.toFixed(1)}% (${cell.session_count} session${cell.session_count === 1 ? "" : "s"})`
+                                  : `${cell.module_name}: No sessions completed (blank)`
+                              }
+                            >
+                              {hasScore ? `${cell.score_pct.toFixed(1)}%` : "—"}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* =========================================================================

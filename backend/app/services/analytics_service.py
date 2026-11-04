@@ -19,7 +19,8 @@ from app.schemas.analytics import (
     TraineeSummaryResponse,
     TraineeProgressItem,
     ModuleErrorItem,
-    BatchCompareItem
+    BatchCompareItem,
+    BatchHeatmapResponse
 )
 from app.core.exceptions import AppException
 from app.core.constants import PASS_THRESHOLD
@@ -82,6 +83,37 @@ class AnalyticsService:
         if result is None:
             raise AppException(code="BATCH_NOT_FOUND", message=f"Batch with ID {batch_id} not found", status_code=404)
         return [AttentionItem(**item) for item in result]
+
+    def get_batch_heatmap(self, batch_id: int) -> BatchHeatmapResponse:
+        """Retrieves Student x Module performance heatmap matrix or raises 404."""
+        result = self.repo.get_batch_heatmap(batch_id)
+        if result is None:
+            raise AppException(code="BATCH_NOT_FOUND", message=f"Batch with ID {batch_id} not found", status_code=404)
+        return BatchHeatmapResponse(**result)
+
+    def export_batch_at_risk_csv(self, batch_id: int) -> str:
+        """Generates a CSV string containing at-risk trainees and detailed flag reason text."""
+        import csv
+        import io
+        result = self.repo.get_batch_at_risk_list(batch_id)
+        if result is None:
+            raise AppException(code="BATCH_NOT_FOUND", message=f"Batch with ID {batch_id} not found", status_code=404)
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["trainee_id", "trainee_name", "trainee_email", "batch_name", "average_score_pct", "session_count", "flag_reason"])
+        for item in result:
+            score_str = f"{item['avg_score_pct']:.1f}%" if item["avg_score_pct"] is not None else "N/A"
+            writer.writerow([
+                item["trainee_id"],
+                item["name"],
+                item["email"],
+                item["batch_name"],
+                score_str,
+                item["session_count"],
+                item["flag_reason"]
+            ])
+        return output.getvalue()
 
     def get_trainee_summary(
         self,

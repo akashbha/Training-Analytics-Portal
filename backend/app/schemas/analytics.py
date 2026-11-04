@@ -69,3 +69,29 @@ class BatchCompareItem(BaseModel):
     avg_score_pct: Optional[float] = None
     pass_rate_pct: Optional[float] = None
     trainee_count: int
+
+
+class HeatmapCell(BaseModel):
+    module_id: int
+    module_name: str
+    score_pct: Optional[float] = None
+    session_count: int = 0
+    band: Optional[str] = None  # "excellent", "passing", "struggling", None
+
+
+class HeatmapRow(BaseModel):
+    trainee_id: int
+    trainee_name: str
+    cells: List[HeatmapCell]
+
+
+class HeatmapModuleHeader(BaseModel):
+    id: int
+    name: str
+
+
+class BatchHeatmapResponse(BaseModel):
+    batch_id: int
+    batch_name: str
+    modules: List[HeatmapModuleHeader]
+    rows: List[HeatmapRow]

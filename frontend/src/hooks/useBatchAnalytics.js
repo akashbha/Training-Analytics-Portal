@@ -448,3 +448,82 @@ export function useBatchTopPerformer(batchId) {
 
   return { data, loading, error, refetch: fetchTop };
 }
+
+const PREVIEW_HEATMAP = {
+  1: {
+    batch_id: 1,
+    batch_name: "Batch A - Web Core",
+    modules: [
+      { id: 1, name: "Web Foundations" },
+      { id: 2, name: "React State" },
+      { id: 3, name: "FastAPI REST" },
+      { id: 4, name: "PostgreSQL" },
+    ],
+    rows: [
+      {
+        trainee_id: 1,
+        trainee_name: "Danielle Johnson",
+        cells: [
+          { module_id: 1, module_name: "Web Foundations", score_pct: 95.0, session_count: 4, band: "excellent" },
+          { module_id: 2, module_name: "React State", score_pct: 92.5, session_count: 3, band: "excellent" },
+          { module_id: 3, module_name: "FastAPI REST", score_pct: 88.0, session_count: 4, band: "excellent" },
+          { module_id: 4, module_name: "PostgreSQL", score_pct: 78.0, session_count: 3, band: "excellent" },
+        ],
+      },
+      {
+        trainee_id: 2,
+        trainee_name: "Joshua Walker",
+        cells: [
+          { module_id: 1, module_name: "Web Foundations", score_pct: 88.0, session_count: 3, band: "excellent" },
+          { module_id: 2, module_name: "React State", score_pct: 72.0, session_count: 3, band: "passing" },
+          { module_id: 3, module_name: "FastAPI REST", score_pct: 68.0, session_count: 3, band: "passing" },
+          { module_id: 4, module_name: "PostgreSQL", score_pct: null, session_count: 0, band: null },
+        ],
+      },
+      {
+        trainee_id: 3,
+        trainee_name: "Jill Rhodes",
+        cells: [
+          { module_id: 1, module_name: "Web Foundations", score_pct: 64.0, session_count: 3, band: "passing" },
+          { module_id: 2, module_name: "React State", score_pct: 54.0, session_count: 2, band: "struggling" },
+          { module_id: 3, module_name: "FastAPI REST", score_pct: null, session_count: 0, band: null },
+          { module_id: 4, module_name: "PostgreSQL", score_pct: null, session_count: 0, band: null },
+        ],
+      },
+    ],
+  },
+};
+
+/**
+ * Hook to fetch student x module performance heatmap matrix.
+ */
+export function useBatchHeatmap(batchId) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(Boolean(batchId));
+  const [error, setError] = useState(null);
+
+  const fetchHeatmap = useCallback(async (silent = false) => {
+    if (!batchId) return;
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get(`/analytics/batches/${batchId}/heatmap`);
+      setData(res.data);
+    } catch (err) {
+      if (isNetworkFailure(err)) {
+        setData(PREVIEW_HEATMAP[batchId] || PREVIEW_HEATMAP[1] || null);
+      } else {
+        setError(err.message || "Failed to load cohort heatmap");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId]);
+
+  useEffect(() => {
+    fetchHeatmap();
+  }, [fetchHeatmap]);
+
+  return { data, loading, error, refetch: fetchHeatmap };
+}
+

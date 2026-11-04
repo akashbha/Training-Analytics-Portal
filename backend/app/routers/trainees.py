@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db, get_current_user, require_staff, require_admin
 from app.core.exceptions import AppException
 from app.schemas.trainee import TraineeCreate, TraineeUpdate, TraineeResponse
+from app.schemas.trainee_goal import TraineeGoalCreate, TraineeGoalResponse
 from app.schemas.common import PaginatedResponse
 from app.services.trainee_service import TraineeService
+from app.services.goal_service import GoalService
 from app.services.audit_service import record_audit_log, create_audit_log
 from app.models.user import User
 
@@ -147,3 +149,35 @@ def delete_trainee(
     )
     db.commit()
     return None
+
+@router.get("/{trainee_id}/goals", response_model=list[TraineeGoalResponse])
+def get_trainee_goals(
+    trainee_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieves target module goals and best-score progress for a trainee."""
+    if current_user.role == "trainee" and current_user.trainee_id != trainee_id:
+        raise AppException(
+            code="FORBIDDEN_RESOURCE_ACCESS",
+            message="Trainees are restricted to viewing only their own goals",
+            status_code=403
+        )
+    return GoalService(db).get_trainee_goals(trainee_id)
+
+@router.post("/{trainee_id}/goals", response_model=TraineeGoalResponse)
+def set_trainee_goal(
+    trainee_id: int,
+    payload: TraineeGoalCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Creates or updates a module performance goal for a trainee and records an audit log row."""
+    if current_user.role == "trainee" and current_user.trainee_id != trainee_id:
+        raise AppException(
+            code="FORBIDDEN_RESOURCE_ACCESS",
+            message="Trainees are restricted to modifying only their own goals",
+            status_code=403
+        )
+    return GoalService(db).set_goal(trainee_id, payload, actor_id=current_user.id)
+
