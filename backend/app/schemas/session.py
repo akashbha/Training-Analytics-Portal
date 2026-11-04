@@ -41,3 +41,24 @@ class BulkSessionResponse(BaseModel):
     inserted: int
     failed: int
     errors: List[BulkRowError]
+
+class ImportRowDetail(BaseModel):
+    row: int
+    trainee_email: str
+    module_name: str
+    score: Optional[float] = None
+    errors: Optional[int] = None
+    time_seconds: Optional[int] = None
+    created_at: Optional[str] = None
+    valid: bool
+    error: Optional[str] = None
+
+class SessionImportResponse(BaseModel):
+    success: bool
+    dry_run: bool
+    total_rows: int
+    valid_rows: int
+    error_count: int
+    errors: List[ImportRowDetail]
+    rows: List[ImportRowDetail]
+

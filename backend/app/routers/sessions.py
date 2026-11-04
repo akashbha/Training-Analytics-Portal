@@ -5,7 +5,7 @@ Enforces score boundary business logic, creator attribution, role-based deletion
 from datetime import date
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, UploadFile, File, status
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_current_user, require_staff
@@ -13,7 +13,8 @@ from app.core.exceptions import AppException
 from app.schemas.session import (
     SessionCreate,
     SessionResponse,
-    BulkSessionResponse
+    BulkSessionResponse,
+    SessionImportResponse
 )
 from app.schemas.common import PaginatedResponse
 from app.services.session_service import SessionService
@@ -154,3 +155,50 @@ async def bulk_upload_sessions(
 
     service = SessionService(db)
     return service.bulk_create_from_csv(csv_text, created_by=staff.id)
+
+MAX_IMPORT_CSV_BYTES = 1 * 1024 * 1024  # 1 Megabyte
+
+@router.post("/import", response_model=SessionImportResponse)
+async def import_sessions(
+    dry_run: bool = Query(False, description="If true, parse and validate without persisting records"),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Imports sessions from CSV with atomic rollback on any error and dry-run preview capability."""
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise AppException(
+            code="INVALID_FILE_TYPE",
+            message="Uploaded file must be a valid .csv file format",
+            status_code=400
+        )
+
+    content_bytes = await file.read()
+    if len(content_bytes) > MAX_IMPORT_CSV_BYTES:
+        raise AppException(
+            code="FILE_TOO_LARGE",
+            message=f"Uploaded file exceeds maximum allowed size of 1 MB ({len(content_bytes)} bytes)",
+            status_code=400
+        )
+
+    try:
+        csv_text = content_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise AppException(
+            code="INVALID_ENCODING",
+            message="CSV file must be encoded in UTF-8 format",
+            status_code=400
+        )
+
+    service = SessionService(db)
+    result = service.import_sessions(
+        csv_content=csv_text,
+        dry_run=dry_run,
+        created_by=staff.id
+    )
+
+    if not dry_run and not result.success:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=result.model_dump())
+
+    return result
+

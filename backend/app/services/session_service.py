@@ -5,7 +5,7 @@ Enforces score <= module.max_score, created_by attribution, role deletion bounda
 import csv
 import io
 from datetime import date, datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Any, Tuple, Dict, Set
 from sqlalchemy.orm import Session as DbSession
 
 from app.repositories.session_repository import SessionRepository
@@ -15,7 +15,9 @@ from app.schemas.session import (
     SessionCreate,
     SessionResponse,
     BulkSessionResponse,
-    BulkRowError
+    BulkRowError,
+    ImportRowDetail,
+    SessionImportResponse
 )
 from app.schemas.common import PaginatedResponse
 from app.models.session import Session
@@ -90,85 +92,62 @@ class SessionService:
             raise AppException(code="SESSION_NOT_FOUND", message=f"Session with ID {session_id} not found", status_code=404)
         return self._build_response(session)
 
+    def validate_session_core(
+        self,
+        trainee: Optional[Any],
+        module: Optional[Any],
+        score: float,
+        errors: int,
+        time_seconds: int,
+        target_date: date,
+        check_db_duplicate: bool = True
+    ) -> Tuple[bool, Optional[str], Optional[str], int]:
+        """Core validation logic shared identically across single entry and CSV bulk imports.
+        Returns: (is_valid, error_code, error_message, status_code).
+        """
+        if not trainee:
+            return False, "TRAINEE_NOT_FOUND", "Trainee not found", 404
+        if not module:
+            return False, "MODULE_NOT_FOUND", "Module not found", 404
+        if score < 0:
+            return False, "INVALID_SCORE", f"Session score ({score}) cannot be negative", 422
+        if score > module.max_score:
+            return False, "SCORE_EXCEEDS_MAX", f"Session score ({score}) exceeds module '{module.name}' max_score of {module.max_score}", 422
+        if errors < 0:
+            return False, "INVALID_ERRORS", f"Errors count ({errors}) cannot be negative", 422
+        if time_seconds < 0:
+            return False, "INVALID_TIME", f"Time duration ({time_seconds}s) cannot be negative", 422
+        if time_seconds > MAX_SESSION_TIME_SECONDS:
+            return False, "TIME_EXCEEDS_LIMIT", f"Session time ({time_seconds}s) exceeds maximum allowed duration of {MAX_SESSION_TIME_SECONDS}s (4 hours)", 422
+        if check_db_duplicate:
+            existing_dup = self.repo.get_by_trainee_module_date(
+                trainee_id=trainee.id,
+                module_id=module.id,
+                target_date=target_date
+            )
+            if existing_dup:
+                return False, "DUPLICATE_SESSION_DATE", f"A session for trainee {trainee.id} and module {module.id} already exists on {target_date.isoformat()}", 409
+        return True, None, None, 200
+
     def create_session(self, session_in: SessionCreate, created_by: Optional[int] = None) -> SessionResponse:
         """Validates trainee existence, module bounds, sets created_by, and enforces score <= max_score."""
         trainee = self.trainee_repo.get_by_id(session_in.trainee_id)
-        if not trainee:
-            raise AppException(
-                code="TRAINEE_NOT_FOUND",
-                message=f"Trainee with ID {session_in.trainee_id} not found",
-                status_code=404
-            )
-
         module = self.module_repo.get_by_id(session_in.module_id)
-        if not module:
-            raise AppException(
-                code="MODULE_NOT_FOUND",
-                message=f"Module with ID {session_in.module_id} not found",
-                status_code=404
-            )
 
-        # Business Rule: score must not exceed the module's max_score and must be >= 0
-        if session_in.score < 0:
-            raise AppException(
-                code="INVALID_SCORE",
-                message=f"Session score ({session_in.score}) cannot be negative",
-                status_code=422
-            )
-
-        if session_in.score > module.max_score:
-            raise AppException(
-                code="SCORE_EXCEEDS_MAX",
-                message=(
-                    f"Session score ({session_in.score}) exceeds module '{module.name}' "
-                    f"max_score of {module.max_score}"
-                ),
-                status_code=422
-            )
-
-        # Business Rule: errors must be >= 0
-        if session_in.errors < 0:
-            raise AppException(
-                code="INVALID_ERRORS",
-                message=f"Errors count ({session_in.errors}) cannot be negative",
-                status_code=422
-            )
-
-        # Business Rule: time_seconds must be >= 0 and <= MAX_SESSION_TIME_SECONDS
-        if session_in.time_seconds < 0:
-            raise AppException(
-                code="INVALID_TIME",
-                message=f"Time duration ({session_in.time_seconds}s) cannot be negative",
-                status_code=422
-            )
-
-        if session_in.time_seconds > MAX_SESSION_TIME_SECONDS:
-            raise AppException(
-                code="TIME_EXCEEDS_LIMIT",
-                message=(
-                    f"Session time ({session_in.time_seconds}s) exceeds maximum allowed duration "
-                    f"of {MAX_SESSION_TIME_SECONDS}s (4 hours)"
-                ),
-                status_code=422
-            )
-
-        # Business Rule: duplicate trainee/module/date check
         session_created_at = session_in.created_at or datetime.now(timezone.utc)
         target_date = session_created_at.date()
-        existing_dup = self.repo.get_by_trainee_module_date(
-            trainee_id=session_in.trainee_id,
-            module_id=session_in.module_id,
-            target_date=target_date
+
+        valid, err_code, err_msg, status_code = self.validate_session_core(
+            trainee=trainee,
+            module=module,
+            score=session_in.score,
+            errors=session_in.errors,
+            time_seconds=session_in.time_seconds,
+            target_date=target_date,
+            check_db_duplicate=True
         )
-        if existing_dup:
-            raise AppException(
-                code="DUPLICATE_SESSION_DATE",
-                message=(
-                    f"A session for trainee {session_in.trainee_id} and module {session_in.module_id} "
-                    f"already exists on {target_date.isoformat()}"
-                ),
-                status_code=409
-            )
+        if not valid:
+            raise AppException(code=err_code, message=err_msg, status_code=status_code)
 
         session = Session(
             trainee_id=session_in.trainee_id,
@@ -222,20 +201,27 @@ class SessionService:
                 status_code=403
             )
 
+        trainee = self.trainee_repo.get_by_id(session_in.trainee_id)
         module = self.module_repo.get_by_id(session_in.module_id)
-        if not module:
-            raise AppException(code="MODULE_NOT_FOUND", message=f"Module with ID {session_in.module_id} not found", status_code=404)
+        session_created_at = session_in.created_at or session.created_at
+        target_date = session_created_at.date()
 
-        if session_in.score < 0:
-            raise AppException(code="INVALID_SCORE", message="Session score cannot be negative", status_code=422)
-        if session_in.score > module.max_score:
-            raise AppException(code="SCORE_EXCEEDS_MAX", message=f"Session score ({session_in.score}) exceeds module max_score of {module.max_score}", status_code=422)
-        if session_in.errors < 0:
-            raise AppException(code="INVALID_ERRORS", message="Errors count cannot be negative", status_code=422)
-        if session_in.time_seconds < 0:
-            raise AppException(code="INVALID_TIME", message="Time duration cannot be negative", status_code=422)
-        if session_in.time_seconds > MAX_SESSION_TIME_SECONDS:
-            raise AppException(code="TIME_EXCEEDS_LIMIT", message=f"Session time exceeds maximum allowed duration of {MAX_SESSION_TIME_SECONDS}s", status_code=422)
+        check_db_dup = (
+            session_in.trainee_id != session.trainee_id or
+            session_in.module_id != session.module_id or
+            target_date != session.created_at.date()
+        )
+        valid, err_code, err_msg, status_code = self.validate_session_core(
+            trainee=trainee,
+            module=module,
+            score=session_in.score,
+            errors=session_in.errors,
+            time_seconds=session_in.time_seconds,
+            target_date=target_date,
+            check_db_duplicate=check_db_dup
+        )
+        if not valid:
+            raise AppException(code=err_code, message=err_msg, status_code=status_code)
 
         before_state = {
             "id": session.id,
@@ -442,3 +428,227 @@ class SessionService:
             failed=len(row_errors),
             errors=row_errors
         )
+
+    def import_sessions(
+        self,
+        csv_content: str,
+        dry_run: bool = False,
+        created_by: Optional[int] = None
+    ) -> SessionImportResponse:
+        """Parses and validates CSV session records with dry-run support, row-level error reporting,
+        in-file duplicate detection, and atomic all-or-nothing rollback on persistence failure.
+        """
+        reader = csv.DictReader(io.StringIO(csv_content))
+        required_headers = {"trainee_email", "module_name", "score", "errors", "time_seconds"}
+        if not reader.fieldnames or not required_headers.issubset(set(h.strip() for h in reader.fieldnames)):
+            raise AppException(
+                code="INVALID_CSV_HEADERS",
+                message="CSV must include columns: trainee_email, module_name, score, errors, time_seconds",
+                status_code=400
+            )
+
+        raw_rows = list(reader)
+        if len(raw_rows) > 2000:
+            raise AppException(
+                code="ROW_LIMIT_EXCEEDED",
+                message=f"CSV file contains {len(raw_rows)} data rows, exceeding maximum limit of 2,000 rows",
+                status_code=400
+            )
+
+        trainee_cache: Dict[str, Any] = {}
+        module_cache: Dict[str, Any] = {}
+        file_seen_keys: Set[Tuple[int, int, date]] = set()
+
+        detailed_rows: List[ImportRowDetail] = []
+        error_rows: List[ImportRowDetail] = []
+        sessions_to_insert: List[Session] = []
+
+        for row_index, row in enumerate(raw_rows, start=2):  # Header is row 1
+            if not any(v.strip() for v in row.values() if v):
+                continue
+
+            trainee_email = row.get("trainee_email", "").strip()
+            module_name = row.get("module_name", "").strip()
+            score_str = row.get("score", "").strip()
+            errors_str = row.get("errors", "").strip()
+            time_str = row.get("time_seconds", "").strip()
+            created_at_str = row.get("created_at", "").strip()
+
+            row_error: Optional[str] = None
+            parsed_score: Optional[float] = None
+            parsed_errors: Optional[int] = None
+            parsed_time: Optional[int] = None
+            session_created_at = datetime.now(timezone.utc)
+            target_date = session_created_at.date()
+
+            # Parse created_at if provided
+            if created_at_str:
+                try:
+                    session_created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+                    target_date = session_created_at.date()
+                except ValueError:
+                    row_error = f"Invalid ISO timestamp in created_at: '{created_at_str}'"
+
+            # Parse numeric fields
+            if not row_error:
+                if not score_str:
+                    row_error = "score is required"
+                else:
+                    try:
+                        parsed_score = float(score_str)
+                    except ValueError:
+                        row_error = f"score must be a valid number; got '{score_str}'"
+
+            if not row_error:
+                if not errors_str:
+                    row_error = "errors is required"
+                else:
+                    try:
+                        parsed_errors = int(errors_str)
+                    except ValueError:
+                        row_error = f"errors must be a valid integer; got '{errors_str}'"
+
+            if not row_error:
+                if not time_str:
+                    row_error = "time_seconds is required"
+                else:
+                    try:
+                        parsed_time = int(time_str)
+                    except ValueError:
+                        row_error = f"time_seconds must be a valid integer; got '{time_str}'"
+
+            # Resolve Trainee
+            trainee = None
+            if not row_error:
+                if not trainee_email:
+                    row_error = "trainee_email is required"
+                else:
+                    email_lower = trainee_email.lower()
+                    if email_lower not in trainee_cache:
+                        trainee_cache[email_lower] = self.trainee_repo.get_by_email(email_lower)
+                    trainee = trainee_cache[email_lower]
+                    if not trainee:
+                        row_error = f"Trainee with email '{trainee_email}' not found"
+
+            # Resolve Module
+            module = None
+            if not row_error:
+                if not module_name:
+                    row_error = "module_name is required"
+                else:
+                    mod_lower = module_name.lower()
+                    if mod_lower not in module_cache:
+                        module_cache[mod_lower] = self.module_repo.get_by_name(module_name)
+                    module = module_cache[mod_lower]
+                    if not module:
+                        row_error = f"Module '{module_name}' not found"
+
+            # In-file duplicate check
+            if not row_error and trainee and module:
+                file_dup_key = (trainee.id, module.id, target_date)
+                if file_dup_key in file_seen_keys:
+                    row_error = (
+                        f"Duplicate session for trainee '{trainee_email}' and module '{module_name}' "
+                        f"on date {target_date.isoformat()} within the import file"
+                    )
+                else:
+                    file_seen_keys.add(file_dup_key)
+
+            # Core validation (score bounds, error non-negativity, time bounds, DB duplicates)
+            if not row_error:
+                is_valid, err_code, err_msg, _ = self.validate_session_core(
+                    trainee=trainee,
+                    module=module,
+                    score=parsed_score,
+                    errors=parsed_errors,
+                    time_seconds=parsed_time,
+                    target_date=target_date,
+                    check_db_duplicate=True
+                )
+                if not is_valid:
+                    row_error = err_msg
+
+            is_valid_row = (row_error is None)
+            detail = ImportRowDetail(
+                row=row_index,
+                trainee_email=trainee_email,
+                module_name=module_name,
+                score=parsed_score,
+                errors=parsed_errors,
+                time_seconds=parsed_time,
+                created_at=session_created_at.isoformat(),
+                valid=is_valid_row,
+                error=row_error
+            )
+            detailed_rows.append(detail)
+
+            if not is_valid_row:
+                error_rows.append(detail)
+            else:
+                sessions_to_insert.append(
+                    Session(
+                        trainee_id=trainee.id,
+                        module_id=module.id,
+                        score=parsed_score,
+                        errors=parsed_errors,
+                        time_seconds=parsed_time,
+                        created_at=session_created_at,
+                        created_by=created_by
+                    )
+                )
+
+        has_errors = (len(error_rows) > 0)
+
+        # In dry run mode or when any row fails, roll back everything and write nothing
+        if dry_run or has_errors:
+            self.db.rollback()
+            return SessionImportResponse(
+                success=not has_errors,
+                dry_run=dry_run,
+                total_rows=len(detailed_rows),
+                valid_rows=len(detailed_rows) - len(error_rows),
+                error_count=len(error_rows),
+                errors=error_rows,
+                rows=detailed_rows
+            )
+
+        # Commit all rows in a single transaction with audit logs
+        for s in sessions_to_insert:
+            self.db.add(s)
+        self.db.flush()
+
+        for s in sessions_to_insert:
+            after_state = {
+                "id": s.id,
+                "trainee_id": s.trainee_id,
+                "module_id": s.module_id,
+                "score": s.score,
+                "errors": s.errors,
+                "time_seconds": s.time_seconds,
+            }
+            record_audit_log(
+                db=self.db,
+                actor_id=created_by,
+                action="create",
+                entity_type="session",
+                entity_id=s.id,
+                before=None,
+                after=after_state,
+                details={"source": "csv_import"}
+            )
+
+        self.db.commit()
+
+        # Real-time notification
+        notify_session_created(sessions_to_insert)
+
+        return SessionImportResponse(
+            success=True,
+            dry_run=False,
+            total_rows=len(detailed_rows),
+            valid_rows=len(detailed_rows),
+            error_count=0,
+            errors=[],
+            rows=detailed_rows
+        )
+

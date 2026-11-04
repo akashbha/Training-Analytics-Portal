@@ -204,6 +204,13 @@ Once the backend server is running, interactive API documentation is automatical
 
 ---
 
+## ⚠️ Technical Notes & Limitations
+
+- **Audit Log Append-Only Scope**: The append-only invariant is strictly enforced at the **application layer** via the `AuditRepository` and service interfaces (which forbid update and delete operations). Direct manipulation via database administrative tools or raw SQL access is outside the scope of application-level guards.
+- **SQLite DateTime Adapter Warning**: The `DeprecationWarning` observed during SQLite test runs originates in our code (`backend/app/repositories/analytics_repository.py`), where Python `datetime` objects are passed directly as bind parameters to raw SQL text queries. Resolution is scheduled as a cleanup item to bind via SQLAlchemy typed expressions or explicit ISO-formatted strings.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).

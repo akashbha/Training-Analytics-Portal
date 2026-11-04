@@ -12,6 +12,7 @@ import {
   Download,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   Clock,
   Target,
   User,
@@ -42,11 +43,12 @@ export function AddSession() {
   const [singleSubmitting, setSingleSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // CSV Drag-and-Drop Upload state
+  // CSV Drag-and-Drop & Dry-Run Ingestion state
   const [csvFile, setCsvFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [csvUploading, setCsvUploading] = useState(false);
-  const [csvResult, setCsvResult] = useState(null);
+  const [csvValidating, setCsvValidating] = useState(false);
+  const [csvCommitting, setCsvCommitting] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
   const [csvError, setCsvError] = useState("");
   const fileInputRef = useRef(null);
 
@@ -213,54 +215,90 @@ export function AddSession() {
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      validateAndSetCsv(file);
+      validateAndDryRunCsv(file);
     }
   };
 
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      validateAndSetCsv(e.target.files[0]);
+      validateAndDryRunCsv(e.target.files[0]);
     }
   };
 
-  const validateAndSetCsv = (file) => {
+  const validateAndDryRunCsv = async (file) => {
     if (!file.name.toLowerCase().endsWith(".csv")) {
       setCsvError("Only .csv files are supported.");
       setCsvFile(null);
+      setImportPreview(null);
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      setCsvError(`File size (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the 1 MB limit.`);
+      setCsvFile(null);
+      setImportPreview(null);
       return;
     }
     setCsvError("");
-    setCsvResult(null);
     setCsvFile(file);
+    setImportPreview(null);
+    setCsvValidating(true);
+
+    const body = new FormData();
+    body.append("file", file);
+
+    try {
+      const res = await apiClient.post("/sessions/import?dry_run=true", body, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setImportPreview(res.data);
+    } catch (err) {
+      setCsvError(
+        err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to validate CSV file."
+      );
+    } finally {
+      setCsvValidating(false);
+    }
   };
 
-  // Upload CSV File
-  const handleCsvUpload = async () => {
-    if (!csvFile) return;
+  // Commit CSV Import (Atomic transaction)
+  const handleCommitImport = async () => {
+    if (!csvFile || !importPreview || importPreview.error_count > 0) return;
 
-    setCsvUploading(true);
+    setCsvCommitting(true);
     setCsvError("");
-    setCsvResult(null);
 
     const body = new FormData();
     body.append("file", csvFile);
 
     try {
-      const res = await apiClient.post("/sessions/bulk", body, {
+      const res = await apiClient.post("/sessions/import?dry_run=false", body, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setCsvResult(res.data);
+      setToastMessage(`Successfully imported ${res.data.valid_rows || importPreview.valid_rows} sessions!`);
+      setTimeout(() => setToastMessage(""), 5000);
       setCsvFile(null);
+      setImportPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       setCsvError(
         err.response?.data?.error?.message ||
+          err.response?.data?.message ||
           err.message ||
-          "Failed to process CSV file."
+          "Failed to commit CSV import."
       );
     } finally {
-      setCsvUploading(false);
+      setCsvCommitting(false);
     }
+  };
+
+  const handleClearCsv = () => {
+    setCsvFile(null);
+    setImportPreview(null);
+    setCsvError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // Download CSV Template
@@ -573,25 +611,15 @@ export function AddSession() {
                   {csvFile ? csvFile.name : "Drag & drop CSV file here, or click to browse"}
                 </p>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Supports .csv files up to 5 MB
+                  Supports .csv files up to 1 MB (max 2,000 rows)
                 </p>
               </div>
 
-              {/* CSV Selection Status & Upload Button */}
-              {csvFile && (
-                <div className="mt-4 flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-xs text-slate-800 font-medium truncate max-w-[200px]">
-                    {csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCsvUpload}
-                    disabled={csvUploading}
-                    className="px-4 py-1.5 rounded-full bg-brand hover:bg-brand-dark text-white font-bold text-xs shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
-                  >
-                    {csvUploading && <Spinner size="sm" />}
-                    <span>Upload CSV</span>
-                  </button>
+              {/* Validation Spinner */}
+              {csvValidating && (
+                <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center space-x-2 text-xs font-semibold text-slate-600">
+                  <Spinner size="sm" />
+                  <span>Validating CSV rows & checking business rules (dry run)...</span>
                 </div>
               )}
 
@@ -603,43 +631,115 @@ export function AddSession() {
                 </div>
               )}
 
-              {/* CSV Results Summary & Error Table */}
-              {csvResult && (
+              {/* Dry-Run Validation Preview & Commit */}
+              {importPreview && !csvValidating && (
                 <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
+                  {/* Summary Badges */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Batch Ingestion Result
+                      Dry-Run Preview
                     </span>
-                    <div className="flex items-center space-x-2 text-xs font-extrabold">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {csvResult.inserted} Inserted
+                    <div className="flex items-center space-x-1.5 text-xs font-extrabold">
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {importPreview.total_rows} Total
                       </span>
-                      {csvResult.failed > 0 && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-                          {csvResult.failed} Failed
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {importPreview.valid_rows} Valid
+                      </span>
+                      {importPreview.error_count > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                          {importPreview.error_count} Errors
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Row Errors Table */}
-                  {csvResult.errors && csvResult.errors.length > 0 && (
-                    <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
-                      <div className="px-3 py-2 bg-slate-100 text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                        Row Validation Errors ({csvResult.errors.length})
-                      </div>
-                      <div className="max-h-44 overflow-y-auto divide-y divide-slate-200 text-[11px]">
-                        {csvResult.errors.map((err, i) => (
-                          <div key={i} className="p-2.5 flex items-start space-x-2 text-rose-700">
-                            <span className="font-extrabold text-slate-900 shrink-0">
-                              Row #{err.row}:
-                            </span>
-                            <span className="text-slate-600">{err.message}</span>
-                          </div>
-                        ))}
-                      </div>
+                  {/* Preview Table */}
+                  <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-xs">
+                    <div className="max-h-60 overflow-y-auto overflow-x-auto">
+                      <table className="w-full text-left text-[11px] border-collapse">
+                        <thead className="bg-slate-100/90 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+                          <tr>
+                            <th className="py-2 px-2.5">Row</th>
+                            <th className="py-2 px-2.5">Trainee</th>
+                            <th className="py-2 px-2.5">Module</th>
+                            <th className="py-2 px-2.5 text-right">Score</th>
+                            <th className="py-2 px-2.5 text-right">Errors</th>
+                            <th className="py-2 px-2.5 text-right">Time</th>
+                            <th className="py-2 px-2.5">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {importPreview.rows?.map((r) => (
+                            <tr
+                              key={r.row}
+                              className={
+                                r.valid
+                                  ? "hover:bg-slate-50/70"
+                                  : "bg-rose-50/80 text-rose-900 border-l-2 border-rose-500"
+                              }
+                            >
+                              <td className="py-2 px-2.5 font-mono font-bold text-slate-700">#{r.row}</td>
+                              <td className="py-2 px-2.5 font-medium truncate max-w-[120px]" title={r.trainee_email}>
+                                {r.trainee_email}
+                              </td>
+                              <td className="py-2 px-2.5 truncate max-w-[110px]" title={r.module_name}>
+                                {r.module_name}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-mono">{r.score ?? "-"}</td>
+                              <td className="py-2 px-2.5 text-right font-mono">{r.errors ?? "-"}</td>
+                              <td className="py-2 px-2.5 text-right font-mono">{r.time_seconds != null ? `${r.time_seconds}s` : "-"}</td>
+                              <td className="py-2 px-2.5">
+                                {r.valid ? (
+                                  <span className="inline-flex items-center space-x-1 text-emerald-700 font-bold text-[10px]">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                    <span>Valid</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-start space-x-1 text-rose-700 font-semibold text-[10px]" title={r.error}>
+                                    <AlertCircle className="w-3 h-3 text-rose-600 shrink-0 mt-0.5" />
+                                    <span className="truncate max-w-[160px]">{r.error}</span>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Commit Action Footer */}
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handleClearCsv}
+                      className="px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                    >
+                      Clear File
+                    </button>
+
+                    <div className="flex items-center space-x-2">
+                      {importPreview.error_count > 0 && (
+                        <span className="text-[11px] text-rose-600 font-medium">
+                          Fix {importPreview.error_count} error{importPreview.error_count > 1 ? "s" : ""} to commit
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleCommitImport}
+                        disabled={importPreview.error_count > 0 || importPreview.total_rows === 0 || csvCommitting}
+                        className={`px-5 py-2 rounded-full font-bold text-xs flex items-center space-x-1.5 shadow-xs transition-all ${
+                          importPreview.error_count === 0 && importPreview.total_rows > 0
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow"
+                            : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        }`}
+                      >
+                        {csvCommitting && <Spinner size="sm" className="text-white" />}
+                        <span>Commit Import ({importPreview.valid_rows})</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </Card>
