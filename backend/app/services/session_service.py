@@ -23,7 +23,7 @@ from app.models.user import User
 from app.core.exceptions import AppException
 from app.core.constants import MAX_SESSION_TIME_SECONDS
 from app.services.notification_service import notify_session_created, notify_session_deleted
-from app.services.audit_service import create_audit_log
+from app.services.audit_service import record_audit_log, create_audit_log
 
 class SessionService:
     """Service encapsulating session performance recording, bulk processing, and score assertions."""
@@ -184,10 +184,99 @@ class SessionService:
         # Reload relationships for rich serialization
         fresh_session = self.repo.get_by_id(created.id)
 
+        # Audit log creation event
+        after_state = {
+            "id": fresh_session.id,
+            "trainee_id": fresh_session.trainee_id,
+            "module_id": fresh_session.module_id,
+            "score": fresh_session.score,
+            "errors": fresh_session.errors,
+            "time_seconds": fresh_session.time_seconds,
+        }
+        record_audit_log(
+            db=self.db,
+            actor_id=created_by,
+            action="create",
+            entity_type="session",
+            entity_id=fresh_session.id,
+            before=None,
+            after=after_state
+        )
+        self.db.commit()
+
         # Real-time hook
         notify_session_created(fresh_session)
 
         return self._build_response(fresh_session)
+
+    def update_session(self, session_id: int, session_in: SessionCreate, user: User) -> SessionResponse:
+        """Updates assessment session metrics with bounds checking, ownership guards, and audit logging."""
+        session = self.repo.get_by_id(session_id)
+        if not session:
+            raise AppException(code="SESSION_NOT_FOUND", message=f"Session with ID {session_id} not found", status_code=404)
+
+        if user.role == "trainer" and session.created_by != user.id:
+            raise AppException(
+                code="FORBIDDEN_UPDATE_SESSION",
+                message="Trainers may only update assessment sessions they created",
+                status_code=403
+            )
+
+        module = self.module_repo.get_by_id(session_in.module_id)
+        if not module:
+            raise AppException(code="MODULE_NOT_FOUND", message=f"Module with ID {session_in.module_id} not found", status_code=404)
+
+        if session_in.score < 0:
+            raise AppException(code="INVALID_SCORE", message="Session score cannot be negative", status_code=422)
+        if session_in.score > module.max_score:
+            raise AppException(code="SCORE_EXCEEDS_MAX", message=f"Session score ({session_in.score}) exceeds module max_score of {module.max_score}", status_code=422)
+        if session_in.errors < 0:
+            raise AppException(code="INVALID_ERRORS", message="Errors count cannot be negative", status_code=422)
+        if session_in.time_seconds < 0:
+            raise AppException(code="INVALID_TIME", message="Time duration cannot be negative", status_code=422)
+        if session_in.time_seconds > MAX_SESSION_TIME_SECONDS:
+            raise AppException(code="TIME_EXCEEDS_LIMIT", message=f"Session time exceeds maximum allowed duration of {MAX_SESSION_TIME_SECONDS}s", status_code=422)
+
+        before_state = {
+            "id": session.id,
+            "trainee_id": session.trainee_id,
+            "module_id": session.module_id,
+            "score": session.score,
+            "errors": session.errors,
+            "time_seconds": session.time_seconds,
+        }
+
+        session.trainee_id = session_in.trainee_id
+        session.module_id = session_in.module_id
+        session.score = session_in.score
+        session.errors = session_in.errors
+        session.time_seconds = session_in.time_seconds
+        if session_in.created_at:
+            session.created_at = session_in.created_at
+        self.db.flush()
+
+        after_state = {
+            "id": session.id,
+            "trainee_id": session.trainee_id,
+            "module_id": session.module_id,
+            "score": session.score,
+            "errors": session.errors,
+            "time_seconds": session.time_seconds,
+        }
+
+        record_audit_log(
+            db=self.db,
+            actor_id=user.id,
+            action="update",
+            entity_type="session",
+            entity_id=session.id,
+            before=before_state,
+            after=after_state
+        )
+        self.db.commit()
+
+        fresh = self.repo.get_by_id(session.id)
+        return self._build_response(fresh)
 
     def delete_session(self, session_id: int, user: User) -> None:
         """Deletes a session record with ownership/admin privilege checks and audit logging."""
@@ -206,19 +295,27 @@ class SessionService:
 
         trainee_id = session.trainee_id
         batch_id = session.trainee.batch_id if session.trainee else None
-        module_id = session.module_id
-        score = session.score
+
+        before_state = {
+            "id": session.id,
+            "trainee_id": session.trainee_id,
+            "module_id": session.module_id,
+            "score": session.score,
+            "errors": session.errors,
+            "time_seconds": session.time_seconds,
+        }
 
         self.repo.delete(session)
 
         # Write audit log entry
-        create_audit_log(
+        record_audit_log(
             db=self.db,
-            user_id=user.id,
-            action="session_deleted",
+            actor_id=user.id,
+            action="delete",
             entity_type="session",
             entity_id=session_id,
-            details={"trainee_id": trainee_id, "module_id": module_id, "score": score}
+            before=before_state,
+            after=None
         )
         self.db.commit()
 

@@ -183,7 +183,7 @@ def seed_database(reset: bool = False) -> None:
         # 5. Longitudinal Sessions Generation over ~3 months (84 days)
         # -------------------------------------------------------------
         sessions_to_insert = []
-        start_time_window = today_dt - timedelta(days=84)
+        start_time_window = datetime.combine(today_date - timedelta(days=84), datetime.min.time(), tzinfo=timezone.utc)
         total_days = 84
 
         for trainee in trainees:
@@ -192,6 +192,7 @@ def seed_database(reset: bool = False) -> None:
             if count == 0:
                 continue
 
+            used_module_dates = set()
             persona = plan["persona"]
             max_day = plan["max_day"]
             is_batch_d = (trainee.batch_id == batches[3].id)  # Batch D weaker by ~12 points
@@ -227,7 +228,21 @@ def seed_database(reset: bool = False) -> None:
 
             for day_offset in sampled_days:
                 time_fraction = day_offset / float(total_days)
-                session_module = random.choice(modules)
+
+                # Timestamp guaranteed within regular hours on that calendar day
+                sess_time = start_time_window + timedelta(
+                    days=day_offset,
+                    hours=random.randint(9, 17),
+                    minutes=random.randint(0, 59),
+                    seconds=random.randint(0, 59)
+                )
+                sess_date = sess_time.date()
+
+                available_modules = [m for m in modules if (m.id, sess_date) not in used_module_dates]
+                if not available_modules:
+                    available_modules = modules
+                session_module = random.choice(available_modules)
+                used_module_dates.add((session_module.id, sess_date))
 
                 # Score calculation with progressive trend and noise
                 current_pct = base_start_pct + (improvement_gain * time_fraction)

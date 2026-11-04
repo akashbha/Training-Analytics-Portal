@@ -99,6 +99,17 @@ def create_session(
     service = SessionService(db)
     return service.create_session(payload, created_by=staff.id)
 
+@router.put("/{session_id}", response_model=SessionResponse)
+def update_session(
+    session_id: int,
+    payload: SessionCreate,
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Updates an existing assessment session metrics and writes audit log (Staff only)."""
+    service = SessionService(db)
+    return service.update_session(session_id, payload, user=staff)
+
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_session(
     session_id: int,

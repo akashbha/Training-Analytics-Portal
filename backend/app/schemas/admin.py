@@ -42,13 +42,17 @@ class AdminResetPasswordResponse(BaseModel):
 class AuditLogResponse(BaseModel):
     """Serialized audit trail entry."""
     id: int
+    actor_id: Optional[int] = None
     user_id: Optional[int] = None
     user_email: Optional[str] = None
     action: str
     entity_type: str
     entity_id: Optional[int] = None
-    details: Optional[Any] = None
+    timestamp: Optional[datetime] = None
     created_at: datetime
+    before: Optional[Any] = None
+    after: Optional[Any] = None
+    details: Optional[Any] = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -345,13 +345,17 @@ def get_audit_logs(
         items.append(
             AuditLogResponse(
                 id=item.id,
-                user_id=item.user_id,
+                actor_id=item.actor_id or item.user_id,
+                user_id=item.user_id or item.actor_id,
                 user_email=item.user.email if item.user else None,
                 action=item.action,
                 entity_type=item.entity_type,
                 entity_id=item.entity_id,
-                details=item.details,
-                created_at=item.created_at
+                timestamp=item.timestamp or item.created_at,
+                created_at=item.created_at or item.timestamp,
+                before=item.before,
+                after=item.after,
+                details=item.details or item.after or item.before
             )
         )
 

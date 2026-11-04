@@ -10,7 +10,7 @@ from app.core.exceptions import AppException
 from app.schemas.trainee import TraineeCreate, TraineeUpdate, TraineeResponse
 from app.schemas.common import PaginatedResponse
 from app.services.trainee_service import TraineeService
-from app.services.audit_service import create_audit_log
+from app.services.audit_service import record_audit_log, create_audit_log
 from app.models.user import User
 
 router = APIRouter(prefix="/trainees", tags=["Trainees"])
@@ -69,13 +69,15 @@ def create_trainee(
     """Enrolls a new trainee into a batch cohort (Staff only)."""
     service = TraineeService(db)
     trainee = service.create_trainee(payload)
-    create_audit_log(
+    after_state = {"id": trainee.id, "name": trainee.name, "email": trainee.email, "batch_id": trainee.batch_id}
+    record_audit_log(
         db=db,
-        user_id=staff.id,
-        action="trainee_created",
+        actor_id=staff.id,
+        action="create",
         entity_type="trainee",
         entity_id=trainee.id,
-        details={"name": trainee.name, "email": trainee.email, "batch_id": trainee.batch_id}
+        before=None,
+        after=after_state
     )
     db.commit()
     return trainee
@@ -88,6 +90,10 @@ def update_trainee(
     current_user: User = Depends(get_current_user)
 ):
     """Updates trainee profile. Trainees may edit their own profile; staff may edit any trainee and reassign cohorts."""
+    service = TraineeService(db)
+    existing_t = service.get_trainee(trainee_id)
+    before_state = {"id": existing_t.id, "name": existing_t.name, "email": existing_t.email, "batch_id": existing_t.batch_id}
+
     is_staff = current_user.role in ("trainer", "admin")
     if not is_staff:
         if current_user.trainee_id != trainee_id:
@@ -98,8 +104,6 @@ def update_trainee(
             )
         # Disallow batch re-assignment for trainees
         if payload.batch_id is not None:
-            service_temp = TraineeService(db)
-            existing_t = service_temp.get_trainee(trainee_id)
             if payload.batch_id != existing_t.batch_id:
                 raise AppException(
                     code="FORBIDDEN_BATCH_REASSIGNMENT",
@@ -107,15 +111,16 @@ def update_trainee(
                     status_code=403
                 )
 
-    service = TraineeService(db)
     trainee = service.update_trainee(trainee_id, payload)
-    create_audit_log(
+    after_state = {"id": trainee.id, "name": trainee.name, "email": trainee.email, "batch_id": trainee.batch_id}
+    record_audit_log(
         db=db,
-        user_id=current_user.id,
-        action="trainee_updated",
+        actor_id=current_user.id,
+        action="update",
         entity_type="trainee",
         entity_id=trainee.id,
-        details={"name": trainee.name, "email": trainee.email, "batch_id": trainee.batch_id}
+        before=before_state,
+        after=after_state
     )
     db.commit()
     return trainee
@@ -129,14 +134,16 @@ def delete_trainee(
     """Deletes trainee and cascades sessions (Admin only, respecting existing 409 constraints)."""
     service = TraineeService(db)
     existing = service.get_trainee(trainee_id)
+    before_state = {"id": existing.id, "name": existing.name, "email": existing.email, "batch_id": existing.batch_id}
     service.delete_trainee(trainee_id)
-    create_audit_log(
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="trainee_deleted",
+        actor_id=admin.id,
+        action="delete",
         entity_type="trainee",
         entity_id=trainee_id,
-        details={"name": existing.name, "email": existing.email}
+        before=before_state,
+        after=None
     )
     db.commit()
     return None

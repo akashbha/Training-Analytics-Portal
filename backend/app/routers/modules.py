@@ -8,7 +8,7 @@ from app.core.deps import get_db, get_current_user, require_admin
 from app.schemas.module import ModuleCreate, ModuleUpdate, ModuleResponse
 from app.schemas.common import PaginatedResponse
 from app.services.module_service import ModuleService
-from app.services.audit_service import create_audit_log
+from app.services.audit_service import record_audit_log, create_audit_log
 from app.models.user import User
 
 router = APIRouter(prefix="/modules", tags=["Modules"])
@@ -43,13 +43,15 @@ def create_module(
     """Creates a curriculum module with unique title and positive score ceiling (Admin only)."""
     service = ModuleService(db)
     module = service.create_module(payload)
-    create_audit_log(
+    after_state = {"id": module.id, "name": module.name, "max_score": module.max_score}
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="module_created",
+        actor_id=admin.id,
+        action="create",
         entity_type="module",
         entity_id=module.id,
-        details={"name": module.name, "max_score": module.max_score}
+        before=None,
+        after=after_state
     )
     db.commit()
     return module
@@ -63,14 +65,19 @@ def update_module(
 ):
     """Updates curriculum module specifications (Admin only)."""
     service = ModuleService(db)
+    existing = service.get_module(module_id)
+    before_state = {"id": existing.id, "name": existing.name, "max_score": existing.max_score}
+
     module = service.update_module(module_id, payload)
-    create_audit_log(
+    after_state = {"id": module.id, "name": module.name, "max_score": module.max_score}
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="module_updated",
+        actor_id=admin.id,
+        action="update",
         entity_type="module",
         entity_id=module.id,
-        details={"name": module.name, "max_score": module.max_score}
+        before=before_state,
+        after=after_state
     )
     db.commit()
     return module
@@ -84,14 +91,16 @@ def delete_module(
     """Deletes an assessment module and associated sessions (Admin only)."""
     service = ModuleService(db)
     existing = service.get_module(module_id)
+    before_state = {"id": existing.id, "name": existing.name, "max_score": existing.max_score}
     service.delete_module(module_id)
-    create_audit_log(
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="module_deleted",
+        actor_id=admin.id,
+        action="delete",
         entity_type="module",
         entity_id=module_id,
-        details={"name": existing.name}
+        before=before_state,
+        after=None
     )
     db.commit()
     return None

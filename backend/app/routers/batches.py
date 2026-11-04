@@ -8,7 +8,7 @@ from app.core.deps import get_db, get_current_user, require_admin, require_staff
 from app.schemas.batch import BatchCreate, BatchUpdate, BatchResponse
 from app.schemas.common import PaginatedResponse
 from app.services.batch_service import BatchService
-from app.services.audit_service import create_audit_log
+from app.services.audit_service import record_audit_log, create_audit_log
 from app.models.user import User
 
 router = APIRouter(prefix="/batches", tags=["Batches"])
@@ -43,13 +43,15 @@ def create_batch(
     """Creates a new batch cohort with date range validation (Admin only)."""
     service = BatchService(db)
     batch = service.create_batch(payload)
-    create_audit_log(
+    after_state = {"id": batch.id, "name": batch.name, "start_date": str(batch.start_date), "end_date": str(batch.end_date)}
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="batch_created",
+        actor_id=admin.id,
+        action="create",
         entity_type="batch",
         entity_id=batch.id,
-        details={"name": batch.name, "start_date": str(batch.start_date), "end_date": str(batch.end_date)}
+        before=None,
+        after=after_state
     )
     db.commit()
     return batch
@@ -63,14 +65,19 @@ def update_batch(
 ):
     """Updates batch name and scheduled dates (Admin only)."""
     service = BatchService(db)
+    existing = service.get_batch(batch_id)
+    before_state = {"id": existing.id, "name": existing.name, "start_date": str(existing.start_date), "end_date": str(existing.end_date)}
+
     batch = service.update_batch(batch_id, payload)
-    create_audit_log(
+    after_state = {"id": batch.id, "name": batch.name, "start_date": str(batch.start_date), "end_date": str(batch.end_date)}
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="batch_updated",
+        actor_id=admin.id,
+        action="update",
         entity_type="batch",
         entity_id=batch.id,
-        details={"name": batch.name, "start_date": str(batch.start_date), "end_date": str(batch.end_date)}
+        before=before_state,
+        after=after_state
     )
     db.commit()
     return batch
@@ -84,16 +91,17 @@ def delete_batch(
 ):
     """Deletes a batch, rejecting if trainees are enrolled unless force=true is specified (Admin only)."""
     service = BatchService(db)
-    # Fetch batch details first for audit log
     existing = service.get_batch(batch_id)
+    before_state = {"id": existing.id, "name": existing.name, "start_date": str(existing.start_date), "end_date": str(existing.end_date)}
     service.delete_batch(batch_id, force=force)
-    create_audit_log(
+    record_audit_log(
         db=db,
-        user_id=admin.id,
-        action="batch_deleted",
+        actor_id=admin.id,
+        action="delete",
         entity_type="batch",
         entity_id=batch_id,
-        details={"name": existing.name}
+        before=before_state,
+        after=None
     )
     db.commit()
     return None
