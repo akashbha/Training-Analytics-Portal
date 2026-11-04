@@ -15,6 +15,7 @@ from app.core.security import get_password_hash
 from app.models.batch import Batch
 from app.models.trainee import Trainee
 from app.models.user import User
+from app.models.remediation import Remediation
 from app.main import app
 
 # Isolated in-memory SQLite database with single-connection StaticPool

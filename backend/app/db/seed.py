@@ -30,6 +30,7 @@ from app.models.trainee import Trainee
 from app.models.module import Module
 from app.models.session import Session
 from app.models.user import User
+from app.models.remediation import Remediation
 
 # Password hashing context using standard bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -43,7 +44,8 @@ def hash_password(password: str) -> str:
 def clear_tables(db) -> None:
     """Truncates all tables in strict foreign-key dependency order."""
     print("Clearing existing data in cascade-safe order...")
-    # Dependency order: sessions -> users -> trainees -> modules -> batches
+    # Dependency order: remediations -> sessions -> users -> trainees -> modules -> batches
+    db.query(Remediation).delete()
     db.query(Session).delete()
     db.query(User).delete()
     db.query(Trainee).delete()

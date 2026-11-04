@@ -180,6 +180,77 @@ export function TraineeDashboard({ traineeId: propId }) {
     refetch: refetchSessions,
   } = useTraineeSessions(effectiveId);
 
+  // Remediation records state
+  const [remediations, setRemediations] = useState([]);
+  const [remediationsLoading, setRemediationsLoading] = useState(false);
+  const [showRemediationModal, setShowRemediationModal] = useState(false);
+  const [allModules, setAllModules] = useState([]);
+  const [remediationForm, setRemediationForm] = useState({ module_id: "", note: "" });
+  const [remediationSubmitting, setRemediationSubmitting] = useState(false);
+  const [remediationError, setRemediationError] = useState("");
+
+  const loadRemediations = useCallback(async () => {
+    if (!effectiveId) return;
+    setRemediationsLoading(true);
+    try {
+      const res = await apiClient.get(`/trainees/${effectiveId}/remediations`);
+      setRemediations(res.data || []);
+    } catch {
+      setRemediations([]);
+    } finally {
+      setRemediationsLoading(false);
+    }
+  }, [effectiveId]);
+
+  useEffect(() => {
+    loadRemediations();
+  }, [loadRemediations]);
+
+  useEffect(() => {
+    if (isStaff) {
+      apiClient.get("/modules?page=1&page_size=100")
+        .then((res) => {
+          const list = res.data?.items || res.data || [];
+          setAllModules(list);
+          if (list.length > 0) {
+            setRemediationForm((prev) => ({
+              ...prev,
+              module_id: prev.module_id || String(list[0].id)
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isStaff]);
+
+  const handleCreateRemediation = async (e) => {
+    e.preventDefault();
+    if (!remediationForm.module_id) return;
+    setRemediationSubmitting(true);
+    setRemediationError("");
+    try {
+      await apiClient.post("/remediations", {
+        trainee_id: effectiveId,
+        module_id: Number(remediationForm.module_id),
+        note: remediationForm.note.trim() || null,
+      });
+      setShowRemediationModal(false);
+      setRemediationForm({
+        module_id: allModules[0]?.id ? String(allModules[0].id) : "",
+        note: "",
+      });
+      await loadRemediations();
+    } catch (err) {
+      setRemediationError(
+        err.response?.data?.error?.message ||
+        err.message ||
+        "Failed to create remediation."
+      );
+    } finally {
+      setRemediationSubmitting(false);
+    }
+  };
+
   // Local storage profile customization persistence
   const [localProfile, setLocalProfile] = useState(() => {
     try {
@@ -876,47 +947,95 @@ export function TraineeDashboard({ traineeId: propId }) {
             </div>
           </Card>
 
-          {/* Trainer Mentorship Review */}
+          {/* Remediation Records (Intervention History) */}
           <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Trainer Review</h3>
+                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Remediation Records</h3>
               </div>
-              <span className="text-[10px] font-semibold text-slate-400">
-                Oct 7, 2026
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-semibold text-slate-400">
+                  {remediations.length} Record{remediations.length !== 1 ? "s" : ""}
+                </span>
+                {isStaff && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRemediationModal(true)}
+                    className="px-2.5 py-1 rounded-lg bg-brand hover:bg-brand-dark text-white text-[11px] font-bold cursor-pointer transition-colors shadow-2xs"
+                  >
+                    + Assign
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-7 h-7 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                  MV
-                </div>
-                <div>
-                  <div className="font-bold text-slate-900 leading-tight">Marcus Vance</div>
-                  <div className="text-[10px] text-slate-400 font-medium">Lead Technical Instructor</div>
-                </div>
+            {remediationsLoading ? (
+              <div className="py-6 flex items-center justify-center space-x-2 text-xs text-slate-500">
+                <Spinner size="sm" />
+                <span>Loading remediation history...</span>
               </div>
+            ) : remediations.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                No active remediation records assigned.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {remediations.map((rem) => {
+                  const dateStr = rem.assigned_at
+                    ? new Date(rem.assigned_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "—";
 
-              <blockquote className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 leading-relaxed text-[11px]">
-                &ldquo;Strong rebound on React state engineering (+3.0% net gain) and solid REST API foundations. For your upcoming drill, prioritize PostgreSQL foreign key constraints and index performance to bring your module defect rate under the 2.0 tolerance line.&rdquo;
-              </blockquote>
+                  return (
+                    <div
+                      key={rem.id}
+                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold text-slate-900 text-xs">
+                            {rem.module_name || `Module #${rem.module_id}`}
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            Assigned by {rem.assigned_by_name || "Trainer"} • {dateStr}
+                          </div>
+                        </div>
+                      </div>
 
-              {syncRequested ? (
-                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs text-center border border-emerald-200">
-                  ✓ 1-on-1 Sync Request Dispatched
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setSyncRequested(true)}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition-colors cursor-pointer text-center block shadow-2xs"
-                >
-                  Request 1-on-1 Office Hours
-                </button>
-              )}
-            </div>
+                      {rem.note && (
+                        <p className="text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-slate-100 italic">
+                          &ldquo;{rem.note}&rdquo;
+                        </p>
+                      )}
+
+                      {/* Performance Comparison (Numbers Only, No Effectiveness Claims) */}
+                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 text-xs">
+                        <div className="p-2 rounded-lg bg-white border border-slate-100">
+                          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                            3 Sessions Before
+                          </div>
+                          <div className="text-sm font-extrabold text-slate-800 mt-0.5">
+                            {rem.before_status}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-white border border-slate-100">
+                          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                            3 Sessions After
+                          </div>
+                          <div className="text-sm font-extrabold text-slate-800 mt-0.5">
+                            {rem.after_status}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
       </div>
@@ -1390,6 +1509,92 @@ export function TraineeDashboard({ traineeId: propId }) {
                 Got It
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. ASSIGN REMEDIATION MODAL (Staff Only) */}
+      {showRemediationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  Targeted Intervention
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 mt-1">
+                  Assign Remediation Record
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRemediationModal(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRemediation} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Target Curriculum Module
+                </label>
+                <select
+                  value={remediationForm.module_id}
+                  onChange={(e) => setRemediationForm({ ...remediationForm, module_id: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand"
+                  required
+                >
+                  {allModules.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} (Max: {m.max_score})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Intervention Note (Max 500 characters)
+                </label>
+                <textarea
+                  value={remediationForm.note}
+                  onChange={(e) => setRemediationForm({ ...remediationForm, note: e.target.value.slice(0, 500) })}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Specific focus areas, drills, or conceptual clarifications required..."
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+                />
+                <div className="text-[10px] text-slate-400 text-right mt-0.5">
+                  {remediationForm.note.length}/500
+                </div>
+              </div>
+
+              {remediationError && (
+                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-semibold">
+                  {remediationError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowRemediationModal(false)}
+                  className="px-4 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={remediationSubmitting}
+                  className="px-4 py-1.5 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold cursor-pointer disabled:opacity-50 flex items-center space-x-1.5"
+                >
+                  {remediationSubmitting && <Spinner size="sm" className="text-white" />}
+                  <span>Save Record</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

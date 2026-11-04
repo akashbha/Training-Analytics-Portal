@@ -173,7 +173,15 @@ async def import_sessions(
             status_code=400
         )
 
-    content_bytes = await file.read()
+    if file.size and file.size > MAX_IMPORT_CSV_BYTES:
+        raise AppException(
+            code="FILE_TOO_LARGE",
+            message=f"Uploaded file exceeds maximum allowed size of 1 MB ({file.size} bytes)",
+            status_code=400
+        )
+
+    # Read bounded chunk (max 1 MB + 1 byte) to prevent loading large payloads into memory
+    content_bytes = await file.read(MAX_IMPORT_CSV_BYTES + 1)
     if len(content_bytes) > MAX_IMPORT_CSV_BYTES:
         raise AppException(
             code="FILE_TOO_LARGE",
