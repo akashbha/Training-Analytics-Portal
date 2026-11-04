@@ -796,7 +796,7 @@ export function AdminDashboard() {
                   Cross-Cohort Milestone Progression
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Normalized 8-week performance trajectory aggregated across all active training batches against the 75% target.
+                  Normalized 8-week performance trajectory aggregated across all active training batches against the {EXCELLENT_THRESHOLD}% target.
                 </p>
               </div>
 
@@ -835,7 +835,7 @@ export function AdminDashboard() {
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
-                <span>Target: <strong>75.0% Benchmark</strong></span>
+                <span>Target: <strong>{EXCELLENT_THRESHOLD.toFixed(1)}% Benchmark</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold">
                 <span>★ Peak Milestone: <strong>{highestWeeklyPct.toFixed(1)}%</strong></span>
@@ -862,19 +862,19 @@ export function AdminDashboard() {
                     />
                     <YAxis
                       domain={[40, 100]}
-                      ticks={[40, 60, 75, 90, 100]}
+                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
                       tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(val) => `${val}%`}
                     />
                     <ReferenceLine
-                      y={75}
+                      y={EXCELLENT_THRESHOLD}
                       stroke="#2563EB"
                       strokeDasharray="4 4"
                       strokeWidth={1.5}
                       label={{
-                        value: "Target: 75.0%",
+                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
                         position: "insideTopRight",
                         fill: "#2563EB",
                         fontSize: 10,
@@ -976,19 +976,19 @@ export function AdminDashboard() {
                     />
                     <YAxis
                       domain={[40, 100]}
-                      ticks={[40, 60, 75, 90, 100]}
+                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
                       tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(val) => `${val}%`}
                     />
                     <ReferenceLine
-                      y={75}
+                      y={EXCELLENT_THRESHOLD}
                       stroke="#2563EB"
                       strokeDasharray="4 4"
                       strokeWidth={1.5}
                       label={{
-                        value: "Target: 75.0%",
+                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
                         position: "insideTopRight",
                         fill: "#2563EB",
                         fontSize: 10,
@@ -1153,7 +1153,7 @@ export function AdminDashboard() {
                           const comp = comparisons[b.id];
                           const avg = comp?.avg_score_pct ?? null;
                           const pass = comp?.pass_rate_pct ?? null;
-                          const isBelow = avg !== null && avg < 60;
+                          const isBelow = avg !== null && avg < PASS_THRESHOLD;
                           const trainer = BATCH_LEAD_TRAINERS[b.id] || {
                             name: "Staff Trainer",
                             role: "Instructor",

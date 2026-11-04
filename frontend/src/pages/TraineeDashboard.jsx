@@ -795,18 +795,18 @@ export function TraineeDashboard({ traineeId: propId }) {
             {/* Next Goal Progress Card */}
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Next Goal</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Next Benchmark</span>
                 <span className="text-xs font-bold text-slate-900">
                   {Math.min(
                     100,
                     Math.round(
-                      ((summary?.latest_score_pct || summary?.best_score_pct || 75) / 90.0) * 100
+                      ((summary?.latest_score_pct || summary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
                     )
                   )}%
                 </span>
               </div>
               <div className="text-xs font-bold text-slate-800 mb-2">
-                Target: <span className="text-blue-600 font-extrabold">90.0%</span> average score
+                Target: <span className="text-blue-600 font-extrabold">{EXCELLENT_THRESHOLD.toFixed(1)}%</span> average score (Excellence)
               </div>
               <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
                 <div
@@ -817,7 +817,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       Math.max(
                         5,
                         Math.round(
-                          ((summary?.latest_score_pct || summary?.best_score_pct || 75) / 90.0) * 100
+                          ((summary?.latest_score_pct || summary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
                         )
                       )
                     )}%`,

@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "../api/client.js";
+import { PASS_THRESHOLD, EXCELLENT_THRESHOLD } from "../constants/thresholds.js";
 
 const isNetworkFailure = (err) =>
   !err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error");
@@ -13,7 +14,7 @@ const PREVIEW_BATCHES = [
   { id: 1, name: "Batch A - Web Core", start_date: "2026-07-01", end_date: "2026-11-18", trainee_count: 10 },
   { id: 2, name: "Batch B - Data Systems", start_date: "2026-07-15", end_date: "2026-12-02", trainee_count: 10 },
   { id: 3, name: "Batch C - Cloud Native", start_date: "2026-07-22", end_date: "2026-12-09", trainee_count: 10 },
-  { id: 4, name: "Batch D - Full Stack (Foundational)", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
+  { id: 4, name: "Batch D - Full Stack", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
   { id: 5, name: "Batch E - DevOps & Architecture", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
 ];
 
@@ -78,31 +79,35 @@ const PREVIEW_WEEKLY = {
   ],
 };
 
+const BAND_LABEL_EXCELLENT = `Excellent (≥${EXCELLENT_THRESHOLD}%)`;
+const BAND_LABEL_AVERAGE = `Average (${PASS_THRESHOLD}-${EXCELLENT_THRESHOLD - 1}%)`;
+const BAND_LABEL_STRUGGLING = `Struggling (<${PASS_THRESHOLD}%)`;
+
 const PREVIEW_BANDS = {
   1: [
-    { label: "Excellent (≥85%)", percent: 45.8, count: 5 },
-    { label: "Competent (70-84%)", percent: 41.7, count: 4 },
-    { label: "Remediation (<70%)", percent: 12.5, count: 1 },
+    { label: BAND_LABEL_EXCELLENT, percent: 45.8, count: 5 },
+    { label: BAND_LABEL_AVERAGE, percent: 41.7, count: 4 },
+    { label: BAND_LABEL_STRUGGLING, percent: 12.5, count: 1 },
   ],
   2: [
-    { label: "Excellent (≥85%)", percent: 30.0, count: 3 },
-    { label: "Competent (70-84%)", percent: 50.0, count: 5 },
-    { label: "Remediation (<70%)", percent: 20.0, count: 2 },
+    { label: BAND_LABEL_EXCELLENT, percent: 30.0, count: 3 },
+    { label: BAND_LABEL_AVERAGE, percent: 50.0, count: 5 },
+    { label: BAND_LABEL_STRUGGLING, percent: 20.0, count: 2 },
   ],
   3: [
-    { label: "Excellent (≥85%)", percent: 60.0, count: 6 },
-    { label: "Competent (70-84%)", percent: 30.0, count: 3 },
-    { label: "Remediation (<70%)", percent: 10.0, count: 1 },
+    { label: BAND_LABEL_EXCELLENT, percent: 60.0, count: 6 },
+    { label: BAND_LABEL_AVERAGE, percent: 30.0, count: 3 },
+    { label: BAND_LABEL_STRUGGLING, percent: 10.0, count: 1 },
   ],
   4: [
-    { label: "Excellent (≥85%)", percent: 40.0, count: 4 },
-    { label: "Competent (70-84%)", percent: 40.0, count: 4 },
-    { label: "Remediation (<70%)", percent: 20.0, count: 2 },
+    { label: BAND_LABEL_EXCELLENT, percent: 40.0, count: 4 },
+    { label: BAND_LABEL_AVERAGE, percent: 40.0, count: 4 },
+    { label: BAND_LABEL_STRUGGLING, percent: 20.0, count: 2 },
   ],
   5: [
-    { label: "Excellent (≥85%)", percent: 70.0, count: 7 },
-    { label: "Competent (70-84%)", percent: 20.0, count: 2 },
-    { label: "Remediation (<70%)", percent: 10.0, count: 1 },
+    { label: BAND_LABEL_EXCELLENT, percent: 70.0, count: 7 },
+    { label: BAND_LABEL_AVERAGE, percent: 20.0, count: 2 },
+    { label: BAND_LABEL_STRUGGLING, percent: 10.0, count: 1 },
   ],
 };
 

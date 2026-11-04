@@ -14,7 +14,22 @@ Built with **FastAPI** (Python) and **React** (Vite, Tailwind CSS, Recharts).
 - **📝 Session Evaluations & Scoring**: Record granular session feedback, milestone assessments, and detailed scoring criteria.
 - **⚡ Real-Time Operational Activity**: WebSocket integration for live notifications, status changes, and trainee progress updates.
 - **🛡️ Enterprise Security & Rate Limiting**: SlowAPI protection against brute force and abuse, CORS validation, and robust input validation via Pydantic v2.
-- **📜 Comprehensive Audit Logging**: Track state changes, role assignments, and session modifications for compliance and oversight.
+- **📜 Append-Only Audit Logging**: Track state changes, role assignments, and session modifications for compliance and oversight.
+
+---
+
+## 🎯 Grading & Evaluation Policy
+
+The portal enforces a centralized, single-source-of-truth threshold policy across all backend SQL queries, analytical services, and frontend dashboards:
+
+| Constant | Value | Definition & Enforcement |
+| :--- | :--- | :--- |
+| **`PASS_THRESHOLD`** | **`60.0%`** | Minimum percentage score required to pass an individual assessment drill. Also used for cohort-wide pass rate computations (`pass_rate_pct`) and identifying batches below target (`batches_below_target` flagged when cohort mean $< 60.0\%$). |
+| **`EXCELLENT_THRESHOLD`** | **`75.0%`** | Benchmark for trainee excellence and mastery tier classification across cohort score bands (`get_batch_bands`) and dashboard milestone indicators. |
+| **`COLD_START_SESSIONS`** | **`3`** | Minimum number of completed assessments required before activating the ML early-intervention classifier. |
+| **`COLD_START_CUTOFF`** | **`50.0%`** | Rule-based heuristic fallback threshold. Trainees with $< 3$ sessions and an initial average $< 50.0\%$ are immediately flagged for attention without waiting for ML training data. |
+
+Both individual assessment qualification and batch aggregate pass rates evaluate strictly against the identical **`60.0%`** cutoff (`PASS_THRESHOLD`), guaranteeing consistency between personal trainee dossiers and platform-level administrator/trainer analytics.
 
 ---
 

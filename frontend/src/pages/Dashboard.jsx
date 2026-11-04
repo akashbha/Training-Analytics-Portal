@@ -346,7 +346,7 @@ export function Dashboard() {
               Benchmark Pass Rate
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-              ≥ 70.0% Target
+              ≥ {PASS_THRESHOLD.toFixed(1)}% Target
             </span>
           </div>
           <div className="mt-3">
@@ -464,19 +464,19 @@ export function Dashboard() {
                     />
                     <YAxis
                       domain={[40, 100]}
-                      ticks={[40, 60, 75, 90, 100]}
+                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
                       tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(val) => `${val}%`}
                     />
                     <ReferenceLine
-                      y={75}
+                      y={EXCELLENT_THRESHOLD}
                       stroke="#2563EB"
                       strokeDasharray="4 4"
                       strokeWidth={1.5}
                       label={{
-                        value: "Target: 75.0%",
+                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
                         position: "insideTopRight",
                         fill: "#2563EB",
                         fontSize: 10,
@@ -578,19 +578,19 @@ export function Dashboard() {
                     />
                     <YAxis
                       domain={[40, 100]}
-                      ticks={[40, 60, 75, 90, 100]}
+                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
                       tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(val) => `${val}%`}
                     />
                     <ReferenceLine
-                      y={75}
+                      y={EXCELLENT_THRESHOLD}
                       stroke="#2563EB"
                       strokeDasharray="4 4"
                       strokeWidth={1.5}
                       label={{
-                        value: "Target: 75.0%",
+                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
                         position: "insideTopRight",
                         fill: "#2563EB",
                         fontSize: 10,
