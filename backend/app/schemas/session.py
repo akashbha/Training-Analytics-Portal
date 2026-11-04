@@ -6,12 +6,14 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
+from app.core.constants import MAX_SESSION_TIME_SECONDS
+
 class SessionCreate(BaseModel):
     trainee_id: int = Field(..., json_schema_extra={"example": 1})
     module_id: int = Field(..., json_schema_extra={"example": 2})
     score: float = Field(..., ge=0, json_schema_extra={"example": 85.5})
     errors: int = Field(..., ge=0, json_schema_extra={"example": 2})
-    time_seconds: int = Field(..., gt=0, json_schema_extra={"example": 1200})
+    time_seconds: int = Field(..., ge=0, le=MAX_SESSION_TIME_SECONDS, json_schema_extra={"example": 1200})
     created_at: Optional[datetime] = None
 
 class SessionResponse(BaseModel):

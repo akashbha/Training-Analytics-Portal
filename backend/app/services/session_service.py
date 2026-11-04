@@ -21,6 +21,7 @@ from app.schemas.common import PaginatedResponse
 from app.models.session import Session
 from app.models.user import User
 from app.core.exceptions import AppException
+from app.core.constants import MAX_SESSION_TIME_SECONDS
 from app.services.notification_service import notify_session_created, notify_session_deleted
 from app.services.audit_service import create_audit_log
 
@@ -107,7 +108,14 @@ class SessionService:
                 status_code=404
             )
 
-        # Business Rule: score must not exceed the module's max_score
+        # Business Rule: score must not exceed the module's max_score and must be >= 0
+        if session_in.score < 0:
+            raise AppException(
+                code="INVALID_SCORE",
+                message=f"Session score ({session_in.score}) cannot be negative",
+                status_code=422
+            )
+
         if session_in.score > module.max_score:
             raise AppException(
                 code="SCORE_EXCEEDS_MAX",
@@ -118,13 +126,57 @@ class SessionService:
                 status_code=422
             )
 
+        # Business Rule: errors must be >= 0
+        if session_in.errors < 0:
+            raise AppException(
+                code="INVALID_ERRORS",
+                message=f"Errors count ({session_in.errors}) cannot be negative",
+                status_code=422
+            )
+
+        # Business Rule: time_seconds must be >= 0 and <= MAX_SESSION_TIME_SECONDS
+        if session_in.time_seconds < 0:
+            raise AppException(
+                code="INVALID_TIME",
+                message=f"Time duration ({session_in.time_seconds}s) cannot be negative",
+                status_code=422
+            )
+
+        if session_in.time_seconds > MAX_SESSION_TIME_SECONDS:
+            raise AppException(
+                code="TIME_EXCEEDS_LIMIT",
+                message=(
+                    f"Session time ({session_in.time_seconds}s) exceeds maximum allowed duration "
+                    f"of {MAX_SESSION_TIME_SECONDS}s (4 hours)"
+                ),
+                status_code=422
+            )
+
+        # Business Rule: duplicate trainee/module/date check
+        session_created_at = session_in.created_at or datetime.now(timezone.utc)
+        target_date = session_created_at.date()
+        existing_dup = self.repo.get_by_trainee_module_date(
+            trainee_id=session_in.trainee_id,
+            module_id=session_in.module_id,
+            target_date=target_date
+        )
+        if existing_dup:
+            raise AppException(
+                code="DUPLICATE_SESSION_DATE",
+                message=(
+                    f"A session for trainee {session_in.trainee_id} and module {session_in.module_id} "
+                    f"already exists on {target_date.isoformat()}"
+                ),
+                status_code=409
+            )
+
         session = Session(
             trainee_id=session_in.trainee_id,
             module_id=session_in.module_id,
             score=session_in.score,
             errors=session_in.errors,
             time_seconds=session_in.time_seconds,
-            created_at=session_in.created_at or datetime.now(timezone.utc),
+            created_at=session_created_at,
             created_by=created_by
         )
         created = self.repo.create(session)
@@ -250,10 +302,15 @@ class SessionService:
 
             try:
                 time_seconds = int(time_str)
-                if time_seconds <= 0:
+                if time_seconds < 0 or time_seconds > MAX_SESSION_TIME_SECONDS:
                     raise ValueError()
             except ValueError:
-                row_errors.append(BulkRowError(row=row_index, message=f"time_seconds must be a positive integer; got '{time_str}'"))
+                row_errors.append(
+                    BulkRowError(
+                        row=row_index,
+                        message=f"time_seconds must be between 0 and {MAX_SESSION_TIME_SECONDS} seconds; got '{time_str}'"
+                    )
+                )
                 continue
 
             # 4. Parse created_at if provided

@@ -8,6 +8,7 @@ from sqlalchemy import Integer, Float, ForeignKey, DateTime, Index, CheckConstra
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
+from app.core.constants import MAX_SESSION_TIME_SECONDS
 
 if TYPE_CHECKING:
     from app.models.trainee import Trainee
@@ -50,7 +51,8 @@ class Session(Base):
     __table_args__ = (
         CheckConstraint("score >= 0", name="chk_session_score_non_negative"),
         CheckConstraint("errors >= 0", name="chk_session_errors_non_negative"),
-        CheckConstraint("time_seconds > 0", name="chk_session_time_positive"),
+        CheckConstraint("time_seconds >= 0", name="chk_session_time_non_negative"),
+        CheckConstraint(f"time_seconds <= {MAX_SESSION_TIME_SECONDS}", name="chk_session_time_max_limit"),
         Index("ix_sessions_trainee_id_created_at", "trainee_id", "created_at"),
         Index("ix_sessions_module_id", "module_id"),
         Index("ix_sessions_created_at", "created_at"),

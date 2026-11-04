@@ -3,7 +3,7 @@ Validates role assignments, trainee 1-to-1 linkage, and password reset responses
 """
 
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class AdminUserResponse(BaseModel):
@@ -51,3 +51,27 @@ class AuditLogResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class DataQualityFlaggedRecord(BaseModel):
+    """Details for a single session anomaly detected during data quality audits."""
+    session_id: int
+    trainee_id: int
+    trainee_name: Optional[str] = None
+    module_id: int
+    module_name: Optional[str] = None
+    rule_violated: str
+    details: str
+    score: float
+    max_score: Optional[float] = None
+    time_seconds: int
+    errors: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class DataQualityResponse(BaseModel):
+    """Aggregate data quality report with counts per rule and sample flagged records."""
+    total_flagged: int
+    rule_counts: Dict[str, int]
+    flagged_records: List[DataQualityFlaggedRecord]
+

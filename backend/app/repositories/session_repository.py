@@ -59,6 +59,25 @@ class SessionRepository:
             joinedload(Session.module)
         ).filter(Session.id == session_id).first()
 
+    def get_by_trainee_module_date(
+        self,
+        trainee_id: int,
+        module_id: int,
+        target_date: date
+    ) -> Optional[Session]:
+        """Checks for existing session for a trainee, module, and calendar date."""
+        from sqlalchemy import func
+        dt_start = datetime.combine(target_date, time.min)
+        dt_end = datetime.combine(target_date, time.max)
+        return self.db.query(Session).filter(
+            Session.trainee_id == trainee_id,
+            Session.module_id == module_id,
+            (
+                ((Session.created_at >= dt_start) & (Session.created_at <= dt_end)) |
+                (func.date(Session.created_at) == target_date.isoformat())
+            )
+        ).first()
+
     def create(self, session: Session) -> Session:
         """Persists a single new Session record."""
         self.db.add(session)

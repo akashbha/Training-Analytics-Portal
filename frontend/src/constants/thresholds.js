@@ -5,4 +5,6 @@ export const PASS_THRESHOLD = 60;
 export const EXCELLENT_THRESHOLD = 75;
 export const COLD_START_SESSIONS = 3;
 export const COLD_START_CUTOFF = 50;
+export const MAX_SESSION_TIME_SECONDS = 14400; // 4 hours limit
+
 

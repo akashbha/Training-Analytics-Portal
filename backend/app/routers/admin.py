@@ -20,10 +20,12 @@ from app.schemas.admin import (
     AdminUserUpdate,
     AdminUserCreateResponse,
     AdminResetPasswordResponse,
-    AuditLogResponse
+    AuditLogResponse,
+    DataQualityResponse
 )
 from app.schemas.common import PaginatedResponse
 from app.services.audit_service import create_audit_log, AuditService
+from app.services.data_quality_service import DataQualityService
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -360,3 +362,14 @@ def get_audit_logs(
         page_size=result.page_size,
         pages=result.pages
     )
+
+@router.get("/data-quality", response_model=DataQualityResponse)
+def get_data_quality(
+    limit: int = Query(20, ge=1, le=100, description="Max flagged records to return"),
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Audits database integrity rules and returns violation counts with sample flagged records (Admin only)."""
+    service = DataQualityService(db)
+    return service.get_data_quality_report(limit=limit)
+
