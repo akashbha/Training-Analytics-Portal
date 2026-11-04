@@ -21,11 +21,13 @@ from app.schemas.admin import (
     AdminUserCreateResponse,
     AdminResetPasswordResponse,
     AuditLogResponse,
-    DataQualityResponse
+    DataQualityResponse,
+    ModelEvaluationResponse
 )
 from app.schemas.common import PaginatedResponse
 from app.services.audit_service import create_audit_log, AuditService
 from app.services.data_quality_service import DataQualityService
+from app.services.evaluation_service import get_stored_or_computed_evaluation
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -376,4 +378,13 @@ def get_data_quality(
     """Audits database integrity rules and returns violation counts with sample flagged records (Admin only)."""
     service = DataQualityService(db)
     return service.get_data_quality_report(limit=limit)
+
+@router.get("/model-evaluation", response_model=ModelEvaluationResponse)
+def get_model_evaluation(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Retrieves empirical validation metrics comparing the ML predictor vs baseline rule (Admin only)."""
+    return get_stored_or_computed_evaluation(db)
+
 

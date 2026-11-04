@@ -285,13 +285,17 @@ def test_admin_data_quality_detects_flagged_records(client, db_session):
     assert len(dup_flags) >= 1
 
 
-def test_future_session_date_rejected(client):
+def test_future_session_date_rejected(client, db_session):
     """Submitting session with date in the future must be rejected with HTTP 422."""
     headers = get_trainer_headers()
+    mod = Module(name="Future Date Test Mod", max_score=100.0)
+    db_session.add(mod)
+    db_session.commit()
+
     future_date = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
     payload = {
         "trainee_id": 1,
-        "module_id": 1,
+        "module_id": mod.id,
         "score": 80.0,
         "errors": 1,
         "time_seconds": 1200,

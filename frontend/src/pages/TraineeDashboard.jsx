@@ -8,6 +8,8 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  ScatterChart,
+  Scatter,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -84,6 +86,38 @@ function ProgressTooltip({ active, payload }) {
         <div className="flex items-center justify-between gap-4 text-slate-300 text-[11px]">
           <span>Errors: <strong className="text-rose-400">{item.errors}</strong></span>
           <span>Time: <strong className="text-blue-300">{mins}m {secs}s</strong></span>
+        </div>
+        <div className="text-[10px] text-slate-400 pt-0.5">{dateFormatted}</div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function ScatterCustomTooltip({ active, payload }) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    const mins = Math.floor((item.time_seconds || 0) / 60);
+    const secs = (item.time_seconds || 0) % 60;
+    const dateFormatted = item.created_at
+      ? new Date(item.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "—";
+
+    return (
+      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-slate-700 z-50">
+        <div className="font-bold text-slate-200 border-b border-slate-700 pb-1 mb-1">
+          {item.module_name}
+        </div>
+        <div className="text-sm font-bold text-white">
+          {item.score_pct != null ? `${item.score_pct.toFixed(1)}%` : "—"} Score
+        </div>
+        <div className="flex items-center justify-between gap-4 text-slate-300 text-[11px]">
+          <span>Duration: <strong className="text-blue-300">{mins}m {secs}s</strong></span>
+          <span>Errors: <strong className="text-rose-400">{item.errors}</strong></span>
         </div>
         <div className="text-[10px] text-slate-400 pt-0.5">{dateFormatted}</div>
       </div>
@@ -445,6 +479,28 @@ export function TraineeDashboard({ traineeId: propId }) {
     const passCount = sessions.filter((s) => (s.score_pct || 0) >= PASS_THRESHOLD).length;
     const passRate = Math.round((passCount / count) * 100);
     return { count, avgScore: avgScore.toFixed(1), passRate };
+  }, [sessions]);
+
+  // Speed versus accuracy scatter data points: x = minutes, y = score % (1 point per session)
+  const scatterData = useMemo(() => {
+    if (!sessions || sessions.length === 0) return [];
+    return sessions.map((s, idx) => {
+      const minutes = Number(((s.time_seconds || 0) / 60.0).toFixed(1));
+      const scorePct = s.score_pct != null
+        ? Number(s.score_pct.toFixed(1))
+        : (s.module_max_score && s.module_max_score > 0)
+          ? Number(((s.score / s.module_max_score) * 100.0).toFixed(1))
+          : Number(s.score.toFixed(1));
+      return {
+        id: s.id || idx,
+        minutes: minutes,
+        score_pct: scorePct,
+        time_seconds: s.time_seconds || 0,
+        errors: s.errors || 0,
+        module_name: s.module_name || `Module #${s.module_id}`,
+        created_at: s.created_at,
+      };
+    });
   }, [sessions]);
 
   // Self-Trend: average of last 3 sessions minus average of first 3 sessions (show "n/a" if fewer than 6 sessions)
@@ -1040,7 +1096,74 @@ export function TraineeDashboard({ traineeId: propId }) {
         </div>
       </div>
 
-      {/* 4. RECENT ASSESSMENT EVALUATION LEDGER */}
+      {/* 4. SPEED VERSUS ACCURACY SCATTER ANALYSIS (Step 7) */}
+      <ChartCard
+        title="Speed versus Accuracy Analysis"
+        subtitle="Distribution of duration in minutes against evaluation score percentage across all recorded sessions"
+        loading={sessionsLoading}
+        error={sessionsError}
+        empty={!sessions || sessions.length === 0}
+        emptyMessage="No completed sessions available for scatter analysis"
+        onRetry={refetchSessions}
+        action={
+          <div className="flex items-center space-x-2 text-[11px] text-slate-500 font-medium">
+            <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+            <span>{scatterData.length} Session{scatterData.length !== 1 ? "s" : ""} Plotted</span>
+          </div>
+        }
+      >
+        <div className="w-full h-72 pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <ScatterChart margin={{ top: 15, right: 30, bottom: 25, left: 15 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+              <XAxis
+                type="number"
+                dataKey="minutes"
+                name="Duration"
+                unit="m"
+                tick={{ fontSize: 11, fill: "#64748B" }}
+                stroke="#CBD5E1"
+                label={{
+                  value: "Session Duration (Minutes)",
+                  position: "insideBottom",
+                  offset: -15,
+                  fontSize: 11,
+                  fill: "#475569",
+                  fontWeight: 600,
+                }}
+              />
+              <YAxis
+                type="number"
+                dataKey="score_pct"
+                name="Score"
+                domain={[0, 100]}
+                unit="%"
+                tick={{ fontSize: 11, fill: "#64748B" }}
+                stroke="#CBD5E1"
+                label={{
+                  value: "Evaluation Score (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 0,
+                  fontSize: 11,
+                  fill: "#475569",
+                  fontWeight: 600,
+                }}
+              />
+              <Tooltip content={<ScatterCustomTooltip />} />
+              <Scatter
+                name="Sessions"
+                data={scatterData}
+                fill="#2563EB"
+                stroke="#1D4ED8"
+                strokeWidth={1.5}
+              />
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+      {/* 5. RECENT ASSESSMENT EVALUATION LEDGER */}
       <ChartCard
         title="Assessment Evaluation Ledger"
         subtitle="Chronological record of verified test drills, scoring accuracy, and defect counts"

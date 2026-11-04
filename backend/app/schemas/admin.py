@@ -79,3 +79,35 @@ class DataQualityResponse(BaseModel):
     rule_counts: Dict[str, int]
     flagged_records: List[DataQualityFlaggedRecord]
 
+
+class ModelEvaluationMetrics(BaseModel):
+    """Precision, recall, F1, and confusion matrix counts for binary classification."""
+    precision: float
+    recall: float
+    f1: float
+    true_positives: int
+    false_positives: int
+    true_negatives: int
+    false_negatives: int
+
+
+class ModelEvaluationResponse(BaseModel):
+    """Evaluation report comparing ML predictor against baseline threshold rule on held-out test data."""
+    sample_size: int
+    positive_labels: int
+    negative_labels: int
+    pass_threshold: float
+    min_sessions_required: int
+    held_out_sessions: int
+    label_definition: str
+    baseline_rule: str
+    model_name: str
+    baseline: ModelEvaluationMetrics
+    model: ModelEvaluationMetrics
+    model_beats_baseline: bool
+    summary: str
+    details: Optional[List[Dict[str, Any]]] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
