@@ -1,11 +1,14 @@
 // src/App.jsx
-// Root application router with role guards, authentication protection, and live WebSocket broadcast context.
+// Root application router with role guards, authentication protection, live WebSocket broadcast context,
+// ThemeProvider (Light/Dark mode), and global CommandPalette (Ctrl+K).
 // Directs trainers to aggregate cohort analytics and trainees directly to their personal TraineeDashboard.
 
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { LiveProvider } from "./context/LiveContext.jsx";
+import { CommandPalette } from "./components/CommandPalette.jsx";
 import { Layout } from "./components/Layout.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { LandingPage } from "./pages/LandingPage.jsx";
@@ -27,7 +30,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-page flex items-center justify-center">
+      <div className="min-h-screen bg-brand-page dark:bg-[#0D0B18] flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -46,7 +49,7 @@ function RoleRoute({ children, required = "staff" }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-page flex items-center justify-center">
+      <div className="min-h-screen bg-brand-page dark:bg-[#0D0B18] flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -125,7 +128,7 @@ function RootRoute() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-page dark:bg-[#0D0B18] flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -140,147 +143,150 @@ function RootRoute() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <LiveProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Landing & Login Routes: Root is the Home Screen */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/landing" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <LiveProvider>
+          <BrowserRouter>
+            <CommandPalette />
+            <Routes>
+              {/* Public Landing & Login Routes */}
+              <Route path="/" element={<RootRoute />} />
+              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Authenticated Dashboard Route (Routes by Role) */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <HomeRoute />
-                </ProtectedRoute>
-              }
-            />
+              {/* Authenticated Dashboard Route (Routes by Role) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <HomeRoute />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Explicit Admin Dashboard Route */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="admin">
-                    <Layout>
-                      <AdminDashboard />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
+              {/* Explicit Admin Dashboard Route */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="admin">
+                      <Layout>
+                        <AdminDashboard />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Batches Management Route (Staff: Trainers view-only, Admins manage) */}
-            <Route
-              path="/batches"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="staff">
-                    <Layout>
-                      <Batches />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
+              {/* Batches Management Route (Staff: Trainers view-only, Admins manage) */}
+              <Route
+                path="/batches"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="staff">
+                      <Layout>
+                        <Batches />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Trainees Directory Route (Staff: Trainers view/add/edit, Admins delete) */}
-            <Route
-              path="/trainees"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="staff">
-                    <Layout>
-                      <Trainees />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
+              {/* Trainees Directory Route (Staff: Trainers view/add/edit, Admins delete) */}
+              <Route
+                path="/trainees"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="staff">
+                      <Layout>
+                        <Trainees />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Trainee Detail (Scoped: Staff access any; Trainees only access their own) */}
-            <Route
-              path="/trainees/:id"
-              element={
-                <ProtectedRoute>
-                  <TraineeDetailRoute />
-                </ProtectedRoute>
-              }
-            />
+              {/* Trainee Detail (Scoped: Staff access any; Trainees only access their own) */}
+              <Route
+                path="/trainees/:id"
+                element={
+                  <ProtectedRoute>
+                    <TraineeDetailRoute />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Add Session Route (Staff Only) */}
-            <Route
-              path="/sessions/new"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="staff">
-                    <Layout>
-                      <AddSession />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
+              {/* Add Session Route (Staff Only) */}
+              <Route
+                path="/sessions/new"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="staff">
+                      <Layout>
+                        <AddSession />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Modules Route (Staff / Admin) */}
-            <Route
-              path="/modules"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="staff">
-                    <Layout>
-                      <Modules />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
+              {/* Modules Route (Staff / Admin) */}
+              <Route
+                path="/modules"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="staff">
+                      <Layout>
+                        <Modules />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Users Management Route (Admin Only) */}
-            <Route
-              path="/admin/users"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="admin">
-                    <Layout>
-                      <Users />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={<Navigate to="/admin/users" replace />}
-            />
+              {/* Users Management Route (Admin Only) */}
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="admin">
+                      <Layout>
+                        <Users />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={<Navigate to="/admin/users" replace />}
+              />
 
-            {/* Audit Logs Route (Admin Only) */}
-            <Route
-              path="/admin/audit-logs"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute required="admin">
-                    <Layout>
-                      <AuditLogs />
-                    </Layout>
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/audit-logs"
-              element={<Navigate to="/admin/audit-logs" replace />}
-            />
+              {/* Audit Logs Route (Admin Only) */}
+              <Route
+                path="/admin/audit-logs"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute required="admin">
+                      <Layout>
+                        <AuditLogs />
+                      </Layout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/audit-logs"
+                element={<Navigate to="/admin/audit-logs" replace />}
+              />
 
-            {/* Catch-all fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </LiveProvider>
-    </AuthProvider>
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </LiveProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

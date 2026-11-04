@@ -213,11 +213,11 @@ export function Modules() {
             placeholder="Search modules by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-purple-100 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#181427] border border-purple-100 dark:border-purple-900/40 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
           />
         </div>
-        <div className="text-xs font-bold text-slate-500">
-          Total Modules: <span className="text-brand">{total}</span>
+        <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
+          Total Modules: <span className="text-brand dark:text-purple-300">{total}</span>
         </div>
       </div>
 
@@ -247,13 +247,13 @@ export function Modules() {
             <Card
               key={mod.id}
               variant="white"
-              className="p-5 flex flex-col justify-between hover:border-brand/40 transition-all border border-purple-100 group"
+              className="p-5 flex flex-col justify-between hover:border-brand/40 dark:hover:border-purple-500/40 transition-all border border-purple-100 dark:border-purple-900/40 group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand"></span>
-                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-brand transition-colors">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand dark:bg-purple-400"></span>
+                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 group-hover:text-brand dark:group-hover:text-purple-300 transition-colors">
                       {mod.name}
                     </h3>
                   </div>
@@ -263,14 +263,14 @@ export function Modules() {
                       <button
                         onClick={(e) => handleOpenEdit(mod, e)}
                         title="Edit Module"
-                        className="p-1.5 rounded-full hover:bg-purple-50 text-slate-400 hover:text-brand transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-purple-50 dark:hover:bg-purple-950 text-slate-400 hover:text-brand dark:hover:text-purple-300 transition-colors cursor-pointer"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={(e) => handleOpenDelete(mod, e)}
                         title="Delete Module"
-                        className="p-1.5 rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -278,16 +278,16 @@ export function Modules() {
                   )}
                 </div>
 
-                <div className="mt-4 p-3 rounded-2xl bg-purple-50/60 border border-purple-100 flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs text-slate-600 font-semibold">
-                    <Award className="w-3.5 h-3.5 text-brand" />
+                <div className="mt-4 p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                    <Award className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                     <span>Max Score</span>
                   </div>
-                  <span className="text-sm font-black text-brand">{mod.max_score} pts</span>
+                  <span className="text-sm font-black text-brand dark:text-purple-300">{mod.max_score} pts</span>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-purple-50 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+              <div className="mt-4 pt-3 border-t border-purple-50 dark:border-purple-900/30 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
                 <span>Module ID: #{mod.id}</span>
                 <span>Active Curriculum</span>
               </div>
@@ -298,33 +298,33 @@ export function Modules() {
 
       {/* Add / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card variant="white" className="w-full max-w-md p-6 shadow-xl border-purple-100 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-purple-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <Card variant="white" className="w-full max-w-md p-6 shadow-xl border-purple-100 dark:border-purple-900/40 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-purple-100 dark:border-purple-900/30">
               <div className="flex items-center space-x-2">
-                <BookOpen className="w-4 h-4 text-brand" />
-                <h3 className="text-sm font-extrabold text-slate-900">
+                <BookOpen className="w-4 h-4 text-brand dark:text-purple-400" />
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                   {editingModule ? "Edit Assessment Module" : "New Curriculum Module"}
                 </h3>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+              <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-300 font-medium flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
                 <span>{formError}</span>
               </div>
             )}
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Module Name *
                 </label>
                 <input
@@ -333,12 +333,12 @@ export function Modules() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Distributed Consensus Systems"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-slate-900 dark:text-slate-100 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Maximum Assessment Score *
                 </label>
                 <input
@@ -349,7 +349,7 @@ export function Modules() {
                   value={formData.max_score}
                   onChange={(e) => setFormData({ ...formData, max_score: e.target.value })}
                   placeholder="100"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-slate-900 dark:text-slate-100 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] transition-all"
                 />
               </div>
 
@@ -357,14 +357,14 @@ export function Modules() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white rounded-full text-xs font-bold transition-all shadow-sm flex items-center space-x-1 cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 bg-brand hover:bg-brand-dark dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-full text-xs font-bold transition-all shadow-sm flex items-center space-x-1 cursor-pointer disabled:opacity-60"
                 >
                   {submitting ? <Spinner size="sm" className="text-white" /> : <span>{editingModule ? "Save Changes" : "Create Module"}</span>}
                 </button>

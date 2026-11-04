@@ -305,13 +305,13 @@ export function AddSession() {
 
       {/* Header */}
       <div>
-        <span className="text-xs uppercase font-extrabold tracking-wider text-brand">
+        <span className="text-xs uppercase font-extrabold tracking-wider text-brand dark:text-purple-400">
           Assessment Intake
         </span>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight mt-1">
           Record Training Sessions
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Submit individual trainee evaluation results or perform bulk ingestion via CSV
         </p>
       </div>
@@ -319,38 +319,38 @@ export function AddSession() {
       {loadingData ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-2">
           <Spinner size="lg" />
-          <span className="text-xs font-semibold text-slate-500">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             Loading assessment forms and module criteria...
           </span>
         </div>
       ) : loadError ? (
-        <Card variant="white" className="p-8 text-center border-rose-200">
+        <Card variant="white" className="p-8 text-center border-rose-200 dark:border-rose-900/50">
           <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-slate-900">Failed to load dependencies</h3>
-          <p className="text-xs text-rose-600 mt-1">{loadError}</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Failed to load dependencies</h3>
+          <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">{loadError}</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT: White Form Card (7 Cols) */}
           <div className="lg:col-span-7">
             <Card variant="white" className="p-7 shadow-xs">
-              <div className="flex items-center space-x-2.5 pb-4 border-b border-purple-100 mb-6">
-                <div className="p-2 rounded-2xl bg-brand-light text-brand">
+              <div className="flex items-center space-x-2.5 pb-4 border-b border-purple-100 dark:border-purple-900/30 mb-6">
+                <div className="p-2 rounded-2xl bg-brand-light dark:bg-purple-950/80 text-brand dark:text-purple-300">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-slate-900">
+                  <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                     Single Session Entry
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Input evaluation score, error count, and duration in minutes
                   </p>
                 </div>
               </div>
 
               {fieldErrors.form && (
-                <div className="mb-5 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                <div className="mb-5 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-300 font-semibold flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
                   <span>{fieldErrors.form}</span>
                 </div>
               )}
@@ -358,23 +358,23 @@ export function AddSession() {
               <form onSubmit={handleSingleSubmit} className="space-y-4">
                 {/* Trainee Select */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                    <User className="w-3.5 h-3.5 text-brand" />
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
+                    <User className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                     <span>Select Trainee</span>
                   </label>
                   <select
                     value={formData.trainee_id}
                     onChange={(e) => handleInputChange("trainee_id", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] cursor-pointer"
                   >
                     {trainees.map((t) => (
-                      <option key={t.id} value={t.id}>
+                      <option key={t.id} value={t.id} className="dark:bg-[#181427]">
                         {t.name} ({t.email}) • {t.batch_name || `Batch #${t.batch_id}`}
                       </option>
                     ))}
                   </select>
                   {fieldErrors.trainee_id && (
-                    <p className="mt-1 text-xs text-rose-600 font-bold">
+                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-bold">
                       {fieldErrors.trainee_id}
                     </p>
                   )}
@@ -382,23 +382,23 @@ export function AddSession() {
 
                 {/* Module Select */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-brand" />
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                     <span>Curriculum Module</span>
                   </label>
                   <select
                     value={formData.module_id}
                     onChange={(e) => handleInputChange("module_id", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] cursor-pointer"
                   >
                     {modules.map((m) => (
-                      <option key={m.id} value={m.id}>
+                      <option key={m.id} value={m.id} className="dark:bg-[#181427]">
                         {m.name} (Max: {m.max_score} pts)
                       </option>
                     ))}
                   </select>
                   {fieldErrors.module_id && (
-                    <p className="mt-1 text-xs text-rose-600 font-bold">
+                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-bold">
                       {fieldErrors.module_id}
                     </p>
                   )}
@@ -409,12 +409,12 @@ export function AddSession() {
                   {/* Score with Max Ceiling Badge */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1">
-                        <Target className="w-3.5 h-3.5 text-brand" />
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1">
+                        <Target className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                         <span>Score</span>
                       </label>
                       {selectedModule && (
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-light text-brand">
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-light dark:bg-purple-950/80 text-brand dark:text-purple-300">
                           Max: {selectedModule.max_score}
                         </span>
                       )}
@@ -428,14 +428,14 @@ export function AddSession() {
                       placeholder="e.g. 85.5"
                       value={formData.score}
                       onChange={(e) => handleInputChange("score", e.target.value)}
-                      className={`w-full px-4 py-2.5 rounded-2xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:bg-white font-bold ${
+                      className={`w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] text-slate-900 dark:text-slate-100 border text-sm focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-[#1E1833] font-bold ${
                         fieldErrors.score
-                          ? "border-rose-400 focus:ring-rose-500 bg-rose-50/50"
-                          : "border-slate-200 focus:ring-brand"
+                          ? "border-rose-400 focus:ring-rose-500 bg-rose-50/50 dark:bg-rose-950/30"
+                          : "border-slate-200 dark:border-purple-900/50 focus:ring-brand"
                       }`}
                     />
                     {fieldErrors.score && (
-                      <p className="mt-1 text-xs text-rose-600 font-bold">
+                      <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-bold">
                         {fieldErrors.score}
                       </p>
                     )}
@@ -443,7 +443,7 @@ export function AddSession() {
 
                   {/* Errors */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                       <span>Errors Count</span>
                     </label>
@@ -454,10 +454,10 @@ export function AddSession() {
                       placeholder="0"
                       value={formData.errors}
                       onChange={(e) => handleInputChange("errors", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white font-bold"
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] font-bold"
                     />
                     {fieldErrors.errors && (
-                      <p className="mt-1 text-xs text-rose-600 font-bold">
+                      <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-bold">
                         {fieldErrors.errors}
                       </p>
                     )}
@@ -468,8 +468,8 @@ export function AddSession() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Time Duration in Minutes */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5 text-brand" />
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
+                      <Clock className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                       <span>Time (Minutes)</span>
                     </label>
                     <input
@@ -480,13 +480,13 @@ export function AddSession() {
                       placeholder="e.g. 25"
                       value={formData.time_minutes}
                       onChange={(e) => handleInputChange("time_minutes", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white font-bold"
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833] font-bold"
                     />
                     <span className="text-[10px] text-slate-400 mt-1 block">
                       Auto-converts to seconds on submission
                     </span>
                     {fieldErrors.time_minutes && (
-                      <p className="mt-1 text-xs text-rose-600 font-bold">
+                      <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-bold">
                         {fieldErrors.time_minutes}
                       </p>
                     )}
@@ -494,8 +494,8 @@ export function AddSession() {
 
                   {/* Session Date */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-                      <Calendar className="w-3.5 h-3.5 text-brand" />
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
+                      <Calendar className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
                       <span>Session Date</span>
                     </label>
                     <input
@@ -503,17 +503,17 @@ export function AddSession() {
                       required
                       value={formData.date}
                       onChange={(e) => handleInputChange("date", e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
+                      className="w-full px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#130F20] border border-slate-200 dark:border-purple-900/50 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white dark:focus:bg-[#1E1833]"
                     />
                   </div>
                 </div>
 
                 {/* Form Action */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+                <div className="pt-4 border-t border-slate-100 dark:border-purple-900/30 flex items-center justify-end">
                   <button
                     type="submit"
                     disabled={singleSubmitting}
-                    className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-white font-bold text-xs shadow-sm hover:shadow transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs shadow-sm hover:shadow transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
                   >
                     {singleSubmitting && <Spinner size="sm" className="text-white" />}
                     <span>Record Session</span>

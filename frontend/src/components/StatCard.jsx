@@ -1,5 +1,5 @@
 // src/components/StatCard.jsx
-// Metric display widget showcasing KPIs with animated loading skeletons and value-change flash highlights.
+// Metric display widget showcasing KPIs with animated loading skeletons, dark mode support, and value-change flash highlights.
 // Smoothly pulses with a brand purple glow when real-time updates modify the card's value.
 
 import React, { useState, useEffect, useRef } from "react";
@@ -15,7 +15,7 @@ export function StatCard({
   variant = "white",
   className = "",
 }) {
-  const isDark = variant === "dark";
+  const isDarkVariant = variant === "dark";
 
   // Flash highlight on live value update
   const prevValueRef = useRef(value);
@@ -41,19 +41,19 @@ export function StatCard({
     return (
       <Card variant={variant} className={`animate-pulse ${className}`}>
         <div className="flex items-center justify-between">
-          <div className={`h-4 w-24 rounded ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>
-          <div className={`h-4 w-12 rounded ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>
+          <div className={`h-4 w-24 rounded ${isDarkVariant ? "bg-white/20" : "bg-slate-200 dark:bg-slate-700/60"}`}></div>
+          {Icon && <div className={`w-8 h-8 rounded-full ${isDarkVariant ? "bg-white/20" : "bg-slate-200 dark:bg-slate-700/60"}`}></div>}
         </div>
-        <div className={`h-9 w-32 rounded mt-4 ${isDark ? "bg-white/30" : "bg-slate-300"}`}></div>
-        {subtext && <div className={`h-3 w-40 rounded mt-2 ${isDark ? "bg-white/20" : "bg-slate-200"}`}></div>}
+        <div className={`h-9 w-32 rounded mt-4 ${isDarkVariant ? "bg-white/30" : "bg-slate-300 dark:bg-slate-700"}`}></div>
+        {subtext && <div className={`h-3 w-40 rounded mt-2 ${isDarkVariant ? "bg-white/20" : "bg-slate-200 dark:bg-slate-700/60"}`}></div>}
       </Card>
     );
   }
 
   const flashStyles = flashing
-    ? isDark
+    ? isDarkVariant
       ? "ring-2 ring-purple-300 bg-white/15 scale-[1.02] transition-all duration-300"
-      : "ring-2 ring-blue-500/50 bg-blue-50/50 scale-[1.02] transition-all duration-300"
+      : "ring-2 ring-brand/60 bg-purple-50/90 dark:bg-purple-900/40 shadow-md scale-[1.02] transition-all duration-300"
     : "transition-all duration-300";
 
   return (
@@ -63,8 +63,8 @@ export function StatCard({
     >
       <div className="flex items-center justify-between">
         <span
-          className={`text-[11px] font-bold tracking-wider uppercase ${
-            isDark ? "text-purple-200" : "text-slate-400"
+          className={`text-xs font-semibold tracking-wide uppercase ${
+            isDarkVariant ? "text-purple-200" : "text-slate-500 dark:text-slate-400"
           }`}
         >
           {title}
@@ -73,8 +73,10 @@ export function StatCard({
           <div className="shrink-0">{badge}</div>
         ) : Icon ? (
           <div
-            className={`p-1.5 rounded-lg ${
-              isDark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-600"
+            className={`p-2 rounded-xl ${
+              isDarkVariant
+                ? "bg-white/10 text-white"
+                : "bg-brand-light dark:bg-purple-950/60 text-brand dark:text-purple-300"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -83,13 +85,15 @@ export function StatCard({
       </div>
 
       <div className="mt-3">
-        <div className="text-3xl font-extrabold tracking-tight transition-transform duration-300 text-slate-900">
+        <div className={`text-3xl font-extrabold tracking-tight transition-transform duration-300 ${
+          isDarkVariant ? "text-white" : "text-slate-900 dark:text-slate-100"
+        }`}>
           {value !== null && value !== undefined ? value : "—"}
         </div>
         {subtext && (
           <div
             className={`text-xs mt-1.5 font-medium ${
-              isDark ? "text-purple-200/80" : "text-slate-500"
+              isDarkVariant ? "text-purple-200/80" : "text-slate-500 dark:text-slate-400"
             }`}
           >
             {subtext}

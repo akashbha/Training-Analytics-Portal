@@ -443,6 +443,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             </div>
           </div>
 
+<<<<<<< Updated upstream
           {/* Action buttons */}
           <div className="flex items-center space-x-2.5 self-start md:self-auto">
             <button
@@ -533,6 +534,40 @@ export function TraineeDashboard({ traineeId: propId }) {
           <div className="text-[11px] font-medium text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
             Cohort Standing: <strong className="text-slate-900 font-bold">Rank 3 of 24</strong>
           </div>
+=======
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand">
+                {profile?.batch_name || "Enrolled Trainee"}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-brand-light text-brand text-[10px] font-bold">
+                {isTrainer ? "Trainer View" : "My Dashboard"}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {profileLoading ? "Loading Profile..." : profile?.name || "Trainee Dashboard"}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {profile?.email || user?.email} • Cohort Batch #{profile?.batch_id || "—"}
+            </p>
+          </div>
+        </div>
+
+        {/* Refresh button */}
+        <div className="self-start sm:self-auto">
+          <button
+            onClick={() => {
+              refetchProfile();
+              refetchSummary();
+              refetchProgress();
+              refetchErrors();
+              refetchSessions();
+            }}
+            className="px-4 py-2 bg-white dark:bg-[#181427] hover:bg-brand-light/70 dark:hover:bg-purple-950 text-slate-700 dark:text-slate-300 hover:text-brand dark:hover:text-purple-300 border border-purple-100 dark:border-purple-900/40 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs"
+          >
+            Refresh Analytics
+          </button>
+>>>>>>> Stashed changes
         </div>
       </div>
 
@@ -631,6 +666,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     aria-label="Filter timeline by module"
                     className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
                   >
+<<<<<<< Updated upstream
                     <option value="ALL">All Modules ({progress?.length || 0})</option>
                     {moduleOptions.map((mod) => (
                       <option key={mod} value={mod}>
@@ -638,6 +674,114 @@ export function TraineeDashboard({ traineeId: propId }) {
                       </option>
                     ))}
                   </select>
+=======
+                    {summary.improvement_pct >= 0 ? "▲ Positive trend" : "▼ Needs review"} (vs first 3)
+                  </span>
+                ) : (
+                  "Baseline assessment"
+                )
+              }
+              icon={TrendingUp}
+              loading={summaryLoading}
+            />
+
+            {/* Total Sessions */}
+            <StatCard
+              title="Sessions"
+              value={
+                summary?.session_count !== null && summary?.session_count !== undefined
+                  ? String(summary.session_count)
+                  : "0"
+              }
+              subtext="Evaluations completed"
+              icon={Clock}
+              loading={summaryLoading}
+            />
+          </div>
+
+          {/* 3. Middle Section: Trajectory Line Chart & Errors on Left, Dark Focus Areas on Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              {/* My score over time area line chart */}
+              <ChartCard
+                title="My Score Over Time"
+                subtitle="Normalized percentage progression timeline across assessment modules"
+                loading={progressLoading}
+                error={progressError}
+                empty={!filteredProgress || filteredProgress.length === 0}
+                emptyMessage="No recorded evaluation sessions for the selected filter"
+                onRetry={refetchProgress}
+                action={
+                  moduleOptions.length > 0 ? (
+                    <div className="flex items-center space-x-2">
+                      <Filter className="w-3.5 h-3.5 text-brand hidden sm:block" />
+                      <select
+                        value={selectedModule}
+                        onChange={(e) => setSelectedModule(e.target.value)}
+                        aria-label="Filter timeline by module"
+                        className="text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#181427] border border-purple-200 dark:border-purple-900/50 rounded-full px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
+                      >
+                        <option value="ALL">All Modules ({progress?.length || 0})</option>
+                        {moduleOptions.map((mod) => (
+                          <option key={mod} value={mod} className="dark:bg-[#181427]">
+                            {mod}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null
+                }
+              >
+                <div className="w-full h-64 pt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={filteredProgress}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#5B3FA8" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#5B3FA8" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1ECFA" />
+                      <XAxis
+                        dataKey="dateLabel"
+                        tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                        tickLine={false}
+                        axisLine={{ stroke: "#E2E8F0" }}
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        tick={{ fontSize: 11, fill: "#64748B" }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) => `${val}%`}
+                      />
+                      <Tooltip content={<ProgressTooltip />} />
+                      <Area
+                        type="monotone"
+                        dataKey="score_pct"
+                        stroke="#5B3FA8"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#purpleGradient)"
+                        dot={{
+                          r: 4,
+                          fill: "#FFFFFF",
+                          stroke: "#5B3FA8",
+                          strokeWidth: 2,
+                        }}
+                        activeDot={{
+                          r: 6,
+                          fill: "#5B3FA8",
+                          stroke: "#FFFFFF",
+                          strokeWidth: 2,
+                        }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+>>>>>>> Stashed changes
                 </div>
               ) : null
             }
@@ -1320,7 +1464,162 @@ export function TraineeDashboard({ traineeId: propId }) {
               </button>
             </div>
           </div>
+<<<<<<< Updated upstream
         </div>
+=======
+
+          {/* 5. Recent Sessions Table (Last 10) */}
+          <ChartCard
+            title="Recent Assessment Log"
+            subtitle="Last 10 evaluation sessions completed with scores, error logs, and duration"
+            loading={sessionsLoading}
+            error={sessionsError}
+            empty={!sessions || sessions.length === 0}
+            emptyMessage="No completed sessions available"
+            onRetry={refetchSessions}
+          >
+            <div className="overflow-x-auto w-full -mx-2 sm:mx-0">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-purple-100 dark:border-purple-900/40 text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Module</th>
+                    <th className="py-2.5 px-3 text-right">Score %</th>
+                    <th className="py-2.5 px-3 text-right">Errors</th>
+                    <th className="py-2.5 px-3 text-right">Time Taken</th>
+                    <th className="py-2.5 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-purple-50 dark:divide-purple-950/40">
+                  {(sessions || []).map((s) => {
+                    const sessionDate = s.created_at
+                      ? new Date(s.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "—";
+                    const durationMins =
+                      s.time_seconds !== undefined
+                        ? `${(s.time_seconds / 60).toFixed(1)} mins`
+                        : "—";
+
+                    // Allowed to delete: admin OR (trainer and session created by them)
+                    const canDelete =
+                      isAdmin ||
+                      (isTrainer && (s.created_by === user?.id || s.created_by === undefined || s.created_by === null));
+
+                    return (
+                      <tr key={s.id} className="hover:bg-purple-50/50 dark:hover:bg-purple-950/30 transition-colors">
+                        <td className="py-3 px-3 font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-brand dark:text-purple-400" />
+                          <span>{sessionDate}</span>
+                        </td>
+                        <td className="py-3 px-3 font-bold text-slate-900 dark:text-slate-100">
+                          {s.module_name || `Module #${s.module_id}`}
+                        </td>
+                        <td className="py-3 px-3 text-right font-extrabold text-brand dark:text-purple-300">
+                          {s.score_pct !== null && s.score_pct !== undefined
+                            ? `${s.score_pct.toFixed(1)}%`
+                            : "—"}
+                        </td>
+                        <td className="py-3 px-3 text-right font-semibold">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[11px] ${
+                              s.errors > 3
+                                ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold"
+                                : "text-slate-600 dark:text-slate-400"
+                            }`}
+                          >
+                            {s.errors}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">
+                          {durationMins}
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteSessionError("");
+                                setDeleteSessionTarget(s);
+                              }}
+                              title="Delete assessment session"
+                              className="p-1 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </ChartCard>
+
+          {/* Delete Session Confirmation Dialog */}
+          {deleteSessionTarget && (
+            <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+              <Card variant="white" className="w-full max-w-sm p-6 shadow-xl border-purple-100 animate-in fade-in zoom-in-95">
+                <div className="flex items-center space-x-2 text-rose-600 mb-3">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <h3 className="text-sm font-extrabold text-slate-900">Delete Session Record</h3>
+                </div>
+                <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                  Are you sure you want to permanently delete this assessment session for{" "}
+                  <strong className="text-slate-900">{deleteSessionTarget.module_name || `Module #${deleteSessionTarget.module_id}`}</strong>?
+                  This action cannot be undone.
+                </p>
+
+                {deleteSessionError && (
+                  <div className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+                    {deleteSessionError}
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteSessionTarget(null)}
+                    className="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleteSessionLoading}
+                    onClick={async () => {
+                      setDeleteSessionLoading(true);
+                      setDeleteSessionError("");
+                      try {
+                        await apiClient.delete(`/sessions/${deleteSessionTarget.id}`);
+                        setDeleteSessionTarget(null);
+                        refetchSessions();
+                        refetchSummary();
+                      } catch (err) {
+                        if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
+                          setDeleteSessionTarget(null);
+                          refetchSessions();
+                        } else {
+                          setDeleteSessionError(err.response?.data?.error?.message || err.message || "Failed to delete session");
+                        }
+                      } finally {
+                        setDeleteSessionLoading(false);
+                      }
+                    }}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold transition-colors shadow-xs flex items-center space-x-1 cursor-pointer disabled:opacity-60"
+                  >
+                    {deleteSessionLoading ? <Spinner size="sm" className="text-white" /> : <span>Delete</span>}
+                  </button>
+                </div>
+              </Card>
+            </div>
+          )}
+        </>
+>>>>>>> Stashed changes
       )}
 
       {/* 7. DRILL BRIEF MODAL */}
