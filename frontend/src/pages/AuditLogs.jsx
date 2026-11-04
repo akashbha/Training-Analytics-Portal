@@ -139,9 +139,9 @@ export function AuditLogs() {
             <span className="w-2.5 h-2.5 rounded-full bg-purple-900"></span>
             <span className="text-xs font-bold uppercase tracking-wider text-brand">Compliance & Governance</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">Audit Trail</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">Append-Only Audit Log</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Immutable log of all user lifecycle changes, cohort curricula edits, entity deletions, and credential events.
+            Append-only audit log of all user lifecycle changes, cohort curricula edits, entity deletions, and credential events.
           </p>
         </div>
 

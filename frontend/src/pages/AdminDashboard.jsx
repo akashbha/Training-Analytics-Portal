@@ -52,6 +52,7 @@ import {
   Search,
   Filter,
 } from "lucide-react";
+import { EXCELLENT_THRESHOLD, PASS_THRESHOLD } from "../constants/thresholds.js";
 
 const BATCH_LEAD_TRAINERS = {
   1: { name: "Dr. Marcus Vance", role: "Principal Systems Architect", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" },
@@ -885,7 +886,7 @@ export function AdminDashboard() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= 75.0;
+                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                           return (
                             <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
                               <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
@@ -897,7 +898,7 @@ export function AdminDashboard() {
                                       : "bg-amber-950 text-amber-400 border border-amber-800"
                                   }`}
                                 >
-                                  {isAbove ? "≥ 75% TARGET" : "< 75% ACTION"}
+                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                 </span>
                               </div>
                               <div className="flex items-baseline space-x-1.5 pt-0.5">
@@ -909,9 +910,9 @@ export function AdminDashboard() {
                               <div className="text-[11px] text-slate-400 flex items-center justify-between">
                                 <span>Benchmark Delta:</span>
                                 <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= 75
-                                    ? `+${(item.avg_score_pct - 75).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - 75).toFixed(1)}%`}
+                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                 </strong>
                               </div>
                               <div className="text-[10px] text-slate-400 pt-0.5">
@@ -926,7 +927,7 @@ export function AdminDashboard() {
                     <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
                       {(adminStats.weekly || []).map((entry, index) => {
                         const isLatest = index === (adminStats.weekly || []).length - 1;
-                        const isAbove = (entry.avg_score_pct || 0) >= 75.0;
+                        const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                         return (
                           <Cell
                             key={`admin-bar-cell-${index}`}
@@ -999,7 +1000,7 @@ export function AdminDashboard() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= 75.0;
+                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                           return (
                             <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
                               <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
@@ -1011,7 +1012,7 @@ export function AdminDashboard() {
                                       : "bg-amber-950 text-amber-400 border border-amber-800"
                                   }`}
                                 >
-                                  {isAbove ? "≥ 75% TARGET" : "< 75% ACTION"}
+                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                 </span>
                               </div>
                               <div className="flex items-baseline space-x-1.5 pt-0.5">
@@ -1023,9 +1024,9 @@ export function AdminDashboard() {
                               <div className="text-[11px] text-slate-400 flex items-center justify-between">
                                 <span>Benchmark Delta:</span>
                                 <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= 75
-                                    ? `+${(item.avg_score_pct - 75).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - 75).toFixed(1)}%`}
+                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                 </strong>
                               </div>
                               <div className="text-[10px] text-slate-400 pt-0.5">

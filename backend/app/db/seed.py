@@ -82,7 +82,7 @@ def seed_database(reset: bool = False) -> None:
             ("Batch A - Web Core", today_date - timedelta(weeks=16), today_date + timedelta(weeks=4)),
             ("Batch B - Data Systems", today_date - timedelta(weeks=14), today_date + timedelta(weeks=6)),
             ("Batch C - Cloud Native", today_date - timedelta(weeks=13), today_date + timedelta(weeks=7)),
-            ("Batch D - Full Stack (Foundational)", today_date - timedelta(weeks=12), today_date + timedelta(weeks=8)),
+            ("Batch D - Full Stack", today_date - timedelta(weeks=12), today_date + timedelta(weeks=8)),
             ("Batch E - DevOps & Architecture", today_date - timedelta(weeks=12), today_date + timedelta(weeks=8)),
         ]
 
@@ -309,7 +309,7 @@ def seed_database(reset: bool = False) -> None:
             SELECT 
                 b.name AS batch_name,
                 COUNT(s.id) AS session_count,
-                ROUND(CAST(AVG((s.score / m.max_score) * 100) AS NUMERIC), 2) AS avg_score_pct
+                ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 2) AS avg_score_pct
             FROM batches b
             JOIN trainees t ON t.batch_id = b.id
             LEFT JOIN sessions s ON s.trainee_id = t.id

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models.trainee import Trainee
 from app.ml.feature_extractor import extract_trainee_features, FEATURE_COLUMNS
+from app.core.constants import PASS_THRESHOLD, COLD_START_CUTOFF, COLD_START_SESSIONS
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_FILE = os.path.join(MODEL_DIR, "model.joblib")
@@ -60,12 +61,12 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
         session_count = extracted["session_count"]
         # Rule-based threshold indicator
         avg_score = feat.get("overall_avg_score", 0.0)
-        rule_attention = avg_score < 50.0 and session_count > 0
+        rule_attention = avg_score < COLD_START_CUTOFF and session_count > 0
 
         risk_factors = []
         if session_count == 0:
             risk_factors.append("No assessments completed yet")
-        elif avg_score < 50.0:
+        elif avg_score < COLD_START_CUTOFF:
             risk_factors.append(f"Low initial average score ({avg_score:.1f}%)")
 
         return {
@@ -117,7 +118,7 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
     risk_factors = []
     if feat["score_trend_slope"] < -5.0:
         risk_factors.append(f"Declining score trend ({feat['score_trend_slope']:+.1f}% slope)")
-    if feat["recent_avg_score"] < 60.0:
+    if feat["recent_avg_score"] < PASS_THRESHOLD:
         risk_factors.append(f"Low recent average score ({feat['recent_avg_score']:.1f}%)")
     if feat["recent_error_rate"] >= 3.5:
         risk_factors.append(f"Elevated error frequency ({feat['recent_error_rate']:.1f} errors/session)")

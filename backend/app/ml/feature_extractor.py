@@ -9,6 +9,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 from app.models.session import Session as AssessmentSession
 from app.models.module import Module
+from app.core.constants import COLD_START_SESSIONS
 
 
 FEATURE_COLUMNS = [
@@ -39,8 +40,8 @@ def extract_trainee_features(db: Session, trainee_id: int) -> Dict[str, Any]:
 
     session_count = len(sessions)
 
-    # Cold-Start Detection (Synopsis Section 10: < 3 sessions requires rule-based fallback)
-    if session_count < 3:
+    # Cold-Start Detection (Synopsis Section 10: < COLD_START_SESSIONS requires rule-based fallback)
+    if session_count < COLD_START_SESSIONS:
         if session_count == 0:
             return {
                 "trainee_id": trainee_id,
@@ -51,7 +52,7 @@ def extract_trainee_features(db: Session, trainee_id: int) -> Dict[str, Any]:
             }
         
         # 1 or 2 sessions
-        scores = [(s.score / max_score * 100.0) for s, max_score in sessions]
+        scores = [(s.score * 100.0 / max_score) for s, max_score in sessions]
         errors = [s.errors for s, _ in sessions]
         avg_score = float(np.mean(scores))
         avg_errors = float(np.mean(errors))
@@ -73,7 +74,7 @@ def extract_trainee_features(db: Session, trainee_id: int) -> Dict[str, Any]:
         }
 
     # Sufficient history: compute complete feature vector
-    scores = [(s.score / max_score * 100.0) for s, max_score in sessions]
+    scores = [(s.score * 100.0 / max_score) for s, max_score in sessions]
     errors = [s.errors for s, _ in sessions]
     times = [s.time_seconds for s, _ in sessions]
 

@@ -76,11 +76,11 @@ export function AddSession() {
       } catch (err) {
         if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
           const fallbackTrainees = [
-            { id: 1, name: "Alex Chen (Cohort Alpha)" },
-            { id: 2, name: "Jordan Taylor (Cohort Alpha)" },
-            { id: 3, name: "Samantha Reed (Cohort Alpha)" },
-            { id: 4, name: "Elena Rostova (Cohort Alpha)" },
-            { id: 7, name: "David Kim (Cohort Beta)" },
+            { id: 1, name: "Alex Chen (Batch A - Web Core)" },
+            { id: 2, name: "Jordan Taylor (Batch A - Web Core)" },
+            { id: 3, name: "Samantha Reed (Batch A - Web Core)" },
+            { id: 4, name: "Elena Rostova (Batch A - Web Core)" },
+            { id: 7, name: "David Kim (Batch B - Data Systems)" },
           ];
           const fallbackModules = [
             { id: 1, name: "Python Fundamentals", max_score: 100 },

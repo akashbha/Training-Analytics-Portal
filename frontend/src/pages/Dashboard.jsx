@@ -40,6 +40,7 @@ import {
   BrainCircuit,
   Sparkles,
 } from "lucide-react";
+import { PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_SESSIONS, COLD_START_CUTOFF } from "../constants/thresholds.js";
 
 // Curated high-resolution avatar bank for realistic portrait rendering
 const TRAINEE_AVATARS = {
@@ -397,7 +398,7 @@ export function Dashboard() {
                   Cohort Milestone Progression
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Cohort average score trajectory across 8 weekly evaluation cycles against the 75% target.
+                  Cohort average score trajectory across 8 weekly evaluation cycles against the {EXCELLENT_THRESHOLD}% target.
                 </p>
               </div>
 
@@ -436,7 +437,7 @@ export function Dashboard() {
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
-                <span>Target: <strong>75.0% Benchmark</strong></span>
+                <span>Target: <strong>{EXCELLENT_THRESHOLD.toFixed(1)}% Benchmark</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold">
                 <span>★ Peak Milestone: <strong>{highestWeeklyScore.toFixed(1)}%</strong></span>
@@ -487,7 +488,7 @@ export function Dashboard() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= 75.0;
+                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                           return (
                             <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
                               <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
@@ -499,7 +500,7 @@ export function Dashboard() {
                                       : "bg-amber-950 text-amber-400 border border-amber-800"
                                   }`}
                                 >
-                                  {isAbove ? "≥ 75% TARGET" : "< 75% ACTION"}
+                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                 </span>
                               </div>
                               <div className="flex items-baseline space-x-1.5 pt-0.5">
@@ -511,9 +512,9 @@ export function Dashboard() {
                               <div className="text-[11px] text-slate-400 flex items-center justify-between">
                                 <span>Benchmark Delta:</span>
                                 <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= 75
-                                    ? `+${(item.avg_score_pct - 75).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - 75).toFixed(1)}%`}
+                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                 </strong>
                               </div>
                               <div className="text-[10px] text-slate-400 pt-0.5">
@@ -528,7 +529,7 @@ export function Dashboard() {
                     <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
                       {(weekly || []).map((entry, index) => {
                         const isLatest = index === (weekly || []).length - 1;
-                        const isAbove = (entry.avg_score_pct || 0) >= 75.0;
+                        const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                         return (
                           <Cell
                             key={`trainer-bar-cell-${index}`}
@@ -601,7 +602,7 @@ export function Dashboard() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= 75.0;
+                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                           return (
                             <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
                               <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
@@ -613,7 +614,7 @@ export function Dashboard() {
                                       : "bg-amber-950 text-amber-400 border border-amber-800"
                                   }`}
                                 >
-                                  {isAbove ? "≥ 75% TARGET" : "< 75% ACTION"}
+                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                 </span>
                               </div>
                               <div className="flex items-baseline space-x-1.5 pt-0.5">
@@ -625,9 +626,9 @@ export function Dashboard() {
                               <div className="text-[11px] text-slate-400 flex items-center justify-between">
                                 <span>Benchmark Delta:</span>
                                 <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= 75
-                                    ? `+${(item.avg_score_pct - 75).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - 75).toFixed(1)}%`}
+                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                 </strong>
                               </div>
                               <div className="text-[10px] text-slate-400 pt-0.5">
@@ -704,8 +705,8 @@ export function Dashboard() {
                     filteredLeaderboard.map((trainee, idx) => {
                       const rank = trainee.rank ?? idx + 1;
                       const score = trainee.avg_score_pct ? trainee.avg_score_pct.toFixed(1) : "0.0";
-                      const isMastery = (trainee.avg_score_pct || 0) >= 80;
-                      const isCompetent = (trainee.avg_score_pct || 0) >= 70 && !isMastery;
+                      const isMastery = (trainee.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                      const isCompetent = (trainee.avg_score_pct || 0) >= PASS_THRESHOLD && !isMastery;
                       const avatarUrl = getTraineeAvatar(trainee, idx);
 
                       return (

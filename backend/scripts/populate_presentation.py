@@ -189,7 +189,7 @@ def populate_presentation():
     p = tf3.add_paragraph()
     format_paragraph(p, "• Actionable Intervention: Decision support identifying at-risk trainees with 100% test recall, prioritizing zero false negatives.", font_size=9, color=COLOR_DARK, space_after=Pt(4))
     p = tf3.add_paragraph()
-    format_paragraph(p, "• Sub-Second Live Sync: WebSocket infrastructure broadcasting session assessments instantly to trainer dashboards.", font_size=9, color=COLOR_DARK, space_after=Pt(4))
+    format_paragraph(p, "• Live Updates: WebSocket infrastructure broadcasting session assessments instantly to trainer dashboards.", font_size=9, color=COLOR_DARK, space_after=Pt(4))
     p = tf3.add_paragraph()
     format_paragraph(p, "• Transparent Cold-Start Handling: Unbiased rule-based thresholding for candidates with < 3 completed assessments.", font_size=9, color=COLOR_DARK)
 
@@ -415,7 +415,7 @@ def populate_presentation():
         "3. Real-Time Descriptive Analytics: Cohort summary KPIs, weekly trajectories, score bands, and window rankings (RANK()).",
         "4. ML-Based Early Intervention: Engineer temporal features (slopes, error rates, consistency) to predict at-risk trainees.",
         "5. Transparent Cold-Start Fallback: Heuristic threshold check (<50%) for trainees with < 3 assessments before ML activation.",
-        "6. Sub-Second Real-Time Sync: WebSocket pub/sub broadcasting new assessments and system audit logs instantaneously."
+        "6. Live Sync: WebSocket pub/sub broadcasting new assessments and system audit logs instantaneously."
     ]
     for obj in objs:
         p = tf_obj.add_paragraph()

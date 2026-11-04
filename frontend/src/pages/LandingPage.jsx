@@ -49,7 +49,7 @@ export function LandingPage() {
     frontend: {
       title: "Presentation & Live Stream",
       tech: "React 18 + Vite + Tailwind CSS",
-      desc: "Component-driven dashboard with asynchronous widget loading, SVG gauges, and sub-second WebSocket event subscriptions.",
+      desc: "Component-driven dashboard with asynchronous widget loading, SVG gauges, and live WebSocket updates.",
       features: [
         "Recharts timeline progression and module error breakdowns",
         "Role-guarded routes isolating Trainee, Trainer, and Admin views",
@@ -673,7 +673,7 @@ __table_args__ = (
             <div className="mt-6 pt-4 border-t-2 border-black grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-black text-slate-800">
               <div>
                 <span className="text-slate-400 text-[10px] block">THROUGHPUT</span>
-                <span>Sub-Second WS Broadcast</span>
+                <span>Live WebSocket Updates</span>
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] block">SECURITY</span>

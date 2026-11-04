@@ -102,15 +102,15 @@ export function Trainees() {
     } catch (err) {
       if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
         const fallbackTrainees = [
-          { id: 1, name: "Alex Chen", email: "alex.chen@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 54.2, session_count: 8, status: "needs_help" },
-          { id: 2, name: "Jordan Taylor", email: "jordan.t@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 58.0, session_count: 6, status: "struggling" },
-          { id: 3, name: "Samantha Reed", email: "s.reed@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 59.5, session_count: 5, status: "struggling" },
-          { id: 4, name: "Elena Rostova", email: "elena.r@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 94.6, session_count: 14, status: "on_track" },
-          { id: 5, name: "Marcus Vance", email: "m.vance@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 91.2, session_count: 12, status: "on_track" },
-          { id: 6, name: "Chloe Bennett", email: "chloe.b@example.com", batch_id: 1, batch_name: "Cohort Alpha", avg_score_pct: 88.5, session_count: 11, status: "on_track" },
-          { id: 7, name: "David Kim", email: "david.kim@example.com", batch_id: 2, batch_name: "Cohort Beta", avg_score_pct: 82.0, session_count: 10, status: "on_track" },
-          { id: 8, name: "Priya Patel", email: "priya.p@example.com", batch_id: 2, batch_name: "Cohort Beta", avg_score_pct: 79.4, session_count: 9, status: "on_track" },
-          { id: 9, name: "Liam O'Connor", email: "liam.oc@example.com", batch_id: 2, batch_name: "Cohort Beta", avg_score_pct: null, session_count: 0, status: "no_sessions" },
+          { id: 1, name: "Alex Chen", email: "alex.chen@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 54.2, session_count: 8, status: "needs_help" },
+          { id: 2, name: "Jordan Taylor", email: "jordan.t@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 58.0, session_count: 6, status: "struggling" },
+          { id: 3, name: "Samantha Reed", email: "s.reed@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 59.5, session_count: 5, status: "struggling" },
+          { id: 4, name: "Elena Rostova", email: "elena.r@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 94.6, session_count: 14, status: "on_track" },
+          { id: 5, name: "Marcus Vance", email: "m.vance@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 91.2, session_count: 12, status: "on_track" },
+          { id: 6, name: "Chloe Bennett", email: "chloe.b@example.com", batch_id: 1, batch_name: "Batch A - Web Core", avg_score_pct: 88.5, session_count: 11, status: "on_track" },
+          { id: 7, name: "David Kim", email: "david.kim@example.com", batch_id: 2, batch_name: "Batch B - Data Systems", avg_score_pct: 82.0, session_count: 10, status: "on_track" },
+          { id: 8, name: "Priya Patel", email: "priya.p@example.com", batch_id: 2, batch_name: "Batch B - Data Systems", avg_score_pct: 79.4, session_count: 9, status: "on_track" },
+          { id: 9, name: "Liam O'Connor", email: "liam.oc@example.com", batch_id: 2, batch_name: "Batch B - Data Systems", avg_score_pct: null, session_count: 0, status: "no_sessions" },
         ];
         setTrainees(fallbackTrainees);
         setTotalItems(fallbackTrainees.length);

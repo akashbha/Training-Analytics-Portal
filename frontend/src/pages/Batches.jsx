@@ -20,6 +20,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { PASS_THRESHOLD } from "../constants/thresholds.js";
 
 export function Batches() {
   const navigate = useNavigate();
@@ -261,7 +262,7 @@ export function Batches() {
               comp?.avg_score_pct !== null && comp?.avg_score_pct !== undefined
                 ? comp.avg_score_pct
                 : null;
-            const isBelowTarget = avgScore !== null && avgScore < 60;
+            const isBelowTarget = avgScore !== null && avgScore < PASS_THRESHOLD;
             const progressPct = avgScore !== null ? Math.min(Math.max(avgScore, 0), 100) : 0;
 
             return (

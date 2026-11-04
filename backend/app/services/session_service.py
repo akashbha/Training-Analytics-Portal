@@ -35,7 +35,7 @@ class SessionService:
     def _build_response(self, s: Session) -> SessionResponse:
         """Helper to serialize Session entity into rich SessionResponse with percentage and creator."""
         max_score = s.module.max_score if s.module else 100.0
-        pct = round((s.score / max_score) * 100.0, 1) if max_score > 0 else 0.0
+        pct = round((s.score * 100.0) / max_score, 1) if max_score > 0 else 0.0
         return SessionResponse(
             id=s.id,
             trainee_id=s.trainee_id,

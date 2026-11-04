@@ -29,6 +29,7 @@ import {
   useTraineeSessions,
 } from "../hooks/useTraineeAnalytics.js";
 import { apiClient } from "../api/client.js";
+import { PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_SESSIONS, COLD_START_CUTOFF } from "../constants/thresholds.js";
 import {
   Award,
   TrendingUp,
@@ -370,10 +371,22 @@ export function TraineeDashboard({ traineeId: propId }) {
     if (!sessions || sessions.length === 0) return null;
     const count = sessions.length;
     const avgScore = sessions.reduce((acc, s) => acc + (s.score_pct || 0), 0) / count;
-    const passCount = sessions.filter((s) => (s.score_pct || 0) >= 70).length;
+    const passCount = sessions.filter((s) => (s.score_pct || 0) >= PASS_THRESHOLD).length;
     const passRate = Math.round((passCount / count) * 100);
     return { count, avgScore: avgScore.toFixed(1), passRate };
   }, [sessions]);
+
+  // Self-Trend: average of last 3 sessions minus average of first 3 sessions (show "n/a" if fewer than 6 sessions)
+  const selfTrend = useMemo(() => {
+    if (!progress || progress.length < 6) return "n/a";
+    const first3 = progress.slice(0, 3);
+    const last3 = progress.slice(-3);
+    const avgFirst = first3.reduce((acc, curr) => acc + (curr.score_pct ?? 0), 0) / 3;
+    const avgLast = last3.reduce((acc, curr) => acc + (curr.score_pct ?? 0), 0) / 3;
+    const delta = avgLast - avgFirst;
+    const sign = delta > 0 ? "+" : "";
+    return `${sign}${delta.toFixed(1)}%`;
+  }, [progress]);
 
   const isZeroSessions =
     summary &&
@@ -531,7 +544,18 @@ export function TraineeDashboard({ traineeId: propId }) {
           </div>
 
           <div className="text-[11px] font-medium text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
-            Cohort Standing: <strong className="text-slate-900 font-bold">Rank 3 of 24</strong>
+            Self-Trend:{" "}
+            <strong
+              className={`font-bold ${
+                selfTrend !== "n/a" && selfTrend.startsWith("+")
+                  ? "text-emerald-700"
+                  : selfTrend !== "n/a" && selfTrend.startsWith("-")
+                  ? "text-rose-700"
+                  : "text-slate-900"
+              }`}
+            >
+              {selfTrend}
+            </strong>
           </div>
         </div>
       </div>
@@ -984,8 +1008,8 @@ export function TraineeDashboard({ traineeId: propId }) {
                   const mins = Math.floor((s.time_seconds || 0) / 60);
                   const secs = (s.time_seconds || 0) % 60;
                   const cat = getModuleCategory(s.module_name);
-                  const isPass = s.score_pct >= 80;
-                  const isQual = s.score_pct >= 70 && s.score_pct < 80;
+                  const isPass = s.score_pct >= EXCELLENT_THRESHOLD;
+                  const isQual = s.score_pct >= PASS_THRESHOLD && s.score_pct < EXCELLENT_THRESHOLD;
 
                   return (
                     <tr

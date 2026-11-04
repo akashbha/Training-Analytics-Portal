@@ -22,10 +22,12 @@ from app.schemas.analytics import (
     BatchCompareItem
 )
 from app.core.exceptions import AppException
+from app.core.constants import PASS_THRESHOLD
 
 class AnalyticsService:
     """Service layer coordinating SQL analytics retrieval and schema serialization."""
     def __init__(self, db: Session):
+        self.db = db
         self.repo = AnalyticsRepository(db)
         self.batch_repo = BatchRepository(db)
         self.trainee_repo = TraineeRepository(db)
@@ -121,7 +123,7 @@ class AnalyticsService:
         """Calculates global analytics metrics across all cohorts and today's session activity."""
         compare_items = self.repo.get_batches_compare()
         total_batches = len(compare_items)
-        batches_below_target = sum(1 for b in compare_items if b["avg_score_pct"] is not None and b["avg_score_pct"] < 60)
+        batches_below_target = sum(1 for b in compare_items if b["avg_score_pct"] is not None and b["avg_score_pct"] < PASS_THRESHOLD)
 
         valid_pass_rates = [b["pass_rate_pct"] for b in compare_items if b["pass_rate_pct"] is not None]
         overall_pass_rate_pct = round(sum(valid_pass_rates) / len(valid_pass_rates), 1) if valid_pass_rates else 0.0

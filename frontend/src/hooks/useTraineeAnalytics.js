@@ -13,7 +13,7 @@ const PREVIEW_TRAINEE_PROFILE = {
   name: "Alex Chen",
   email: "alex.chen@example.com",
   batch_id: 1,
-  batch_name: "Cohort Alpha (Core Full-Stack)",
+  batch_name: "Batch A - Web Core",
   phone: "+1 (555) 234-8901",
   bio: "Working through the full-stack engineering curriculum. Focusing on database indexing, backend reliability, and clean component architecture.",
   specialization: "Full-Stack Web & Distributed Systems",

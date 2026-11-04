@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.models.batch import Batch
 from app.models.trainee import Trainee
+from app.core.constants import PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_CUTOFF, COLD_START_SESSIONS
 
 class AnalyticsRepository:
     """Repository executing pure SQL aggregations for analytical dashboards."""
@@ -30,7 +31,10 @@ class AnalyticsRepository:
             return None
 
         date_clauses = ""
-        params: Dict[str, Any] = {"batch_id": batch_id}
+        params: Dict[str, Any] = {
+            "batch_id": batch_id,
+            "pass_threshold": PASS_THRESHOLD,
+        }
 
         if from_date:
             date_clauses += " AND s.created_at >= :from_date"
@@ -51,7 +55,7 @@ class AnalyticsRepository:
             session_metrics AS (
                 SELECT 
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                     s.errors,
                     s.time_seconds,
                     s.created_at
@@ -70,7 +74,7 @@ class AnalyticsRepository:
                 (SELECT COUNT(*) FROM cohort_trainees) AS trainee_count,
                 COUNT(sm.id) AS session_count,
                 ROUND(CAST(AVG(sm.score_pct) AS NUMERIC), 1) AS avg_score_pct,
-                ROUND(CAST(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
+                ROUND(CAST(AVG(CASE WHEN sm.score_pct >= :pass_threshold THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
                 ROUND(CAST(AVG(sm.errors) AS NUMERIC), 1) AS avg_errors,
                 ROUND(CAST(AVG(sm.time_seconds) AS NUMERIC), 1) AS avg_time_seconds,
                 ROUND(CAST(pc.recent_avg - pc.prior_avg AS NUMERIC), 1) AS avg_score_change_pct
@@ -87,7 +91,7 @@ class AnalyticsRepository:
             session_metrics AS (
                 SELECT 
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                     s.errors,
                     s.time_seconds,
                     s.created_at
@@ -106,7 +110,7 @@ class AnalyticsRepository:
                 (SELECT COUNT(*) FROM cohort_trainees) AS trainee_count,
                 COUNT(sm.id) AS session_count,
                 ROUND(AVG(sm.score_pct), 1) AS avg_score_pct,
-                ROUND(AVG(CASE WHEN sm.score_pct >= 50.0 THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END), 1) AS pass_rate_pct,
+                ROUND(AVG(CASE WHEN sm.score_pct >= :pass_threshold THEN 100.0 WHEN sm.score_pct IS NOT NULL THEN 0.0 END), 1) AS pass_rate_pct,
                 ROUND(AVG(sm.errors), 1) AS avg_errors,
                 ROUND(AVG(sm.time_seconds), 1) AS avg_time_seconds,
                 ROUND(pc.recent_avg - pc.prior_avg, 1) AS avg_score_change_pct
@@ -166,7 +170,7 @@ class AnalyticsRepository:
                 SELECT 
                     CAST(DATE_TRUNC('week', s.created_at) AS DATE) AS week_start,
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
@@ -199,7 +203,7 @@ class AnalyticsRepository:
                 SELECT 
                     date(s.created_at, '-' || ((strftime('%w', s.created_at) + 6) % 7) || ' days') AS week_start,
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
@@ -250,7 +254,7 @@ class AnalyticsRepository:
                 SELECT 
                     CAST(DATE_TRUNC('week', s.created_at) AS DATE) AS week_start,
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
             )
@@ -280,7 +284,7 @@ class AnalyticsRepository:
                 SELECT 
                     date(s.created_at, '-' || ((strftime('%w', s.created_at) + 6) % 7) || ' days') AS week_start,
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
             )
@@ -317,12 +321,18 @@ class AnalyticsRepository:
         if not batch:
             return None
 
+        params = {
+            "batch_id": batch_id,
+            "pass_threshold": PASS_THRESHOLD,
+            "excellent_threshold": EXCELLENT_THRESHOLD,
+        }
+
         if self.dialect_name == "postgresql":
             sql = """
             WITH trainee_averages AS (
                 SELECT 
                     t.id AS trainee_id,
-                    AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS avg_pct
+                    AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS avg_pct
                 FROM trainees t
                 JOIN sessions s ON s.trainee_id = t.id
                 JOIN modules m ON m.id = s.module_id
@@ -333,8 +343,8 @@ class AnalyticsRepository:
                 SELECT 
                     trainee_id,
                     CASE 
-                        WHEN avg_pct >= 75.0 THEN 'Excellent'
-                        WHEN avg_pct >= 50.0 THEN 'Average'
+                        WHEN avg_pct >= :excellent_threshold THEN 'Excellent'
+                        WHEN avg_pct >= :pass_threshold THEN 'Average'
                         ELSE 'Struggling'
                     END AS band
                 FROM trainee_averages
@@ -365,7 +375,7 @@ class AnalyticsRepository:
             WITH trainee_averages AS (
                 SELECT 
                     t.id AS trainee_id,
-                    AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS avg_pct
+                    AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS avg_pct
                 FROM trainees t
                 JOIN sessions s ON s.trainee_id = t.id
                 JOIN modules m ON m.id = s.module_id
@@ -376,8 +386,8 @@ class AnalyticsRepository:
                 SELECT 
                     trainee_id,
                     CASE 
-                        WHEN avg_pct >= 75.0 THEN 'Excellent'
-                        WHEN avg_pct >= 50.0 THEN 'Average'
+                        WHEN avg_pct >= :excellent_threshold THEN 'Excellent'
+                        WHEN avg_pct >= :pass_threshold THEN 'Average'
                         ELSE 'Struggling'
                     END AS band
                 FROM trainee_averages
@@ -404,7 +414,7 @@ class AnalyticsRepository:
             ORDER BY b.ord ASC;
             """
 
-        rows = self.db.execute(text(sql), {"batch_id": batch_id}).fetchall()
+        rows = self.db.execute(text(sql), params).fetchall()
         return [
             {
                 "label": row[0],
@@ -434,7 +444,7 @@ class AnalyticsRepository:
                 SELECT 
                     t.id AS trainee_id,
                     t.name,
-                    ROUND(CAST(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS NUMERIC), 1) AS avg_score_pct,
+                    ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
                 LEFT JOIN sessions s ON s.trainee_id = t.id
@@ -453,7 +463,7 @@ class AnalyticsRepository:
                 LEFT JOIN (
                     SELECT 
                         s.trainee_id,
-                        (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                        (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                         ROW_NUMBER() OVER (PARTITION BY s.trainee_id ORDER BY s.created_at DESC) AS row_desc,
                         ROW_NUMBER() OVER (PARTITION BY s.trainee_id ORDER BY s.created_at ASC) AS row_asc
                     FROM sessions s
@@ -489,8 +499,8 @@ class AnalyticsRepository:
                     END AS rank_asc,
                     CASE 
                         WHEN ts.session_count = 0 THEN 'no_sessions'
-                        WHEN ts.avg_score_pct < 50.0 THEN 'needs_help'
-                        WHEN ts.avg_score_pct < 60.0 THEN 'struggling'
+                        WHEN ts.avg_score_pct < :cold_start_cutoff THEN 'needs_help'
+                        WHEN ts.avg_score_pct < :pass_threshold THEN 'struggling'
                         ELSE 'on_track'
                     END AS status
                 FROM trainee_stats ts
@@ -518,7 +528,7 @@ class AnalyticsRepository:
                 SELECT 
                     t.id AS trainee_id,
                     t.name,
-                    ROUND(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0), 1) AS avg_score_pct,
+                    ROUND(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
                 LEFT JOIN sessions s ON s.trainee_id = t.id
@@ -537,7 +547,7 @@ class AnalyticsRepository:
                 LEFT JOIN (
                     SELECT 
                         s.trainee_id,
-                        (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                        (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                         ROW_NUMBER() OVER (PARTITION BY s.trainee_id ORDER BY s.created_at DESC) AS row_desc,
                         ROW_NUMBER() OVER (PARTITION BY s.trainee_id ORDER BY s.created_at ASC) AS row_asc
                     FROM sessions s
@@ -573,8 +583,8 @@ class AnalyticsRepository:
                     END AS rank_asc,
                     CASE 
                         WHEN ts.session_count = 0 THEN 'no_sessions'
-                        WHEN ts.avg_score_pct < 50.0 THEN 'needs_help'
-                        WHEN ts.avg_score_pct < 60.0 THEN 'struggling'
+                        WHEN ts.avg_score_pct < :cold_start_cutoff THEN 'needs_help'
+                        WHEN ts.avg_score_pct < :pass_threshold THEN 'struggling'
                         ELSE 'on_track'
                     END AS status
                 FROM trainee_stats ts
@@ -599,7 +609,13 @@ class AnalyticsRepository:
 
         rows = self.db.execute(
             text(sql),
-            {"batch_id": batch_id, "order": order.lower(), "limit": limit}
+            {
+                "batch_id": batch_id,
+                "order": order.lower(),
+                "limit": limit,
+                "cold_start_cutoff": COLD_START_CUTOFF,
+                "pass_threshold": PASS_THRESHOLD,
+            }
         ).fetchall()
 
         return [
@@ -630,7 +646,7 @@ class AnalyticsRepository:
                 SELECT 
                     t.id AS trainee_id,
                     t.name,
-                    ROUND(CAST(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS NUMERIC), 1) AS avg_score_pct,
+                    ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
                 JOIN sessions s ON s.trainee_id = t.id
@@ -642,7 +658,7 @@ class AnalyticsRepository:
                 SELECT 
                     s.trainee_id,
                     CAST(DATE_TRUNC('week', s.created_at) AS DATE) AS wk,
-                    AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS wk_avg,
+                    AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS wk_avg,
                     ROW_NUMBER() OVER (
                         PARTITION BY s.trainee_id 
                         ORDER BY CAST(DATE_TRUNC('week', s.created_at) AS DATE) DESC
@@ -668,14 +684,14 @@ class AnalyticsRepository:
                 o.name,
                 o.avg_score_pct,
                 CASE 
-                    WHEN o.avg_score_pct < 50.0 THEN 'critical_low'
-                    WHEN o.avg_score_pct < 60.0 THEN 'struggling'
+                    WHEN o.avg_score_pct < :cold_start_cutoff THEN 'critical_low'
+                    WHEN o.avg_score_pct < :pass_threshold THEN 'struggling'
                     WHEN fc.wk1 < fc.wk2 AND fc.wk2 < fc.wk3 THEN 'falling'
                     ELSE 'needs_review'
                 END AS trend
             FROM trainee_overall o
             LEFT JOIN falling_check fc ON fc.trainee_id = o.trainee_id
-            WHERE o.avg_score_pct < 60.0 
+            WHERE o.avg_score_pct < :pass_threshold 
                OR (fc.wk1 IS NOT NULL AND fc.wk2 IS NOT NULL AND fc.wk3 IS NOT NULL AND fc.wk1 < fc.wk2 AND fc.wk2 < fc.wk3)
             ORDER BY o.avg_score_pct ASC
             LIMIT 5;
@@ -686,7 +702,7 @@ class AnalyticsRepository:
                 SELECT 
                     t.id AS trainee_id,
                     t.name,
-                    ROUND(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0), 1) AS avg_score_pct,
+                    ROUND(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
                 JOIN sessions s ON s.trainee_id = t.id
@@ -698,7 +714,7 @@ class AnalyticsRepository:
                 SELECT 
                     s.trainee_id,
                     date(s.created_at, '-' || ((strftime('%w', s.created_at) + 6) % 7) || ' days') AS wk,
-                    AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS wk_avg,
+                    AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS wk_avg,
                     ROW_NUMBER() OVER (
                         PARTITION BY s.trainee_id 
                         ORDER BY date(s.created_at, '-' || ((strftime('%w', s.created_at) + 6) % 7) || ' days') DESC
@@ -724,20 +740,27 @@ class AnalyticsRepository:
                 o.name,
                 o.avg_score_pct,
                 CASE 
-                    WHEN o.avg_score_pct < 50.0 THEN 'critical_low'
-                    WHEN o.avg_score_pct < 60.0 THEN 'struggling'
+                    WHEN o.avg_score_pct < :cold_start_cutoff THEN 'critical_low'
+                    WHEN o.avg_score_pct < :pass_threshold THEN 'struggling'
                     WHEN fc.wk1 < fc.wk2 AND fc.wk2 < fc.wk3 THEN 'falling'
                     ELSE 'needs_review'
                 END AS trend
             FROM trainee_overall o
             LEFT JOIN falling_check fc ON fc.trainee_id = o.trainee_id
-            WHERE o.avg_score_pct < 60.0 
+            WHERE o.avg_score_pct < :pass_threshold 
                OR (fc.wk1 IS NOT NULL AND fc.wk2 IS NOT NULL AND fc.wk3 IS NOT NULL AND fc.wk1 < fc.wk2 AND fc.wk2 < fc.wk3)
             ORDER BY o.avg_score_pct ASC
             LIMIT 5;
             """
 
-        rows = self.db.execute(text(sql), {"batch_id": batch_id}).fetchall()
+        rows = self.db.execute(
+            text(sql),
+            {
+                "batch_id": batch_id,
+                "cold_start_cutoff": COLD_START_CUTOFF,
+                "pass_threshold": PASS_THRESHOLD,
+            }
+        ).fetchall()
         return [
             {
                 "trainee_id": int(row[0]),
@@ -776,7 +799,7 @@ class AnalyticsRepository:
             WITH ranked_sessions AS (
                 SELECT 
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                     s.errors,
                     s.time_seconds,
                     s.created_at,
@@ -810,7 +833,7 @@ class AnalyticsRepository:
             WITH ranked_sessions AS (
                 SELECT 
                     s.id,
-                    (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS score_pct,
+                    (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct,
                     s.errors,
                     s.time_seconds,
                     s.created_at,
@@ -879,7 +902,7 @@ class AnalyticsRepository:
             SELECT 
                 s.created_at,
                 m.name AS module_name,
-                ROUND(CAST(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0 AS NUMERIC), 1) AS score_pct,
+                ROUND(CAST(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT) AS NUMERIC), 1) AS score_pct,
                 s.errors,
                 s.time_seconds
             FROM sessions s
@@ -893,7 +916,7 @@ class AnalyticsRepository:
             SELECT 
                 s.created_at,
                 m.name AS module_name,
-                ROUND(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0, 1) AS score_pct,
+                ROUND(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT), 1) AS score_pct,
                 s.errors,
                 s.time_seconds
             FROM sessions s
@@ -964,13 +987,14 @@ class AnalyticsRepository:
     # =========================================================================
     def get_batches_compare(self) -> List[Dict[str, Any]]:
         """Aggregates all cohorts in SQL comparing pass rates and average scores."""
+        params = {"pass_threshold": PASS_THRESHOLD}
         if self.dialect_name == "postgresql":
             sql = """
             SELECT 
                 b.id AS batch_id,
                 b.name AS batch_name,
-                ROUND(CAST(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) AS NUMERIC), 1) AS avg_score_pct,
-                ROUND(CAST(AVG(CASE WHEN (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) >= 50.0 THEN 100.0 ELSE 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
+                ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 1) AS avg_score_pct,
+                ROUND(CAST(AVG(CASE WHEN (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) >= :pass_threshold THEN 100.0 ELSE 0.0 END) AS NUMERIC), 1) AS pass_rate_pct,
                 COUNT(DISTINCT t.id) AS trainee_count
             FROM batches b
             LEFT JOIN trainees t ON t.batch_id = b.id
@@ -984,8 +1008,8 @@ class AnalyticsRepository:
             SELECT 
                 b.id AS batch_id,
                 b.name AS batch_name,
-                ROUND(AVG(CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0), 1) AS avg_score_pct,
-                ROUND(AVG(CASE WHEN (CAST(s.score AS FLOAT) / CAST(m.max_score AS FLOAT) * 100.0) >= 50.0 THEN 100.0 ELSE 0.0 END), 1) AS pass_rate_pct,
+                ROUND(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)), 1) AS avg_score_pct,
+                ROUND(AVG(CASE WHEN (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) >= :pass_threshold THEN 100.0 ELSE 0.0 END), 1) AS pass_rate_pct,
                 COUNT(DISTINCT t.id) AS trainee_count
             FROM batches b
             LEFT JOIN trainees t ON t.batch_id = b.id
@@ -995,7 +1019,7 @@ class AnalyticsRepository:
             ORDER BY b.start_date DESC, b.name ASC;
             """
 
-        rows = self.db.execute(text(sql)).fetchall()
+        rows = self.db.execute(text(sql), params).fetchall()
         return [
             {
                 "batch_id": int(row[0]),
