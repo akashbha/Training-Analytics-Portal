@@ -1,5 +1,12 @@
 """Database seed script for populating realistic test and demo data.
-Generates reproducible cohorts, trainees, modules, performance trends, and admin accounts.
+Generates reproducible cohorts, trainees, modules, performance trajectories, and credentials.
+Implements:
+- 5 normalized batches
+- 45 trainees with uneven session counts (0 sessions, 1-2 cold-start sessions, dropouts, 10-35 active)
+- 7 modules with varied max_scores (100, 50, 20)
+- ~3 months of sessions with realistic noise, improving trajectories, and plateaus
+- Idempotent execution with --reset flag
+- Summary report printing per-batch session counts and averages
 """
 
 import argparse
@@ -8,8 +15,14 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 from faker import Faker
 from passlib.context import CryptContext
-from sqlalchemy import text, func
+from sqlalchemy import text
 
+from app.core.constants import (
+    PASS_THRESHOLD,
+    EXCELLENT_THRESHOLD,
+    COLD_START_SESSIONS,
+    COLD_START_CUTOFF,
+)
 from app.db.base import Base
 from app.db.session import sync_engine, SyncSessionLocal
 from app.models.batch import Batch
@@ -21,14 +34,16 @@ from app.models.user import User
 # Password hashing context using standard bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def hash_password(password: str) -> str:
     """Hashes a plaintext password using bcrypt for secure storage."""
     return pwd_context.hash(password)
 
+
 def clear_tables(db) -> None:
     """Truncates all tables in strict foreign-key dependency order."""
     print("Clearing existing data in cascade-safe order...")
-    # Order: sessions -> users -> trainees -> modules -> batches
+    # Dependency order: sessions -> users -> trainees -> modules -> batches
     db.query(Session).delete()
     db.query(User).delete()
     db.query(Trainee).delete()
@@ -37,9 +52,9 @@ def clear_tables(db) -> None:
     db.commit()
     print("All tables cleared successfully.")
 
+
 def seed_database(reset: bool = False) -> None:
     """Executes the deterministic database seeding pipeline."""
-    # Ensure all tables exist in the target database
     Base.metadata.create_all(bind=sync_engine)
 
     # Deterministic pseudo-random generators
@@ -54,21 +69,8 @@ def seed_database(reset: bool = False) -> None:
         existing_batches = db.query(Batch).count()
         if existing_batches > 0:
             if not reset:
-                # Ensure admin exists even if already seeded previously
-                existing_admin = db.query(User).filter(User.email == "admin@example.com").first()
-                if not existing_admin:
-                    admin_user = User(
-                        email="admin@example.com",
-                        password_hash=hash_password("Admin123!"),
-                        role="admin",
-                        is_active=True,
-                        trainee_id=None
-                    )
-                    db.add(admin_user)
-                    db.commit()
-                    print("Admin account seeded into existing database.")
-                print("Already seeded")
-                sys.exit(0)
+                print("Database is already seeded. Pass '--reset' to wipe and reseed.")
+                return
             else:
                 clear_tables(db)
 
@@ -76,7 +78,7 @@ def seed_database(reset: bool = False) -> None:
         today_date = today_dt.date()
 
         # -------------------------------------------------------------
-        # 1. Batches (5 batches with sensible start and end dates)
+        # 1. Batches (5 cohorts with normalized scheme: "Batch <Letter> - <Discipline>")
         # -------------------------------------------------------------
         batch_configs = [
             ("Batch A - Web Core", today_date - timedelta(weeks=16), today_date + timedelta(weeks=4)),
@@ -94,15 +96,16 @@ def seed_database(reset: bool = False) -> None:
         db.flush()
 
         # -------------------------------------------------------------
-        # 2. Modules (6 modules with required max_score values: 100, 50, 100, 20, 100, 50)
+        # 2. Modules (7 modules with required max_scores: 100, 50, and 20)
         # -------------------------------------------------------------
         module_configs = [
             ("Python Core & Data Structures", 100.0),
             ("SQL Modeling & PostgreSQL Operations", 50.0),
-            ("FastAPI Services & REST Architecture", 100.0),
-            ("Git Collaboration & Code Reviews", 20.0),
+            ("FastAPI REST Architecture", 100.0),
+            ("Git Version Control & Workflow", 20.0),
             ("System Security & Token Authentication", 100.0),
-            ("Real-Time WebSockets & Streaming", 50.0),
+            ("Docker & Container Virtualization", 50.0),
+            ("Continuous Integration & Deployment", 20.0),
         ]
 
         modules = []
@@ -113,120 +116,154 @@ def seed_database(reset: bool = False) -> None:
         db.flush()
 
         # -------------------------------------------------------------
-        # 3. Trainees (50 total, exactly 10 per batch)
+        # 3. Trainees (45 trainees total: 9 per batch)
         # -------------------------------------------------------------
         trainees = []
         trainee_index = 0
         for batch in batches:
-            for _ in range(10):
+            for _ in range(9):
                 trainee_index += 1
                 first_name = fake.first_name()
                 last_name = fake.last_name()
                 full_name = f"{first_name} {last_name}"
                 email = f"{first_name.lower()}.{last_name.lower()}{trainee_index}@training.internal"
-                
+
                 trainee = Trainee(
                     name=full_name,
                     email=email,
-                    batch_id=batch.id
+                    batch_id=batch.id,
                 )
                 db.add(trainee)
                 trainees.append(trainee)
         db.flush()
 
-        # Designate Trainee 50 (last trainee) as the zero-sessions trainee to test empty state
-        zero_session_trainee_id = trainees[-1].id
+        # -------------------------------------------------------------
+        # 4. Trainee Behavioral Personas & Session Count Distribution
+        # Requirements:
+        # - Some 0 sessions (empty state test)
+        # - Some 1-2 sessions (cold-start test)
+        # - Some dropouts (stopped attending partway through)
+        # - Most 10-35 sessions (improving, plateauing, struggling, top performer)
+        # -------------------------------------------------------------
+        # Trainee 0 to 44 (45 total)
+        # Trainee 43 & 44: 0 sessions (Empty state)
+        # Trainee 41 & 42: 1-2 sessions (Cold-start: one low < 50%, one high >= 50%)
+        # Trainee 38 to 40: Dropouts (stopped attending around week 4)
+        # Trainees 0 to 37: Active (improving, plateauing, struggling, top performers) with 12 to 34 sessions
+
+        trainee_plans = {}
+
+        # 0 sessions
+        trainee_plans[trainees[44].id] = {"persona": "empty", "count": 0, "max_day": 0}
+        trainee_plans[trainees[43].id] = {"persona": "empty", "count": 0, "max_day": 0}
+
+        # 1-2 sessions (Cold-start)
+        trainee_plans[trainees[42].id] = {"persona": "cold_start_low", "count": 2, "max_day": 14}
+        trainee_plans[trainees[41].id] = {"persona": "cold_start_high", "count": 2, "max_day": 14}
+
+        # Dropouts (stopped attending after ~25 days)
+        trainee_plans[trainees[40].id] = {"persona": "dropout", "count": 6, "max_day": 25}
+        trainee_plans[trainees[39].id] = {"persona": "dropout", "count": 7, "max_day": 28}
+        trainee_plans[trainees[38].id] = {"persona": "dropout", "count": 5, "max_day": 22}
+
+        # Remaining 38 trainees: mix of improving, plateauing, struggling, top performers (10-35 sessions)
+        persona_pool = (
+            ["improving"] * 18 +
+            ["plateauing"] * 8 +
+            ["struggling"] * 7 +
+            ["top_performer"] * 5
+        )
+        random.shuffle(persona_pool)
+
+        for t, persona in zip(trainees[:38], persona_pool):
+            session_count = random.randint(14, 34)
+            trainee_plans[t.id] = {"persona": persona, "count": session_count, "max_day": 84}
 
         # -------------------------------------------------------------
-        # 4. Trainee Personas & Profiles
-        # Distribution: ~60% improving, ~15% struggling, ~10% top performers, ~15% flat
+        # 5. Longitudinal Sessions Generation over ~3 months (84 days)
         # -------------------------------------------------------------
-        # We assign profiles to the 49 active trainees
-        active_trainees = trainees[:-1]
-        profiles = ["improving"] * 29 + ["struggling"] * 8 + ["top_performer"] * 5 + ["flat"] * 7
-        random.shuffle(profiles)
-
-        trainee_profiles = {}
-        for trainee, profile in zip(active_trainees, profiles):
-            trainee_profiles[trainee.id] = profile
-
-        # -------------------------------------------------------------
-        # 5. Sessions Generation (1500+ sessions over the last 12 weeks)
-        # -------------------------------------------------------------
-        # 49 active trainees * 34 sessions = 1666 sessions
         sessions_to_insert = []
-        start_time_window = today_dt - timedelta(weeks=12)
+        start_time_window = today_dt - timedelta(days=84)
         total_days = 84
 
-        for trainee in active_trainees:
-            profile = trainee_profiles[trainee.id]
-            is_batch_d = (trainee.batch_id == batches[3].id)  # Batch D is weaker by ~15 points
+        for trainee in trainees:
+            plan = trainee_plans[trainee.id]
+            count = plan["count"]
+            if count == 0:
+                continue
+
+            persona = plan["persona"]
+            max_day = plan["max_day"]
+            is_batch_d = (trainee.batch_id == batches[3].id)  # Batch D weaker by ~12 points
 
             # Baseline ability percentage (0 - 100)
-            if profile == "improving":
-                base_start_pct = random.uniform(52.0, 60.0)
-                improvement_gain = random.uniform(18.0, 25.0)  # Rises 15-25 points
-            elif profile == "struggling":
-                base_start_pct = random.uniform(38.0, 48.0)
-                improvement_gain = random.uniform(-6.0, -1.0) # Declining or low
-            elif profile == "top_performer":
-                base_start_pct = random.uniform(90.0, 95.0)
-                improvement_gain = random.uniform(1.0, 3.0)   # Consistently high
-            else:  # flat
-                base_start_pct = random.uniform(66.0, 72.0)
+            if persona == "improving":
+                base_start_pct = random.uniform(52.0, PASS_THRESHOLD)
+                improvement_gain = random.uniform(18.0, 24.0)  # Progresses to ~75-80%
+            elif persona == "plateauing":
+                base_start_pct = random.uniform(64.0, 71.0)
+                improvement_gain = random.uniform(-1.5, 2.0)   # Stagnant around 65-70%
+            elif persona == "struggling":
+                base_start_pct = random.uniform(40.0, 48.0)
+                improvement_gain = random.uniform(-6.0, -1.0)  # Declining or low
+            elif persona == "top_performer":
+                base_start_pct = random.uniform(88.0, 94.0)
+                improvement_gain = random.uniform(1.0, 4.0)
+            elif persona == "cold_start_low":
+                base_start_pct = random.uniform(35.0, COLD_START_CUTOFF - 6.0)
+                improvement_gain = 0.0
+            elif persona == "cold_start_high":
+                base_start_pct = random.uniform(COLD_START_CUTOFF + 15.0, 75.0)
+                improvement_gain = 0.0
+            elif persona == "dropout":
+                base_start_pct = random.uniform(48.0, 58.0)
+                improvement_gain = -10.0
+            else:
+                base_start_pct = 60.0
                 improvement_gain = 0.0
 
-            # Schedule 34 sessions spread across the 12 weeks for each trainee
-            session_days = sorted(random.sample(range(1, total_days + 1), 34))
+            # Distribute sessions across available days
+            sampled_days = sorted(random.sample(range(1, max_day + 1), count))
 
-            for day_offset in session_days:
+            for day_offset in sampled_days:
                 time_fraction = day_offset / float(total_days)
                 session_module = random.choice(modules)
 
-                # Score percentage calculation
+                # Score calculation with progressive trend and noise
                 current_pct = base_start_pct + (improvement_gain * time_fraction)
                 if is_batch_d:
-                    current_pct -= 15.0  # Batch D penalty
+                    current_pct -= 12.0
 
-                # Add noise
                 noise = random.uniform(-3.5, 3.5)
-                final_pct = current_pct + noise
+                final_pct = max(0.0, min(100.0, current_pct + noise))
 
-                # Bound percentage strictly between 0 and 100
-                final_pct = max(0.0, min(100.0, final_pct))
-                
-                # Compute raw score according to module.max_score
+                # Raw score according to module.max_score
                 raw_score = (final_pct / 100.0) * session_module.max_score
                 final_score = round(max(0.0, min(float(session_module.max_score), raw_score)), 1)
 
-                # Error counts based on performance
-                if profile == "improving":
-                    base_err = 7.0 - (5.0 * time_fraction)
-                elif profile == "struggling":
-                    base_err = random.uniform(8.0, 14.0)
-                elif profile == "top_performer":
+                # Errors
+                if persona == "top_performer":
                     base_err = random.uniform(0.0, 1.5)
+                elif persona == "improving":
+                    base_err = max(1.0, 7.0 - (5.0 * time_fraction))
+                elif persona == "struggling":
+                    base_err = random.uniform(7.0, 13.0)
                 else:
-                    base_err = random.uniform(3.0, 5.0)
-                
-                if is_batch_d:
-                    base_err += random.uniform(2.0, 4.0)
+                    base_err = random.uniform(3.0, 6.0)
 
                 final_errors = max(0, int(round(base_err + random.uniform(-1.0, 1.0))))
 
-                # Time in seconds (positive duration)
-                if profile == "improving":
-                    base_sec = 2400.0 - (1100.0 * time_fraction)
-                elif profile == "struggling":
-                    base_sec = random.uniform(2600.0, 3500.0)
-                elif profile == "top_performer":
-                    base_sec = random.uniform(700.0, 1200.0)
+                # Duration in seconds (2 to 50 minutes)
+                if persona == "top_performer":
+                    base_sec = random.uniform(700.0, 1100.0)
+                elif persona == "improving":
+                    base_sec = max(900.0, 2200.0 - (900.0 * time_fraction))
                 else:
-                    base_sec = random.uniform(1500.0, 1900.0)
+                    base_sec = random.uniform(1400.0, 2400.0)
 
-                final_seconds = max(120, int(round(base_sec + random.uniform(-90.0, 90.0))))
+                final_seconds = max(120, int(round(base_sec + random.uniform(-60.0, 60.0))))
 
-                # Specific session timestamp
+                # Timestamp
                 sess_time = start_time_window + timedelta(
                     days=day_offset,
                     hours=random.randint(9, 17),
@@ -240,51 +277,43 @@ def seed_database(reset: bool = False) -> None:
                     score=final_score,
                     errors=final_errors,
                     time_seconds=final_seconds,
-                    created_at=sess_time
+                    created_at=sess_time,
                 )
                 sessions_to_insert.append(sess)
 
-        # Batch insert sessions for high throughput
+        # Batch insert sessions
         db.bulk_save_objects(sessions_to_insert)
         db.flush()
 
         # -------------------------------------------------------------
         # 6. User Accounts with bcrypt-hashed passwords
-        # admin@example.com / Admin123!
-        # trainer@example.com / Trainer@123
-        # trainee@example.com / Trainee@123 (linked to trainee[0])
         # -------------------------------------------------------------
         admin_user = User(
             email="admin@example.com",
             password_hash=hash_password("Admin123!"),
             role="admin",
             is_active=True,
-            trainee_id=None
+            trainee_id=None,
         )
-        db.add(admin_user)
-
         trainer_user = User(
             email="trainer@example.com",
             password_hash=hash_password("Trainer@123"),
             role="trainer",
             is_active=True,
-            trainee_id=None
+            trainee_id=None,
         )
-        db.add(trainer_user)
-
-        # Link trainee user to trainee 1 who has complete session history
         trainee_user = User(
             email="trainee@example.com",
             password_hash=hash_password("Trainee@123"),
             role="trainee",
             is_active=True,
-            trainee_id=trainees[0].id
+            trainee_id=trainees[0].id,
         )
-        db.add(trainee_user)
+        db.add_all([admin_user, trainer_user, trainee_user])
         db.commit()
 
         # -------------------------------------------------------------
-        # 7. Print summary statistics & credentials
+        # 7. Summary Report
         # -------------------------------------------------------------
         total_batches = db.query(Batch).count()
         total_trainees = db.query(Trainee).count()
@@ -292,18 +321,20 @@ def seed_database(reset: bool = False) -> None:
         total_sessions = db.query(Session).count()
         total_users = db.query(User).count()
 
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 64)
         print("SEEDING COMPLETE: SUMMARY REPORT")
-        print("=" * 60)
+        print("=" * 64)
         print(f"Batches inserted:  {total_batches}")
         print(f"Trainees inserted: {total_trainees}")
-        print(f"Modules inserted:  {total_modules}")
-        print(f"Sessions inserted: {total_sessions}")
+        print(f"Modules inserted:  {total_modules} (max_scores: 100, 50, 20)")
+        print(f"Sessions inserted: {total_sessions} (~3 months longitudinal data)")
         print(f"Users inserted:    {total_users}")
-        print(f"Zero-session Trainee ID (Empty State Test): {zero_session_trainee_id} ({trainees[-1].name})")
-        print("-" * 60)
+        print(f"Empty-state Trainees: ID {trainees[43].id} & {trainees[44].id} (0 sessions)")
+        print(f"Cold-start Trainees:  ID {trainees[41].id} (high) & {trainees[42].id} (low < 50%)")
+        print(f"Dropout Trainees:     ID {trainees[38].id}, {trainees[39].id}, {trainees[40].id} (stopped early)")
+        print("-" * 64)
 
-        # Calculate and display Average Score per Batch (% of max_score)
+        # SQL aggregated batch performance
         print("AVERAGE PERFORMANCE PER BATCH (SQL Aggregated):")
         batch_stats = db.execute(text("""
             SELECT 
@@ -319,13 +350,15 @@ def seed_database(reset: bool = False) -> None:
         """)).fetchall()
 
         for row in batch_stats:
-            print(f"  • {row.batch_name:<38} | Sessions: {row.session_count:>4} | Avg Score: {row.avg_score_pct:>5}%")
+            avg_disp = f"{row.avg_score_pct}%" if row.avg_score_pct is not None else "N/A"
+            print(f"  - {row.batch_name:<38} | Sessions: {row.session_count:>4} | Avg Score: {avg_disp:>7}")
 
-        print("-" * 60)
-        print("LOGIN CREDENTIALS (ROLE-BASED):")
+        print("-" * 64)
+        print("CREDENTIALS:")
+        print("  [Admin]   Email: admin@example.com   | Password: Admin123!")
         print("  [Trainer] Email: trainer@example.com | Password: Trainer@123")
-        print(f"  [Trainee] Email: trainee@example.com | Password: Trainee@123 (Linked to Trainee: {trainees[0].name})")
-        print("=" * 60 + "\n")
+        print(f"  [Trainee] Email: trainee@example.com | Password: Trainee@123 (Linked to: {trainees[0].name})")
+        print("=" * 64 + "\n")
 
     except Exception as e:
         db.rollback()
@@ -334,8 +367,14 @@ def seed_database(reset: bool = False) -> None:
     finally:
         db.close()
 
-if __name__ == "__main__":
+
+def main() -> None:
     parser = argparse.ArgumentParser(description="Deterministic database seed script for Training Portal.")
     parser.add_argument("--reset", action="store_true", help="Truncate all tables and reseed from scratch.")
     args = parser.parse_args()
     seed_database(reset=args.reset)
+
+
+if __name__ == "__main__":
+    main()
+
