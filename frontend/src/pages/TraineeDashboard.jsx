@@ -3,7 +3,8 @@
 // Restored to the authentic portal layout structure with full profile editing and photo upload capabilities.
 
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
+import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -18,7 +19,6 @@ import {
 import { useAuth } from "../context/AuthContext.jsx";
 import { Card } from "../components/Card.jsx";
 import { StatCard } from "../components/StatCard.jsx";
-import { ChartCard } from "../components/ChartCard.jsx";
 import { ModuleDiagnosticLedger } from "../components/ModuleDiagnosticLedger.jsx";
 import { Spinner } from "../components/Spinner.jsx";
 import { UnauthorizedPage } from "./UnauthorizedPage.jsx";
@@ -529,8 +529,14 @@ export function TraineeDashboard({ traineeId: propId }) {
   const sessionStats = useMemo(() => {
     if (!sessions || sessions.length === 0) return null;
     const count = sessions.length;
-    const avgScore = sessions.reduce((acc, s) => acc + (s.score_pct || 0), 0) / count;
-    const passCount = sessions.filter((s) => (s.score_pct || 0) >= PASS_THRESHOLD).length;
+    const avgScore = sessions.reduce((acc, s) => {
+      const pct = s.score_percentage ?? s.score_pct ?? (s.module_max_score ? (s.score / s.module_max_score) * 100 : s.score) ?? 0;
+      return acc + pct;
+    }, 0) / count;
+    const passCount = sessions.filter((s) => {
+      const pct = s.score_percentage ?? s.score_pct ?? (s.module_max_score ? (s.score / s.module_max_score) * 100 : s.score) ?? 0;
+      return pct >= PASS_THRESHOLD;
+    }).length;
     const passRate = Math.round((passCount / count) * 100);
     return { count, avgScore: avgScore.toFixed(1), passRate };
   }, [sessions]);
@@ -540,11 +546,13 @@ export function TraineeDashboard({ traineeId: propId }) {
     if (!sessions || sessions.length === 0) return [];
     return sessions.map((s, idx) => {
       const minutes = Number(((s.time_seconds || 0) / 60.0).toFixed(1));
-      const scorePct = s.score_pct != null
-        ? Number(s.score_pct.toFixed(1))
-        : (s.module_max_score && s.module_max_score > 0)
-          ? Number(((s.score / s.module_max_score) * 100.0).toFixed(1))
-          : Number(s.score.toFixed(1));
+      const scorePct = s.score_percentage != null
+        ? Number(s.score_percentage.toFixed(1))
+        : s.score_pct != null
+          ? Number(s.score_pct.toFixed(1))
+          : (s.module_max_score && s.module_max_score > 0)
+            ? Number(((s.score / s.module_max_score) * 100.0).toFixed(1))
+            : Number(s.score.toFixed(1));
       return {
         id: s.id || idx,
         minutes: minutes,
@@ -568,6 +576,43 @@ export function TraineeDashboard({ traineeId: propId }) {
     const sign = delta > 0 ? "+" : "";
     return `${sign}${delta.toFixed(1)}%`;
   }, [progress]);
+
+  // Step 9c State Simulation Overrides (Dev only)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const demoState = import.meta.env.DEV ? searchParams.get("state") : null;
+
+  const isDemoLoading = demoState === "loading";
+  const isDemoEmpty = demoState === "empty";
+  const isDemoError = demoState === "error";
+
+  const effectiveProfileLoading = isDemoLoading || profileLoading;
+  const effectiveProfileError = isDemoError ? "Unable to retrieve trainee profile dossier." : (profileForbidden ? "Access forbidden: you do not have permission to view this profile." : null);
+
+  const effectiveSummaryLoading = isDemoLoading || summaryLoading;
+  const effectiveSummaryError = isDemoError ? "Unable to retrieve performance summary." : (summaryForbidden ? "Access forbidden." : null);
+  const effectiveSummary = isDemoEmpty ? null : summary;
+
+  const effectiveProgressLoading = isDemoLoading || progressLoading;
+  const effectiveProgressError = isDemoError ? "Unable to load score progression timeline." : progressError;
+  const effectiveFilteredProgress = isDemoEmpty ? [] : filteredProgress;
+
+  const effectiveErrorsLoading = isDemoLoading || errorStatsLoading;
+  const effectiveErrorsError = isDemoError ? "Unable to calculate curriculum defect diagnostics." : errorStatsError;
+  const effectiveErrorStats = isDemoEmpty ? [] : errorStats;
+
+  const effectiveSessionsLoading = isDemoLoading || sessionsLoading;
+  const effectiveSessionsError = isDemoError ? "Unable to retrieve assessment sessions." : sessionsError;
+  const effectiveSessions = isDemoEmpty ? [] : sessions;
+  const effectiveFilteredSessions = isDemoEmpty ? [] : filteredSessions;
+  const effectiveScatterData = isDemoEmpty ? [] : scatterData;
+
+  const effectiveRemediationsLoading = isDemoLoading || remediationsLoading;
+  const effectiveRemediationsError = isDemoError ? "Unable to load remediation history." : remediationError;
+  const effectiveRemediations = isDemoEmpty ? [] : remediations;
+
+  const effectiveGoalsLoading = isDemoLoading || goalsLoading;
+  const effectiveGoalsError = isDemoError ? "Unable to retrieve module learning goals." : goalError;
+  const effectiveGoals = isDemoEmpty ? [] : goals;
 
   const isZeroSessions =
     summary &&
@@ -625,20 +670,50 @@ export function TraineeDashboard({ traineeId: propId }) {
             <div>
               <div className="flex items-center space-x-2.5">
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  {profileLoading ? "Loading..." : activeProfile?.name || "Danielle Johnson"}
+                  {effectiveProfileLoading ? "Loading..." : isDemoEmpty || isDemoError ? "No Trainee Profile" : activeProfile?.name || "Danielle Johnson"}
                 </h1>
                 <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
                   ID: TRN-{String(effectiveId || 1).padStart(4, "0")}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1 font-medium">
-                {activeProfile?.specialization || "Full-Stack Web & Distributed Systems"} · {activeProfile?.email || user?.email}
+                {isDemoEmpty || isDemoError ? "Enrolled Candidate Dossier" : `${activeProfile?.specialization || "Full-Stack Web & Distributed Systems"} · ${activeProfile?.email || user?.email}`}
               </p>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center space-x-2.5 self-start md:self-auto">
+          {/* Action buttons & Dev-only switcher */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            {import.meta.env.DEV && (
+              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60 shadow-2xs">
+                {["live", "loading", "empty", "error"].map((st) => {
+                  const isActive = (demoState === null && st === "live") || demoState === st;
+                  return (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => {
+                        const next = new URLSearchParams(searchParams);
+                        if (st === "live") {
+                          next.delete("state");
+                        } else {
+                          next.set("state", st);
+                        }
+                        setSearchParams(next);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <button
               type="button"
               onClick={() => setEditModalOpen(true)}
@@ -666,7 +741,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Email</span>
               <span className="font-semibold text-slate-800 truncate block">
-                {activeProfile?.email || user?.email || "trainee@portal.com"}
+                {isDemoEmpty || isDemoError ? "—" : activeProfile?.email || user?.email || "trainee@portal.com"}
               </span>
             </div>
           </div>
@@ -676,7 +751,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Phone</span>
               <span className="font-semibold text-slate-800 truncate block">
-                {activeProfile?.phone || "+1 (555) 234-8901"}
+                {isDemoEmpty || isDemoError ? "—" : activeProfile?.phone || "+1 (555) 234-8901"}
               </span>
             </div>
           </div>
@@ -685,7 +760,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             <Github className="w-4 h-4 text-slate-400 shrink-0" />
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">GitHub</span>
-              {activeProfile?.github_url ? (
+              {!isDemoEmpty && !isDemoError && activeProfile?.github_url ? (
                 <a
                   href={activeProfile.github_url}
                   target="_blank"
@@ -708,34 +783,38 @@ export function TraineeDashboard({ traineeId: propId }) {
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               Verified Competencies:
             </span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>REST Architecture · 88.0%</span>
-              </span>
-              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>React State Engineering · 82.5%</span>
-              </span>
-              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                <span>Target Pacing · 21m Mean</span>
-              </span>
-            </div>
+            {isDemoEmpty || isDemoError ? (
+              <span className="text-slate-400 font-medium text-[11px]">No competencies recorded</span>
+            ) : (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>REST Architecture · 88.0%</span>
+                </span>
+                <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>React State Engineering · 82.5%</span>
+                </span>
+                <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span>Target Pacing · 21m Mean</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="text-[11px] font-medium text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
             Self-Trend:{" "}
             <strong
               className={`font-bold ${
-                selfTrend !== "n/a" && selfTrend.startsWith("+")
+                !isDemoEmpty && !isDemoError && selfTrend !== "n/a" && selfTrend.startsWith("+")
                   ? "text-emerald-700"
-                  : selfTrend !== "n/a" && selfTrend.startsWith("-")
+                  : !isDemoEmpty && !isDemoError && selfTrend !== "n/a" && selfTrend.startsWith("-")
                   ? "text-rose-700"
                   : "text-slate-900"
               }`}
             >
-              {selfTrend}
+              {isDemoEmpty || isDemoError ? "n/a" : selfTrend}
             </strong>
           </div>
         </div>
@@ -746,42 +825,48 @@ export function TraineeDashboard({ traineeId: propId }) {
         <StatCard
           title="Latest Score"
           value={
-            summary?.latest_score_pct !== null && summary?.latest_score_pct !== undefined
-              ? `${summary.latest_score_pct.toFixed(1)}%`
-              : "—"
+            effectiveSummaryLoading
+              ? "..."
+              : isDemoEmpty || isDemoError || effectiveSummary?.latest_score_pct === null || effectiveSummary?.latest_score_pct === undefined
+              ? "—"
+              : `${effectiveSummary.latest_score_pct.toFixed(1)}%`
           }
           subtext="Most recent evaluation result"
           badge={<span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Latest</span>}
-          loading={summaryLoading}
+          loading={effectiveSummaryLoading}
         />
 
         <StatCard
           title="Best Score"
           value={
-            summary?.best_score_pct !== null && summary?.best_score_pct !== undefined
-              ? `${summary.best_score_pct.toFixed(1)}%`
-              : "—"
+            effectiveSummaryLoading
+              ? "..."
+              : isDemoEmpty || isDemoError || effectiveSummary?.best_score_pct === null || effectiveSummary?.best_score_pct === undefined
+              ? "—"
+              : `${effectiveSummary.best_score_pct.toFixed(1)}%`
           }
           subtext="All-time highest module score"
           badge={<span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">Peak</span>}
-          loading={summaryLoading}
+          loading={effectiveSummaryLoading}
         />
 
         <StatCard
           title="Improvement"
           value={
-            summary?.improvement_pct !== null && summary?.improvement_pct !== undefined
-              ? `${summary.improvement_pct >= 0 ? "+" : ""}${summary.improvement_pct.toFixed(1)}%`
-              : "—"
+            effectiveSummaryLoading
+              ? "..."
+              : isDemoEmpty || isDemoError || effectiveSummary?.improvement_pct === null || effectiveSummary?.improvement_pct === undefined
+              ? "—"
+              : `${effectiveSummary.improvement_pct >= 0 ? "+" : ""}${effectiveSummary.improvement_pct.toFixed(1)}%`
           }
           subtext={
-            summary?.improvement_pct !== null && summary?.improvement_pct !== undefined ? (
+            !isDemoEmpty && !isDemoError && effectiveSummary?.improvement_pct !== null && effectiveSummary?.improvement_pct !== undefined ? (
               <span
                 className={`font-semibold ${
-                  summary.improvement_pct >= 0 ? "text-emerald-600" : "text-rose-600"
+                  effectiveSummary.improvement_pct >= 0 ? "text-emerald-600" : "text-rose-600"
                 }`}
               >
-                {summary.improvement_pct >= 0 ? "▲ Positive trend" : "▼ Needs review"} (vs first 3)
+                {effectiveSummary.improvement_pct >= 0 ? "▲ Positive trend" : "▼ Needs review"} (vs first 3)
               </span>
             ) : (
               "Baseline assessment"
@@ -790,27 +875,29 @@ export function TraineeDashboard({ traineeId: propId }) {
           badge={
             <span
               className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                (summary?.improvement_pct || 0) >= 0
+                !isDemoEmpty && !isDemoError && (effectiveSummary?.improvement_pct || 0) >= 0
                   ? "text-emerald-700 bg-emerald-50"
                   : "text-rose-700 bg-rose-50"
               }`}
             >
-              {(summary?.improvement_pct || 0) >= 0 ? "Net Gain" : "Review"}
+              {!isDemoEmpty && !isDemoError && (effectiveSummary?.improvement_pct || 0) >= 0 ? "Net Gain" : "Review"}
             </span>
           }
-          loading={summaryLoading}
+          loading={effectiveSummaryLoading}
         />
 
         <StatCard
           title="Sessions"
           value={
-            summary?.session_count !== null && summary?.session_count !== undefined
-              ? String(summary.session_count)
-              : "0"
+            effectiveSummaryLoading
+              ? "..."
+              : isDemoEmpty || isDemoError || effectiveSummary?.session_count === null || effectiveSummary?.session_count === undefined
+              ? "0"
+              : String(effectiveSummary.session_count)
           }
           subtext="Evaluations completed"
           badge={<span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Total</span>}
-          loading={summaryLoading}
+          loading={effectiveSummaryLoading}
         />
       </div>
 
@@ -818,16 +905,15 @@ export function TraineeDashboard({ traineeId: propId }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Progression Area Chart */}
-          <ChartCard
-            title="My Score Over Time"
-            subtitle="Normalized percentage progression timeline across assessment modules"
-            loading={progressLoading}
-            error={progressError}
-            empty={!filteredProgress || filteredProgress.length === 0}
-            emptyMessage="No recorded evaluation sessions for the selected filter"
-            onRetry={refetchProgress}
-            action={
-              moduleOptions.length > 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 tracking-tight">My Score Over Time</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Normalized percentage progression timeline across assessment modules
+                </p>
+              </div>
+              {moduleOptions.length > 0 && !isDemoEmpty && !isDemoError && (
                 <div className="flex items-center space-x-2">
                   <Filter className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
                   <select
@@ -844,79 +930,112 @@ export function TraineeDashboard({ traineeId: propId }) {
                     ))}
                   </select>
                 </div>
-              ) : null
-            }
-          >
-            <div className="w-full h-64 pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={filteredProgress}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="scoreBlueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                  <XAxis
-                    dataKey="dateLabel"
-                    tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "#E2E8F0" }}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{ fontSize: 11, fill: "#64748B" }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(val) => `${val}%`}
-                  />
-                  <Tooltip content={<ProgressTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="score_pct"
-                    stroke="#2563EB"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#scoreBlueGradient)"
-                    dot={{
-                      r: 4,
-                      fill: "#FFFFFF",
-                      stroke: "#2563EB",
-                      strokeWidth: 2,
-                    }}
-                    activeDot={{
-                      r: 6,
-                      fill: "#2563EB",
-                      stroke: "#FFFFFF",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              )}
             </div>
-          </ChartCard>
+
+            {effectiveProgressLoading ? (
+              <LoadingState message="Loading score progression timeline..." className="py-12" />
+            ) : effectiveProgressError ? (
+              <ErrorState
+                title="Unable to Load Score Progression"
+                message={effectiveProgressError}
+                onRetry={refetchProgress}
+                className="py-12"
+              />
+            ) : effectiveFilteredProgress.length === 0 ? (
+              <EmptyState
+                title="No Score Records Found"
+                description="No recorded evaluation sessions for the selected filter."
+                className="py-12"
+              />
+            ) : (
+              <div className="w-full h-64 pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={effectiveFilteredProgress}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="scoreBlueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <XAxis
+                      dataKey="dateLabel"
+                      tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#E2E8F0" }}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tick={{ fontSize: 11, fill: "#64748B" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(val) => `${val}%`}
+                    />
+                    <Tooltip content={<ProgressTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="score_pct"
+                      stroke="#2563EB"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#scoreBlueGradient)"
+                      dot={{
+                        r: 4,
+                        fill: "#FFFFFF",
+                        stroke: "#2563EB",
+                        strokeWidth: 2,
+                      }}
+                      activeDot={{
+                        r: 6,
+                        fill: "#2563EB",
+                        stroke: "#FFFFFF",
+                        strokeWidth: 2,
+                      }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
 
           {/* Curriculum Defect Diagnostics (Stephen Few Bullet Matrix & Radar) */}
-          <ChartCard
-            title="Curriculum Defect Diagnostics"
-            subtitle="Module error tolerance analysis with session progression history"
-            loading={errorStatsLoading}
-            error={errorStatsError}
-            empty={!errorStats || errorStats.length === 0}
-            emptyMessage="No error frequency statistics recorded"
-            onRetry={refetchErrors}
-          >
-            <div className="w-full pt-1">
-              <ModuleDiagnosticLedger
-                errorStats={errorStats}
-                sessions={sessions}
-                toleranceBenchmark={2.0}
-              />
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+            <div className="pb-3 border-b border-slate-100 mb-4">
+              <h2 className="text-base font-bold text-slate-900 tracking-tight">Curriculum Defect Diagnostics</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Module error tolerance analysis with session progression history
+              </p>
             </div>
-          </ChartCard>
+
+            {effectiveErrorsLoading ? (
+              <LoadingState message="Loading curriculum defect diagnostics..." className="py-12" />
+            ) : effectiveErrorsError ? (
+              <ErrorState
+                title="Unable to Load Defect Diagnostics"
+                message={effectiveErrorsError}
+                onRetry={refetchErrors}
+                className="py-12"
+              />
+            ) : effectiveErrorStats.length === 0 ? (
+              <EmptyState
+                title="No Defect Statistics Recorded"
+                description="No error frequency statistics recorded across modules."
+                className="py-12"
+              />
+            ) : (
+              <div className="w-full pt-1">
+                <ModuleDiagnosticLedger
+                  errorStats={effectiveErrorStats}
+                  sessions={effectiveSessions}
+                  toleranceBenchmark={2.0}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Focus Areas & Next Goal */}
@@ -936,54 +1055,60 @@ export function TraineeDashboard({ traineeId: propId }) {
               Modules with higher error frequency. Target these topics for practice drills:
             </p>
 
-            <div className="space-y-3 mb-6">
-              {(errorStats || [])
-                .slice()
-                .sort((a, b) => b.avg_errors - a.avg_errors)
-                .slice(0, 3)
-                .map((mod, idx) => {
-                  const isHigh = mod.avg_errors >= 3;
-                  const isMedium = mod.avg_errors >= 1.5 && mod.avg_errors < 3;
-                  return (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            isHigh ? "bg-rose-500" : isMedium ? "bg-amber-500" : "bg-blue-500"
-                          }`}
-                        />
-                        <span className="text-xs font-bold text-slate-900 truncate">
-                          {mod.module_name}
+            {effectiveErrorsLoading ? (
+              <LoadingState compact message="Analyzing practice needs..." className="py-6" />
+            ) : effectiveErrorsError ? (
+              <ErrorState compact message={effectiveErrorsError} onRetry={refetchErrors} className="py-4" />
+            ) : effectiveErrorStats.length === 0 ? (
+              <EmptyState compact title="No Practice Areas Identified" description="Complete more sessions to analyze focus areas." className="py-6" />
+            ) : (
+              <div className="space-y-3 mb-6">
+                {effectiveErrorStats
+                  .slice()
+                  .sort((a, b) => b.avg_errors - a.avg_errors)
+                  .slice(0, 3)
+                  .map((mod, idx) => {
+                    const isHigh = mod.avg_errors >= 3;
+                    const isMedium = mod.avg_errors >= 1.5 && mod.avg_errors < 3;
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              isHigh ? "bg-rose-500" : isMedium ? "bg-amber-500" : "bg-blue-500"
+                            }`}
+                          />
+                          <span className="text-xs font-bold text-slate-900 truncate">
+                            {mod.module_name}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-700 shrink-0 ml-2">
+                          {mod.avg_errors.toFixed(1)} errs
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-slate-700 shrink-0 ml-2">
-                        {mod.avg_errors.toFixed(1)} errs
-                      </span>
-                    </div>
-                  );
-                })}
-
-              {(!errorStats || errorStats.length === 0) && (
-                <div className="text-xs text-slate-400 text-center py-6">
-                  No error patterns logged yet. Complete more sessions to analyze focus areas.
-                </div>
-              )}
-            </div>
+                    );
+                  })}
+              </div>
+            )}
 
             {/* Next Goal Progress Card */}
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Next Benchmark</span>
                 <span className="text-xs font-bold text-slate-900">
-                  {Math.min(
-                    100,
-                    Math.round(
-                      ((summary?.latest_score_pct || summary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
-                    )
-                  )}%
+                  {effectiveSummaryLoading
+                    ? "..."
+                    : isDemoEmpty || isDemoError
+                    ? "0%"
+                    : `${Math.min(
+                        100,
+                        Math.round(
+                          ((effectiveSummary?.latest_score_pct || effectiveSummary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
+                        )
+                      )}%`}
                 </span>
               </div>
               <div className="text-xs font-bold text-slate-800 mb-2">
@@ -993,15 +1118,17 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div
                   className="h-full rounded-full bg-blue-600 transition-all duration-500"
                   style={{
-                    width: `${Math.min(
-                      100,
-                      Math.max(
-                        5,
-                        Math.round(
-                          ((summary?.latest_score_pct || summary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
-                        )
-                      )
-                    )}%`,
+                    width: effectiveSummaryLoading || isDemoEmpty || isDemoError
+                      ? "0%"
+                      : `${Math.min(
+                          100,
+                          Math.max(
+                            5,
+                            Math.round(
+                              ((effectiveSummary?.latest_score_pct || effectiveSummary?.best_score_pct || PASS_THRESHOLD) / EXCELLENT_THRESHOLD) * 100
+                            )
+                          )
+                        )}%`,
                   }}
                 />
               </div>
@@ -1016,45 +1143,51 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">Next Scheduled Drill</h3>
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                In 3 Days
+                {isDemoEmpty || isDemoError ? "None" : "In 3 Days"}
               </span>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div>
-                <div className="text-xs font-bold text-slate-900 leading-snug">
-                  PostgreSQL Schema & Query Optimization
-                </div>
-                <div className="text-[11px] text-slate-500 mt-0.5">
-                  Remediation evaluation drill targeting foreign keys and indexes
-                </div>
+            {isDemoEmpty || isDemoError ? (
+              <div className="text-xs text-slate-400 text-center py-4">
+                No upcoming assessment drills scheduled.
               </div>
+            ) : (
+              <div className="space-y-3 text-xs">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 leading-snug">
+                    PostgreSQL Schema & Query Optimization
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    Remediation evaluation drill targeting foreign keys and indexes
+                  </div>
+                </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between text-slate-600">
-                  <span className="text-slate-400 font-medium">Session Date:</span>
-                  <span className="font-bold text-slate-800">Nov 4, 2026 · 10:00 AM</span>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="text-slate-400 font-medium">Session Date:</span>
+                    <span className="font-bold text-slate-800">Nov 4, 2026 · 10:00 AM</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="text-slate-400 font-medium">Duration:</span>
+                    <span className="font-bold text-slate-800">45 Minutes (Live Sandbox)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="text-slate-400 font-medium">Instructor:</span>
+                    <span className="font-bold text-slate-800">Marcus Vance</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-slate-600">
-                  <span className="text-slate-400 font-medium">Duration:</span>
-                  <span className="font-bold text-slate-800">45 Minutes (Live Sandbox)</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-600">
-                  <span className="text-slate-400 font-medium">Instructor:</span>
-                  <span className="font-bold text-slate-800">Marcus Vance</span>
-                </div>
-              </div>
 
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowDrillBrief(true)}
-                  className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer text-center block"
-                >
-                  View Drill Requirements & Setup
-                </button>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowDrillBrief(true)}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer text-center block"
+                  >
+                    View Drill Requirements & Setup
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </Card>
 
           {/* Remediation Records (Intervention History) */}
@@ -1066,7 +1199,7 @@ export function TraineeDashboard({ traineeId: propId }) {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-[10px] font-semibold text-slate-400">
-                  {remediations.length} Record{remediations.length !== 1 ? "s" : ""}
+                  {effectiveRemediations.length} Record{effectiveRemediations.length !== 1 ? "s" : ""}
                 </span>
                 {isStaff && (
                   <button
@@ -1080,18 +1213,24 @@ export function TraineeDashboard({ traineeId: propId }) {
               </div>
             </div>
 
-            {remediationsLoading ? (
-              <div className="py-6 flex items-center justify-center space-x-2 text-xs text-slate-500">
-                <Spinner size="sm" />
-                <span>Loading remediation history...</span>
-              </div>
-            ) : remediations.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-400">
-                No active remediation records assigned.
-              </div>
+            {effectiveRemediationsLoading ? (
+              <LoadingState message="Loading remediation history..." className="py-6" />
+            ) : effectiveRemediationsError ? (
+              <ErrorState
+                title="Remediation Records Unavailable"
+                message={effectiveRemediationsError}
+                onRetry={loadRemediations}
+                className="py-6"
+              />
+            ) : effectiveRemediations.length === 0 ? (
+              <EmptyState
+                title="No Remediation Records Assigned"
+                description="No active intervention plans currently assigned."
+                className="py-6"
+              />
             ) : (
               <div className="space-y-3">
-                {remediations.map((rem) => {
+                {effectiveRemediations.map((rem) => {
                   const dateStr = rem.assigned_at
                     ? new Date(rem.assigned_at).toLocaleDateString("en-US", {
                         month: "short",
@@ -1151,71 +1290,87 @@ export function TraineeDashboard({ traineeId: propId }) {
       </div>
 
       {/* 4. SPEED VERSUS ACCURACY SCATTER ANALYSIS (Step 7) */}
-      <ChartCard
-        title="Speed versus Accuracy Analysis"
-        subtitle="Distribution of duration in minutes against evaluation score percentage across all recorded sessions"
-        loading={sessionsLoading}
-        error={sessionsError}
-        empty={!sessions || sessions.length === 0}
-        emptyMessage="No completed sessions available for scatter analysis"
-        onRetry={refetchSessions}
-        action={
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Speed versus Accuracy Analysis</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Distribution of duration in minutes against evaluation score percentage across all recorded sessions
+            </p>
+          </div>
           <div className="flex items-center space-x-2 text-[11px] text-slate-500 font-medium">
             <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
-            <span>{scatterData.length} Session{scatterData.length !== 1 ? "s" : ""} Plotted</span>
+            <span>{effectiveScatterData.length} Session{effectiveScatterData.length !== 1 ? "s" : ""} Plotted</span>
           </div>
-        }
-      >
-        <div className="w-full h-72 pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart margin={{ top: 15, right: 30, bottom: 25, left: 15 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis
-                type="number"
-                dataKey="minutes"
-                name="Duration"
-                unit="m"
-                tick={{ fontSize: 11, fill: "#64748B" }}
-                stroke="#CBD5E1"
-                label={{
-                  value: "Session Duration (Minutes)",
-                  position: "insideBottom",
-                  offset: -15,
-                  fontSize: 11,
-                  fill: "#475569",
-                  fontWeight: 600,
-                }}
-              />
-              <YAxis
-                type="number"
-                dataKey="score_pct"
-                name="Score"
-                domain={[0, 100]}
-                unit="%"
-                tick={{ fontSize: 11, fill: "#64748B" }}
-                stroke="#CBD5E1"
-                label={{
-                  value: "Evaluation Score (%)",
-                  angle: -90,
-                  position: "insideLeft",
-                  offset: 0,
-                  fontSize: 11,
-                  fill: "#475569",
-                  fontWeight: 600,
-                }}
-              />
-              <Tooltip content={<ScatterCustomTooltip />} />
-              <Scatter
-                name="Sessions"
-                data={scatterData}
-                fill="#2563EB"
-                stroke="#1D4ED8"
-                strokeWidth={1.5}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
         </div>
-      </ChartCard>
+
+        {effectiveSessionsLoading ? (
+          <LoadingState message="Loading speed versus accuracy session data..." className="py-12" />
+        ) : effectiveSessionsError ? (
+          <ErrorState
+            title="Unable to Plot Speed vs Accuracy"
+            message={effectiveSessionsError}
+            onRetry={refetchSessions}
+            className="py-12"
+          />
+        ) : effectiveScatterData.length === 0 ? (
+          <EmptyState
+            title="No Scatter Data Available"
+            description="Complete test drills to plot duration versus score distribution."
+            className="py-12"
+          />
+        ) : (
+          <div className="w-full h-72 pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 15, right: 30, bottom: 25, left: 15 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <XAxis
+                  type="number"
+                  dataKey="minutes"
+                  name="Duration"
+                  unit="m"
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  stroke="#CBD5E1"
+                  label={{
+                    value: "Session Duration (Minutes)",
+                    position: "insideBottom",
+                    offset: -15,
+                    fontSize: 11,
+                    fill: "#475569",
+                    fontWeight: 600,
+                  }}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="score_pct"
+                  name="Score"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  stroke="#CBD5E1"
+                  label={{
+                    value: "Evaluation Score (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: 0,
+                    fontSize: 11,
+                    fill: "#475569",
+                    fontWeight: 600,
+                  }}
+                />
+                <Tooltip content={<ScatterCustomTooltip />} />
+                <Scatter
+                  name="Sessions"
+                  data={effectiveScatterData}
+                  fill="#2563EB"
+                  stroke="#1D4ED8"
+                  strokeWidth={1.5}
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
 
       {/* 5. MODULE LEARNING GOALS & TARGET PROGRESS (Step 8) */}
       <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
@@ -1232,7 +1387,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             </p>
           </div>
           <span className="text-[11px] font-semibold text-slate-400 self-start md:self-auto">
-            {goals.length} Module Goal{goals.length !== 1 ? "s" : ""} Defined
+            {effectiveGoals.length} Module Goal{effectiveGoals.length !== 1 ? "s" : ""} Defined
           </span>
         </div>
 
@@ -1306,18 +1461,24 @@ export function TraineeDashboard({ traineeId: propId }) {
 
         {/* Active Goals Grid */}
         <div className="mt-5">
-          {goalsLoading ? (
-            <div className="py-8 flex items-center justify-center space-x-2 text-xs text-slate-500">
-              <Spinner size="sm" />
-              <span>Loading module learning goals...</span>
-            </div>
-          ) : goals.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-400">
-              No module targets established yet. Select a module above to define your first performance milestone.
-            </div>
+          {effectiveGoalsLoading ? (
+            <LoadingState message="Loading module learning goals..." className="py-8" />
+          ) : effectiveGoalsError ? (
+            <ErrorState
+              title="Learning Goals Unavailable"
+              message={effectiveGoalsError}
+              onRetry={loadGoals}
+              className="py-8"
+            />
+          ) : effectiveGoals.length === 0 ? (
+            <EmptyState
+              title="No Module Targets Defined"
+              description="Select a module above to define your first performance milestone."
+              className="py-8"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {goals.map((g) => {
+              {effectiveGoals.map((g) => {
                 const isMet = g.best_score !== null && g.best_score >= g.target_score;
                 const hasScore = g.best_score !== null;
                 const rawProgress = g.target_score > 0 && g.best_score !== null
@@ -1403,16 +1564,15 @@ export function TraineeDashboard({ traineeId: propId }) {
       </Card>
 
       {/* 6. RECENT ASSESSMENT EVALUATION LEDGER */}
-      <ChartCard
-        title="Assessment Evaluation Ledger"
-        subtitle="Chronological record of verified test drills, scoring accuracy, and defect counts"
-        loading={sessionsLoading}
-        error={sessionsError}
-        empty={!sessions || sessions.length === 0}
-        emptyMessage="No completed sessions available"
-        onRetry={refetchSessions}
-        action={
-          sessionStats ? (
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Assessment Evaluation Ledger</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Chronological record of verified test drills, scoring accuracy, and defect counts
+            </p>
+          </div>
+          {sessionStats && !isDemoEmpty && !isDemoError && (
             <div className="hidden sm:flex items-center space-x-3 text-xs">
               <span className="font-semibold text-slate-500">
                 Mean Score: <strong className="text-slate-900">{sessionStats.avgScore}%</strong>
@@ -1422,200 +1582,224 @@ export function TraineeDashboard({ traineeId: propId }) {
                 Qualified Rate: <strong className="text-emerald-700">{sessionStats.passRate}%</strong>
               </span>
             </div>
-          ) : null
-        }
-      >
-        <div className="space-y-3 pt-1">
-          {/* Quick Module Filter Bar */}
-          {sessionFilterOptions.length > 1 && (
-            <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
-                Filter Module:
-              </span>
-              <button
-                type="button"
-                onClick={() => setSessionFilter("ALL")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  sessionFilter === "ALL"
-                    ? "bg-slate-900 text-white shadow-2xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                All Drills ({sessions?.length || 0})
-              </button>
-              {sessionFilterOptions.map((opt) => {
-                const count = (sessions || []).filter((s) => s.module_name === opt).length;
-                const shortName = opt.replace(" Engineering", "").replace(" Architecture", "");
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setSessionFilter(opt)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      sessionFilter === opt
-                        ? "bg-slate-900 text-white shadow-2xs"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {shortName} ({count})
-                  </button>
-                );
-              })}
-            </div>
           )}
+        </div>
 
-          {/* Ledger Table */}
-          <div className="overflow-x-auto w-full -mx-2 sm:mx-0">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-2.5 px-3">Session & Date</th>
-                  <th className="py-2.5 px-3">Module & Topic</th>
-                  <th className="py-2.5 px-3">Score & Outcome</th>
-                  <th className="py-2.5 px-3">Defects</th>
-                  <th className="py-2.5 px-3">Duration</th>
-                  {isStaff && <th className="py-2.5 px-3 text-right">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSessions.map((s, idx) => {
-                  const sessionDate = s.created_at
-                    ? new Date(s.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    : "—";
-                  const mins = Math.floor((s.time_seconds || 0) / 60);
-                  const secs = (s.time_seconds || 0) % 60;
-                  const cat = getModuleCategory(s.module_name);
-                  const isPass = s.score_pct >= EXCELLENT_THRESHOLD;
-                  const isQual = s.score_pct >= PASS_THRESHOLD && s.score_pct < EXCELLENT_THRESHOLD;
-
+        {effectiveSessionsLoading ? (
+          <LoadingState message="Loading assessment evaluation ledger..." className="py-12" />
+        ) : effectiveSessionsError ? (
+          <ErrorState
+            title="Unable to Load Evaluation Ledger"
+            message={effectiveSessionsError}
+            onRetry={refetchSessions}
+            className="py-12"
+          />
+        ) : effectiveFilteredSessions.length === 0 ? (
+          <EmptyState
+            title="No Completed Evaluation Sessions"
+            description="Assessment records will appear here once drills are evaluated."
+            className="py-12"
+          />
+        ) : (
+          <div className="space-y-3 pt-1">
+            {/* Quick Module Filter Bar */}
+            {sessionFilterOptions.length > 1 && (
+              <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+                  Filter Module:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSessionFilter("ALL")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    sessionFilter === "ALL"
+                      ? "bg-slate-900 text-white shadow-2xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  All Drills ({sessions?.length || 0})
+                </button>
+                {sessionFilterOptions.map((opt) => {
+                  const count = (sessions || []).filter((s) => s.module_name === opt).length;
+                  const shortName = opt.replace(" Engineering", "").replace(" Architecture", "");
                   return (
-                    <tr
-                      key={s.id || idx}
-                      className="hover:bg-slate-50/80 transition-colors group"
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSessionFilter(opt)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        sessionFilter === opt
+                          ? "bg-slate-900 text-white shadow-2xs"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
                     >
-                      {/* Session # & Date */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-                            #{String(filteredSessions.length - idx).padStart(2, "0")}
-                          </span>
-                          <span className="font-semibold text-slate-700">{sessionDate}</span>
-                        </div>
-                      </td>
-
-                      {/* Module & Category Pill */}
-                      <td className="py-3 px-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-slate-900 truncate max-w-xs block">
-                            {s.module_name}
-                          </span>
-                          <span
-                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${cat.bg}`}
-                          >
-                            {cat.label}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Score, Progress Micro-Bar & Outcome Chip */}
-                      <td className="py-3 px-3">
-                        <div className="flex items-center space-x-3">
-                          <span className="font-black text-slate-900 text-sm">
-                            {s.score_pct !== undefined ? `${s.score_pct.toFixed(1)}%` : "—"}
-                          </span>
-
-                          {/* Micro progress bar */}
-                          <div className="w-10 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
-                            <div
-                              className={`h-full rounded-full ${
-                                isPass
-                                  ? "bg-emerald-500"
-                                  : isQual
-                                  ? "bg-blue-500"
-                                  : "bg-rose-500"
-                              }`}
-                              style={{ width: `${Math.min(100, Math.max(5, s.score_pct || 0))}%` }}
-                            />
-                          </div>
-
-                          {/* Outcome badge */}
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              isPass
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : isQual
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : "bg-rose-50 text-rose-700 border-rose-200"
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                isPass
-                                  ? "bg-emerald-500"
-                                  : isQual
-                                  ? "bg-blue-500"
-                                  : "bg-rose-500"
-                              }`}
-                            />
-                            <span>{isPass ? "Mastery" : isQual ? "Competent" : "Remediation"}</span>
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Defects / Errors */}
-                      <td className="py-3 px-3">
-                        {s.errors === 0 ? (
-                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            0 defects
-                          </span>
-                        ) : s.errors <= 2 ? (
-                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700">
-                            {s.errors} {s.errors === 1 ? "err" : "errs"}
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-50 text-rose-700 border border-rose-200">
-                            {s.errors} errs
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Duration & Pace */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <div className="flex items-center space-x-2 text-slate-600 font-medium">
-                          <span className="font-mono text-[11px] font-semibold text-slate-800">
-                            {mins}m {secs}s
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {mins < 20 ? "· Fast" : mins <= 25 ? "· Target" : "· Extended"}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Staff Actions */}
-                      {isStaff && (
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setDeleteSessionTarget(s)}
-                            title="Delete session"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
+                      {shortName} ({count})
+                    </button>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            )}
+
+            {/* Ledger Table */}
+            <div className="overflow-x-auto w-full -mx-2 sm:mx-0">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-2.5 px-3">Session & Date</th>
+                    <th className="py-2.5 px-3">Module & Topic</th>
+                    <th className="py-2.5 px-3">Score & Outcome</th>
+                    <th className="py-2.5 px-3">Defects</th>
+                    <th className="py-2.5 px-3">Duration</th>
+                    {isStaff && <th className="py-2.5 px-3 text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {effectiveFilteredSessions.map((s, idx) => {
+                    const sessionDate = s.created_at
+                      ? new Date(s.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "—";
+                    const mins = Math.floor((s.time_seconds || 0) / 60);
+                    const secs = (s.time_seconds || 0) % 60;
+                    const cat = getModuleCategory(s.module_name);
+                    const scorePct = s.score_percentage != null
+                      ? s.score_percentage
+                      : s.score_pct != null
+                      ? s.score_pct
+                      : (s.module_max_score && s.module_max_score > 0)
+                      ? (s.score / s.module_max_score) * 100
+                      : s.score;
+                    const isPass = scorePct != null && scorePct >= EXCELLENT_THRESHOLD;
+                    const isQual = scorePct != null && scorePct >= PASS_THRESHOLD && scorePct < EXCELLENT_THRESHOLD;
+
+                    return (
+                      <tr
+                        key={s.id || idx}
+                        className="hover:bg-slate-50/80 transition-colors group"
+                      >
+                        {/* Session # & Date */}
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                              #{String(effectiveFilteredSessions.length - idx).padStart(2, "0")}
+                            </span>
+                            <span className="font-semibold text-slate-700">{sessionDate}</span>
+                          </div>
+                        </td>
+
+                        {/* Module & Category Pill */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-slate-900 truncate max-w-xs block">
+                              {s.module_name}
+                            </span>
+                            <span
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${cat.bg}`}
+                            >
+                              {cat.label}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Score, Progress Micro-Bar & Outcome Chip */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center space-x-3">
+                            <span className="font-black text-slate-900 text-sm">
+                              {scorePct != null ? `${scorePct.toFixed(1)}%` : "—"}
+                            </span>
+
+                            {/* Micro progress bar */}
+                            <div className="w-10 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
+                              <div
+                                className={`h-full rounded-full ${
+                                  isPass
+                                    ? "bg-emerald-500"
+                                    : isQual
+                                    ? "bg-blue-500"
+                                    : "bg-rose-500"
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(5, scorePct || 0))}%` }}
+                              />
+                            </div>
+
+                            {/* Outcome badge */}
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                isPass
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : isQual
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : "bg-rose-50 text-rose-700 border-rose-200"
+                              }`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  isPass
+                                    ? "bg-emerald-500"
+                                    : isQual
+                                    ? "bg-blue-500"
+                                    : "bg-rose-500"
+                                }`}
+                              />
+                              <span>{isPass ? "Mastery" : isQual ? "Competent" : "Remediation"}</span>
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Defects / Errors */}
+                        <td className="py-3 px-3">
+                          {s.errors === 0 ? (
+                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              0 defects
+                            </span>
+                          ) : s.errors <= 2 ? (
+                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700">
+                              {s.errors} {s.errors === 1 ? "err" : "errs"}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-50 text-rose-700 border border-rose-200">
+                              {s.errors} errs
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Duration & Pace */}
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <div className="flex items-center space-x-2 text-slate-600 font-medium">
+                            <span className="font-mono text-[11px] font-semibold text-slate-800">
+                              {mins}m {secs}s
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {mins < 20 ? "· Fast" : mins <= 25 ? "· Target" : "· Extended"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Staff Actions */}
+                        {isStaff && (
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setDeleteSessionTarget(s)}
+                              title="Delete session"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </ChartCard>
+        )}
+      </div>
 
       {/* 5. EDIT PROFILE MODAL (Direct Photo Upload & Details) */}
       {editModalOpen && (
@@ -1797,7 +1981,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             </h3>
             <p className="text-slate-500 mt-1 leading-relaxed">
               Are you sure you want to delete the evaluation session for{" "}
-              <strong>{deleteSessionTarget.module_name}</strong> ({deleteSessionTarget.score_pct}% score)?
+              <strong>{deleteSessionTarget.module_name}</strong> ({Number(deleteSessionTarget.score_percentage ?? deleteSessionTarget.score_pct ?? deleteSessionTarget.score).toFixed(1)}% score)?
               This action cannot be undone.
             </p>
 
