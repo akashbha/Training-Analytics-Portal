@@ -4,7 +4,8 @@
 // De-slopped: Removed invisible buttons, eliminated all purple AI-slop, and removed embedded duplicate dashboard.
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -106,6 +107,42 @@ export function AdminDashboard() {
   const [evaluationData, setEvaluationData] = useState(null);
   const [evaluationLoading, setEvaluationLoading] = useState(true);
   const [evaluationError, setEvaluationError] = useState(null);
+
+  // Step 9b State Simulation Parameters (Dev only)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const demoState = import.meta.env.DEV ? searchParams.get("state") : null;
+
+  const isDemoLoading = demoState === "loading";
+  const isDemoEmpty = demoState === "empty";
+  const isDemoError = demoState === "error";
+
+  const effectiveStatsLoading = isDemoLoading || statsLoading;
+  const effectiveStatsError = isDemoError ? "Unable to retrieve platform governance telemetry." : statsError;
+
+  const effectiveWeeklyLoading = isDemoLoading || statsLoading;
+  const effectiveWeeklyError = isDemoError ? "Unable to load milestone progression trajectory." : statsError;
+  const effectiveWeekly = isDemoEmpty ? [] : adminStats.weekly;
+
+  const effectiveBatchesLoading = isDemoLoading || batchesLoading;
+  const effectiveBatchesError = isDemoError ? "Unable to load cohort directory." : batchesError;
+  const effectiveBatchesList = isDemoEmpty ? [] : batchesList;
+
+  const effectiveUsersLoading = isDemoLoading || usersLoading;
+  const effectiveUsersError = isDemoError ? "Unable to load user accounts." : usersError;
+  const effectiveUsersList = isDemoEmpty ? [] : usersList;
+
+  const effectiveActivityLoading = isDemoLoading || activityLoading;
+  const effectiveActivityError = isDemoError ? "Unable to load security audit stream." : activityError;
+  const effectiveRecentActivity = isDemoEmpty ? [] : recentActivity;
+
+  const effectiveEvaluationLoading = isDemoLoading || (evaluationLoading && !evaluationData);
+  const effectiveEvaluationError = isDemoError ? "Unable to load model evaluation benchmark." : evaluationError;
+  const effectiveEvaluationData = isDemoEmpty ? null : evaluationData;
+
+  const activeUsersDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.activeUsers;
+  const connectedClientsDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.connectedClients;
+  const sessionsTodayDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.sessionsToday;
+  const overallPassRateDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? "—" : `${adminStats.overallPassRate.toFixed(1)}%`;
 
   // Add / Edit Batch Modal state
   const [batchModalOpen, setBatchModalOpen] = useState(false);
@@ -661,8 +698,39 @@ export function AdminDashboard() {
           </p>
         </div>
 
-        {/* Action Controls: Add User, Add Batch (Clean High-Contrast Buttons), Refresh */}
-        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
+        {/* Action Controls: State Switcher (Dev only), Add User, Add Batch, Refresh */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Step 9b State Switcher Pills (Dev Environment Only) */}
+          {import.meta.env.DEV && (
+            <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60 shadow-2xs">
+              {["live", "loading", "empty", "error"].map((st) => {
+                const isActive = (demoState === null && st === "live") || demoState === st;
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => {
+                      const next = new URLSearchParams(searchParams);
+                      if (st === "live") {
+                        next.delete("state");
+                      } else {
+                        next.set("state", st);
+                      }
+                      setSearchParams(next);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {st}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Refresh Data */}
           <button
             type="button"
@@ -718,10 +786,12 @@ export function AdminDashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-slate-900">
-              {statsLoading ? "..." : `${adminStats.activeUsers} Active`}
+              {effectiveStatsLoading ? "..." : `${activeUsersDisplay} Active`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-medium truncate">
-              {adminStats.roleBreakdown.admin} admin · {adminStats.roleBreakdown.trainer} trainers · {adminStats.roleBreakdown.trainee} trainees
+              {isDemoEmpty || isDemoError
+                ? "0 admin · 0 trainers · 0 trainees"
+                : `${adminStats.roleBreakdown.admin} admin · ${adminStats.roleBreakdown.trainer} trainers · ${adminStats.roleBreakdown.trainee} trainees`}
             </div>
             <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-semibold">
               <span>Supervisory Ratio:</span>
@@ -743,10 +813,12 @@ export function AdminDashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-slate-900">
-              {statsLoading ? "..." : `${adminStats.connectedClients} Online`}
+              {effectiveStatsLoading ? "..." : `${connectedClientsDisplay} Online`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-medium">
-              {adminStats.messagesSent} events · {Math.round(adminStats.uptimeSeconds / 60)}m engine uptime
+              {isDemoEmpty || isDemoError
+                ? "0 events · 0m engine uptime"
+                : `${adminStats.messagesSent} events · ${Math.round(adminStats.uptimeSeconds / 60)}m engine uptime`}
             </div>
           </div>
         </div>
@@ -763,7 +835,7 @@ export function AdminDashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-slate-900">
-              {statsLoading ? "..." : `${adminStats.sessionsToday} Drills`}
+              {effectiveStatsLoading ? "..." : `${sessionsTodayDisplay} Drills`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-medium">
               Processed across active cohort sandboxes
@@ -778,12 +850,12 @@ export function AdminDashboard() {
               Cohort Governance
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-              {adminStats.totalBatches} Cohorts
+              {isDemoEmpty || isDemoError ? 0 : adminStats.totalBatches} Cohorts
             </span>
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-slate-900">
-              {statsLoading ? "..." : `${adminStats.overallPassRate.toFixed(1)}%`}
+              {overallPassRateDisplay}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-medium">
               Global qualification benchmark rate
@@ -791,10 +863,15 @@ export function AdminDashboard() {
             <div className="mt-2.5 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
                 <span>License Capacity</span>
-                <span className="font-bold text-slate-800">50 / 100 Seats (50%)</span>
+                <span className="font-bold text-slate-800">
+                  {isDemoEmpty || isDemoError ? "0 / 100 Seats (0%)" : "50 / 100 Seats (50%)"}
+                </span>
               </div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: "50%" }}></div>
+                <div
+                  className="h-full bg-blue-600 rounded-full"
+                  style={{ width: isDemoEmpty || isDemoError ? "0%" : "50%" }}
+                ></div>
               </div>
             </div>
           </div>
@@ -854,7 +931,7 @@ export function AdminDashboard() {
             <div className="flex flex-wrap items-center gap-2 pt-3 pb-1 text-[11px]">
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-blue-600"></span>
-                <span>Current Week: <strong>{adminStats.weekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.1"}%</strong></span>
+                <span>Current Week: <strong>{effectiveWeekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.1"}%</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
@@ -865,214 +942,234 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* VIEW A: MILESTONE COLUMNS (Crisp Composed Chart with 75% Reference Line & Spline Trend) */}
-            {progressionView === "columns" && (
-              <div className="w-full h-56 pt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={(adminStats.weekly || []).map((w, i) => ({
-                      ...w,
-                      label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
-                    }))}
-                    margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#E2E8F0" }}
-                    />
-                    <YAxis
-                      domain={[40, 100]}
-                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                      tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(val) => `${val}%`}
-                    />
-                    <ReferenceLine
-                      y={EXCELLENT_THRESHOLD}
-                      stroke="#2563EB"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.5}
-                      label={{
-                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
-                        position: "insideTopRight",
-                        fill: "#2563EB",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        offset: 4,
-                      }}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                          return (
-                            <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                              <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
-                                <span>{item.week_start || item.label}</span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
-                                    isAbove
-                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                      : "bg-amber-950 text-amber-400 border border-amber-800"
-                                  }`}
-                                >
-                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
-                                </span>
-                              </div>
-                              <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                <span className="text-xl font-black text-white">
-                                  {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                                <span>Benchmark Delta:</span>
-                                <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
-                                </strong>
-                              </div>
-                              <div className="text-[10px] text-slate-400 pt-0.5">
-                                {item.session_count || 0} drills evaluated
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
-                      {(adminStats.weekly || []).map((entry, index) => {
-                        const isLatest = index === (adminStats.weekly || []).length - 1;
-                        const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                        return (
-                          <Cell
-                            key={`admin-bar-cell-${index}`}
-                            fill={isLatest ? "#2563EB" : isAbove ? "#0F172A" : "#94A3B8"}
-                            className="hover:opacity-85 transition-opacity cursor-pointer"
-                          />
-                        );
-                      })}
-                    </Bar>
-                    <Line
-                      type="monotone"
-                      dataKey="avg_score_pct"
-                      stroke="#2563EB"
-                      strokeWidth={2.5}
-                      dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
-                      activeDot={{ r: 6, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+            {/* Step 9b Shared State Conditional Progression Rendering */}
+            {effectiveWeeklyLoading ? (
+              <LoadingState message="Loading platform milestone trajectory..." className="py-12" />
+            ) : effectiveWeeklyError ? (
+              <ErrorState
+                title="Unable to Load Progression Trajectory"
+                message={effectiveWeeklyError}
+                onRetry={() => fetchAdminStats()}
+                className="py-12"
+              />
+            ) : !effectiveWeekly || effectiveWeekly.length === 0 ? (
+              <EmptyState
+                title="No Milestone Progression Records"
+                description="No platform-wide weekly evaluation data available."
+                className="py-12"
+              />
+            ) : (
+              <>
+                {/* VIEW A: MILESTONE COLUMNS (Crisp Composed Chart with 75% Reference Line & Spline Trend) */}
+                {progressionView === "columns" && (
+                  <div className="w-full h-56 pt-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart
+                        data={(effectiveWeekly || []).map((w, i) => ({
+                          ...w,
+                          label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
+                        }))}
+                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="label"
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={{ stroke: "#E2E8F0" }}
+                        />
+                        <YAxis
+                          domain={[40, 100]}
+                          ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={EXCELLENT_THRESHOLD}
+                          stroke="#2563EB"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            position: "insideTopRight",
+                            fill: "#2563EB",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            offset: 4,
+                          }}
+                        />
+                        <RechartsTooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const item = payload[0].payload;
+                              const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                              return (
+                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                    <span>{item.week_start || item.label}</span>
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                        isAbove
+                                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                          : "bg-amber-950 text-amber-400 border border-amber-800"
+                                      }`}
+                                    >
+                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-baseline space-x-1.5 pt-0.5">
+                                    <span className="text-xl font-black text-white">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                    <span>Benchmark Delta:</span>
+                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                      {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                    </strong>
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                    {item.session_count || 0} drills evaluated
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
+                          {(effectiveWeekly || []).map((entry, index) => {
+                            const isLatest = index === (effectiveWeekly || []).length - 1;
+                            const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                            return (
+                              <Cell
+                                key={`admin-bar-cell-${index}`}
+                                fill={isLatest ? "#2563EB" : isAbove ? "#0F172A" : "#94A3B8"}
+                                className="hover:opacity-85 transition-opacity cursor-pointer"
+                              />
+                            );
+                          })}
+                        </Bar>
+                        <Line
+                          type="monotone"
+                          dataKey="avg_score_pct"
+                          stroke="#2563EB"
+                          strokeWidth={2.5}
+                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
-            {/* VIEW B: VELOCITY CURVE */}
-            {progressionView === "curve" && (
-              <div className="w-full h-56 pt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={(adminStats.weekly || []).map((w, i) => ({
-                      ...w,
-                      label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
-                    }))}
-                    margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="adminVelocityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#E2E8F0" }}
-                    />
-                    <YAxis
-                      domain={[40, 100]}
-                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                      tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(val) => `${val}%`}
-                    />
-                    <ReferenceLine
-                      y={EXCELLENT_THRESHOLD}
-                      stroke="#2563EB"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.5}
-                      label={{
-                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
-                        position: "insideTopRight",
-                        fill: "#2563EB",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        offset: 4,
-                      }}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                          return (
-                            <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                              <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
-                                <span>{item.week_start || item.label}</span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
-                                    isAbove
-                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                      : "bg-amber-950 text-amber-400 border border-amber-800"
-                                  }`}
-                                >
-                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
-                                </span>
-                              </div>
-                              <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                <span className="text-xl font-black text-white">
-                                  {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                                <span>Benchmark Delta:</span>
-                                <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
-                                </strong>
-                              </div>
-                              <div className="text-[10px] text-slate-400 pt-0.5">
-                                {item.session_count || 0} drills evaluated
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="avg_score_pct"
-                      stroke="#2563EB"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#adminVelocityGradient)"
-                      dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+                {/* VIEW B: VELOCITY CURVE */}
+                {progressionView === "curve" && (
+                  <div className="w-full h-56 pt-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={(effectiveWeekly || []).map((w, i) => ({
+                          ...w,
+                          label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
+                        }))}
+                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="adminVelocityGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="label"
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={{ stroke: "#E2E8F0" }}
+                        />
+                        <YAxis
+                          domain={[40, 100]}
+                          ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={EXCELLENT_THRESHOLD}
+                          stroke="#2563EB"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            position: "insideTopRight",
+                            fill: "#2563EB",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            offset: 4,
+                          }}
+                        />
+                        <RechartsTooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const item = payload[0].payload;
+                              const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                              return (
+                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                    <span>{item.week_start || item.label}</span>
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                        isAbove
+                                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                          : "bg-amber-950 text-amber-400 border border-amber-800"
+                                      }`}
+                                    >
+                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-baseline space-x-1.5 pt-0.5">
+                                    <span className="text-xl font-black text-white">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                    <span>Benchmark Delta:</span>
+                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                      {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                    </strong>
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                    {item.session_count || 0} drills evaluated
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="avg_score_pct"
+                          stroke="#2563EB"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#adminVelocityGradient)"
+                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -1144,18 +1241,21 @@ export function AdminDashboard() {
             {/* TAB 1: COHORT DIRECTORY */}
             {governanceTab === "cohorts" && (
               <>
-                {batchesLoading ? (
-                  <div className="py-12 flex justify-center">
-                    <Spinner size="md" />
-                  </div>
-                ) : batchesError ? (
-                  <div className="p-4 bg-rose-50 text-rose-700 text-xs rounded-xl border border-rose-200">
-                    {batchesError}
-                  </div>
-                ) : batchesList.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-500">
-                    No active batches found. Create your first cohort using the button above.
-                  </div>
+                {effectiveBatchesLoading ? (
+                  <LoadingState message="Loading cohort directory..." className="py-12" />
+                ) : effectiveBatchesError ? (
+                  <ErrorState
+                    title="Unable to Load Cohort Directory"
+                    message={effectiveBatchesError}
+                    onRetry={() => fetchBatches()}
+                    className="py-12"
+                  />
+                ) : effectiveBatchesList.length === 0 ? (
+                  <EmptyState
+                    title="No Active Cohort Batches"
+                    description="No active cohorts found. Create your first cohort using the button above."
+                    className="py-12"
+                  />
                 ) : (
                   <div className="overflow-x-auto pt-2">
                     <table className="w-full text-left text-xs border-collapse">
@@ -1172,7 +1272,7 @@ export function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {batchesList.map((b) => {
+                        {effectiveBatchesList.map((b) => {
                           const comp = comparisons[b.id];
                           const avg = comp?.avg_score_pct ?? null;
                           const pass = comp?.pass_rate_pct ?? null;
@@ -1306,18 +1406,21 @@ export function AdminDashboard() {
                   </div>
                 </div>
 
-                {usersLoading ? (
-                  <div className="py-12 flex justify-center">
-                    <Spinner size="md" />
-                  </div>
-                ) : usersError ? (
-                  <div className="p-4 bg-rose-50 text-rose-700 text-xs rounded-xl border border-rose-200">
-                    {usersError}
-                  </div>
-                ) : usersList.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-500">
-                    No accounts match the current query.
-                  </div>
+                {effectiveUsersLoading ? (
+                  <LoadingState message="Loading user accounts..." className="py-12" />
+                ) : effectiveUsersError ? (
+                  <ErrorState
+                    title="Unable to Load User Accounts"
+                    message={effectiveUsersError}
+                    onRetry={() => fetchUsers()}
+                    className="py-12"
+                  />
+                ) : effectiveUsersList.length === 0 ? (
+                  <EmptyState
+                    title="No User Accounts Found"
+                    description="No accounts match the current query."
+                    className="py-12"
+                  />
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
@@ -1331,7 +1434,7 @@ export function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {usersList.map((u) => {
+                        {effectiveUsersList.map((u) => {
                           const isSelf = user?.id === u.id;
                           const isBusy = userActionLoadingId === u.id;
 
@@ -1446,19 +1549,24 @@ export function AdminDashboard() {
               Real-time compliance activity log capturing user mutations, role assignments, and session events:
             </p>
 
-            {activityLoading ? (
-              <div className="py-8 flex justify-center">
-                <Spinner size="md" />
-              </div>
-            ) : activityError ? (
-              <div className="text-xs text-rose-600 py-3 text-center">{activityError}</div>
-            ) : recentActivity.length === 0 ? (
-              <div className="text-xs text-slate-400 py-6 text-center">
-                No activity events recorded yet.
-              </div>
+            {effectiveActivityLoading ? (
+              <LoadingState message="Loading audit activity stream..." className="py-8" />
+            ) : effectiveActivityError ? (
+              <ErrorState
+                title="Audit Stream Unavailable"
+                message={effectiveActivityError}
+                onRetry={() => fetchRecentActivity()}
+                className="py-8"
+              />
+            ) : effectiveRecentActivity.length === 0 ? (
+              <EmptyState
+                title="No Audit Events Recorded"
+                description="No platform mutations or security events have occurred yet."
+                className="py-8"
+              />
             ) : (
               <div className="space-y-2.5">
-                {recentActivity.map((log) => (
+                {effectiveRecentActivity.map((log) => (
                   <div
                     key={log.id}
                     className="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/70 transition-colors text-xs"
@@ -1629,17 +1737,23 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        {evaluationLoading && !evaluationData ? (
-          <div className="py-12 flex flex-col items-center justify-center space-y-2">
-            <Spinner size="md" />
-            <span className="text-xs text-slate-500 font-medium">Computing held-out cross-validation metrics...</span>
-          </div>
-        ) : evaluationError && !evaluationData ? (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-            <span>{evaluationError}</span>
-          </div>
-        ) : evaluationData ? (
+        {/* Step 9b Shared State Conditional Model Evaluation Rendering */}
+        {effectiveEvaluationLoading ? (
+          <LoadingState message="Computing held-out cross-validation metrics..." className="py-12" />
+        ) : effectiveEvaluationError ? (
+          <ErrorState
+            title="Unable to Load Model Evaluation"
+            message={effectiveEvaluationError}
+            onRetry={() => fetchModelEvaluation(false)}
+            className="py-12"
+          />
+        ) : !effectiveEvaluationData ? (
+          <EmptyState
+            title="No Model Evaluation Available"
+            description="Empirical benchmark data has not been computed yet."
+            className="py-12"
+          />
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT: Metrics Comparison Table (7 Cols) */}
             <div className="lg:col-span-7 space-y-3">
@@ -1649,7 +1763,7 @@ export function AdminDashboard() {
                     <tr>
                       <th className="py-2.5 px-3">Metric</th>
                       <th className="py-2.5 px-3 text-right">Baseline Rule (Avg &lt; 60%)</th>
-                      <th className="py-2.5 px-3 text-right">ML Predictor ({evaluationData.model_name || "Random Forest"})</th>
+                      <th className="py-2.5 px-3 text-right">ML Predictor ({effectiveEvaluationData.model_name || "Random Forest"})</th>
                       <th className="py-2.5 px-3 text-center">Delta / Status</th>
                     </tr>
                   </thead>
@@ -1657,24 +1771,24 @@ export function AdminDashboard() {
                     <tr className="hover:bg-slate-50/50">
                       <td className="py-2.5 px-3 font-semibold text-slate-900">Precision</td>
                       <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
-                        {(evaluationData.baseline.precision * 100).toFixed(1)}%
+                        {(effectiveEvaluationData.baseline.precision * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
-                        {(evaluationData.model.precision * 100).toFixed(1)}%
+                        {(effectiveEvaluationData.model.precision * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          Baseline +{((evaluationData.baseline.precision - evaluationData.model.precision) * 100).toFixed(1)}%
+                          Baseline +{((effectiveEvaluationData.baseline.precision - effectiveEvaluationData.model.precision) * 100).toFixed(1)}%
                         </span>
                       </td>
                     </tr>
                     <tr className="hover:bg-slate-50/50">
                       <td className="py-2.5 px-3 font-semibold text-slate-900">Recall</td>
                       <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
-                        {(evaluationData.baseline.recall * 100).toFixed(1)}%
+                        {(effectiveEvaluationData.baseline.recall * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
-                        {(evaluationData.model.recall * 100).toFixed(1)}%
+                        {(effectiveEvaluationData.model.recall * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
@@ -1685,10 +1799,10 @@ export function AdminDashboard() {
                     <tr className="hover:bg-slate-50/50 bg-slate-50/40">
                       <td className="py-2.5 px-3 font-black text-slate-900">F1-Score</td>
                       <td className="py-2.5 px-3 text-right font-mono font-extrabold text-blue-700">
-                        {evaluationData.baseline.f1.toFixed(4)}
+                        {effectiveEvaluationData.baseline.f1.toFixed(4)}
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono font-extrabold text-slate-800">
-                        {evaluationData.model.f1.toFixed(4)}
+                        {effectiveEvaluationData.model.f1.toFixed(4)}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -1699,10 +1813,10 @@ export function AdminDashboard() {
                     <tr className="hover:bg-slate-50/50">
                       <td className="py-2 px-3 text-slate-500">True Positives / Negatives</td>
                       <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
-                        {evaluationData.baseline.true_positives} TP / {evaluationData.baseline.true_negatives} TN
+                        {effectiveEvaluationData.baseline.true_positives} TP / {effectiveEvaluationData.baseline.true_negatives} TN
                       </td>
                       <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
-                        {evaluationData.model.true_positives} TP / {evaluationData.model.true_negatives} TN
+                        {effectiveEvaluationData.model.true_positives} TP / {effectiveEvaluationData.model.true_negatives} TN
                       </td>
                       <td className="py-2 px-3 text-center text-[10px] text-slate-400">
                         Confusion Matrix
@@ -1711,10 +1825,10 @@ export function AdminDashboard() {
                     <tr className="hover:bg-slate-50/50">
                       <td className="py-2 px-3 text-slate-500">False Positives (Type I)</td>
                       <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
-                        {evaluationData.baseline.false_positives}
+                        {effectiveEvaluationData.baseline.false_positives}
                       </td>
                       <td className="py-2 px-3 text-right font-mono text-[11px] text-rose-600 font-bold">
-                        {evaluationData.model.false_positives}
+                        {effectiveEvaluationData.model.false_positives}
                       </td>
                       <td className="py-2 px-3 text-center text-[10px] text-slate-400">
                         False alarms
@@ -1730,7 +1844,7 @@ export function AdminDashboard() {
                 <div className="space-y-0.5">
                   <div className="font-bold">Model does NOT beat the baseline rule</div>
                   <p className="text-[11px] text-amber-800 leading-relaxed">
-                    The simple heuristic threshold rule (average &lt; {evaluationData.pass_threshold}%) achieves higher precision ({((evaluationData.baseline.precision)*100).toFixed(1)}% vs {((evaluationData.model.precision)*100).toFixed(1)}%) with fewer false alarms. In accordance with platform governance policy, the model is not artificially tuned.
+                    The simple heuristic threshold rule (average &lt; {effectiveEvaluationData.pass_threshold}%) achieves higher precision ({((effectiveEvaluationData.baseline.precision)*100).toFixed(1)}% vs {((effectiveEvaluationData.model.precision)*100).toFixed(1)}%) with fewer false alarms. In accordance with platform governance policy, the model is not artificially tuned.
                   </p>
                 </div>
               </div>
@@ -1742,20 +1856,20 @@ export function AdminDashboard() {
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-900 border-b border-slate-200/60 pb-2">
                   <span>Evaluation Cohort Sample</span>
-                  <span className="font-mono text-blue-700">{evaluationData.sample_size} Trainees</span>
+                  <span className="font-mono text-blue-700">{effectiveEvaluationData.sample_size} Trainees</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
                   <div className="p-2.5 rounded-lg bg-white border border-slate-200/60">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Positive Labels</span>
                     <div className="text-base font-extrabold text-rose-600 mt-0.5">
-                      {evaluationData.positive_labels} <span className="text-[10px] text-slate-400 font-normal">({((evaluationData.positive_labels / evaluationData.sample_size) * 100).toFixed(1)}%)</span>
+                      {effectiveEvaluationData.positive_labels} <span className="text-[10px] text-slate-400 font-normal">({((effectiveEvaluationData.positive_labels / effectiveEvaluationData.sample_size) * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5">At Risk in test set</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-white border border-slate-200/60">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Negative Labels</span>
                     <div className="text-base font-extrabold text-emerald-600 mt-0.5">
-                      {evaluationData.negative_labels} <span className="text-[10px] text-slate-400 font-normal">({((evaluationData.negative_labels / evaluationData.sample_size) * 100).toFixed(1)}%)</span>
+                      {effectiveEvaluationData.negative_labels} <span className="text-[10px] text-slate-400 font-normal">({((effectiveEvaluationData.negative_labels / effectiveEvaluationData.sample_size) * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5">On Track in test set</div>
                   </div>
@@ -1770,25 +1884,25 @@ export function AdminDashboard() {
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ground Truth Label Definition</div>
                   <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
-                    {evaluationData.label_definition}
+                    {effectiveEvaluationData.label_definition}
                   </p>
                 </div>
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Baseline Rule Formulation</div>
                   <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
-                    {evaluationData.baseline_rule}
+                    {effectiveEvaluationData.baseline_rule}
                   </p>
                 </div>
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Test Methodology</div>
                   <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
-                    Chronological holdout: last {evaluationData.held_out_sessions} sessions held out for testing; predictor trained/evaluated on earlier sessions only (min {evaluationData.min_sessions_required} sessions required).
+                    Chronological holdout: last {effectiveEvaluationData.held_out_sessions} sessions held out for testing; predictor trained/evaluated on earlier sessions only (min {effectiveEvaluationData.min_sessions_required} sessions required).
                   </p>
                 </div>
               </div>
             </div>
           </div>
-        ) : null}
+        )}
       </section>
 
       {/* =========================================================================
