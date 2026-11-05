@@ -1649,7 +1649,7 @@ export function AdminDashboard() {
                     <tr>
                       <th className="py-2.5 px-3">Metric</th>
                       <th className="py-2.5 px-3 text-right">Baseline Rule (Avg &lt; 60%)</th>
-                      <th className="py-2.5 px-3 text-right">ML Predictor ({evaluationData.model_name})</th>
+                      <th className="py-2.5 px-3 text-right">ML Predictor ({evaluationData.model_name || "Random Forest"})</th>
                       <th className="py-2.5 px-3 text-center">Delta / Status</th>
                     </tr>
                   </thead>

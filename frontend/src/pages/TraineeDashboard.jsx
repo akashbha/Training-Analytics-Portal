@@ -1320,7 +1320,10 @@ export function TraineeDashboard({ traineeId: propId }) {
               {goals.map((g) => {
                 const isMet = g.best_score !== null && g.best_score >= g.target_score;
                 const hasScore = g.best_score !== null;
-                const cappedProgress = Math.min(100, Math.max(0, g.progress_pct || 0));
+                const rawProgress = g.target_score > 0 && g.best_score !== null
+                  ? (g.best_score / g.target_score) * 100
+                  : (g.progress_pct ?? 0);
+                const cappedProgress = Math.min(100, Math.max(0, rawProgress));
 
                 return (
                   <div
@@ -1363,8 +1366,8 @@ export function TraineeDashboard({ traineeId: propId }) {
                     {/* Progress Bar (capped at 100%) */}
                     <div>
                       <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
-                        <span>Progress to Target</span>
-                        <span className="font-bold text-slate-900">{cappedProgress.toFixed(0)}%</span>
+                        <span>Progress to target</span>
+                        <span className="font-bold text-slate-900">{cappedProgress.toFixed(1)}%</span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
                         <div
