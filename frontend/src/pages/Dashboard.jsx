@@ -3,7 +3,8 @@
 // Features real photographic avatars for all trainees, custom SVG mastery semicircle gauge, and dual-mode velocity charting.
 
 import React, { useState, useMemo, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -89,56 +90,96 @@ export function Dashboard() {
   const [remediationSuccess, setRemediationSuccess] = useState(false);
   const [remediationSubmitting, setRemediationSubmitting] = useState(false);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const demoState = import.meta.env.DEV ? searchParams.get("state") : null; // "loading" | "empty" | "error" | null (dev only)
+
   // Cohort selection & analytics hooks
   const {
     batches,
     selectedBatchId,
     setSelectedBatchId,
     loading: batchesLoading,
+    error: batchesError,
     refetch: refetchBatches,
   } = useBatches();
 
   const {
     data: summary,
     loading: summaryLoading,
+    error: summaryError,
     refetch: refetchSummary,
   } = useBatchSummary(selectedBatchId);
 
   const {
     data: weekly,
     loading: weeklyLoading,
+    error: weeklyError,
     refetch: refetchWeekly,
   } = useBatchWeekly(selectedBatchId, 8);
 
   const {
     data: bands,
     loading: bandsLoading,
+    error: bandsError,
     refetch: refetchBands,
   } = useBatchBands(selectedBatchId);
 
   const {
     data: attention,
     loading: attentionLoading,
+    error: attentionError,
     refetch: refetchAttention,
   } = useBatchAttention(selectedBatchId);
 
   const {
     data: leaderboard,
     loading: leaderboardLoading,
+    error: leaderboardError,
     refetch: refetchLeaderboard,
   } = useBatchLeaderboard(selectedBatchId, 15);
 
   const {
     data: topPerformer,
     loading: topLoading,
+    error: topError,
     refetch: refetchTop,
   } = useBatchTopPerformer(selectedBatchId);
 
   const {
     data: heatmapData,
     loading: heatmapLoading,
+    error: heatmapError,
     refetch: refetchHeatmap,
   } = useBatchHeatmap(selectedBatchId);
+
+  // Step 9 State Simulation Overrides for interactive inspection & verification
+  const isDemoLoading = demoState === "loading";
+  const isDemoEmpty = demoState === "empty";
+  const isDemoError = demoState === "error";
+
+  const effectiveWeeklyLoading = isDemoLoading || weeklyLoading;
+  const effectiveWeeklyError = isDemoError ? "Unable to load milestone progression trajectory." : weeklyError;
+  const effectiveWeekly = isDemoEmpty ? [] : weekly;
+
+  const effectiveLeaderboardLoading = isDemoLoading || leaderboardLoading;
+  const effectiveLeaderboardError = isDemoError ? "Unable to load cohort ranking data." : leaderboardError;
+  const effectiveLeaderboard = isDemoEmpty ? [] : leaderboard;
+
+  const effectiveTopLoading = isDemoLoading || topLoading;
+  const effectiveTopError = isDemoError ? "Unable to retrieve top performer." : topError;
+  const effectiveTopPerformer = isDemoEmpty ? null : topPerformer;
+
+  const effectiveBandsLoading = isDemoLoading || bandsLoading;
+  const effectiveBandsError = isDemoError ? "Unable to calculate competency distribution." : bandsError;
+  const effectiveBands = isDemoEmpty ? null : bands;
+
+  const effectiveAttentionLoading = isDemoLoading || attentionLoading;
+  const effectiveAttentionError = isDemoError ? "Unable to retrieve early-warning risk intervention feed." : attentionError;
+  const effectiveAttention = isDemoEmpty ? [] : attention;
+
+  const effectiveHeatmapLoading = isDemoLoading || heatmapLoading;
+  const effectiveHeatmapError = isDemoError ? "Unable to synthesize cross-module cohort performance matrix." : heatmapError;
+  const effectiveHeatmapData = isDemoEmpty ? { rows: [], modules: [] } : heatmapData;
 
   const [exportingCsv, setExportingCsv] = useState(false);
 
@@ -206,19 +247,19 @@ export function Dashboard() {
 
   // Filter leaderboard by trainee search query
   const filteredLeaderboard = useMemo(() => {
-    if (!leaderboard) return [];
-    if (!searchQuery.trim()) return leaderboard;
+    if (!effectiveLeaderboard) return [];
+    if (!searchQuery.trim()) return effectiveLeaderboard;
     const q = searchQuery.toLowerCase();
-    return leaderboard.filter((item) =>
+    return effectiveLeaderboard.filter((item) =>
       item.name?.toLowerCase().includes(q)
     );
-  }, [leaderboard, searchQuery]);
+  }, [effectiveLeaderboard, searchQuery]);
 
   // Computed summary values
-  const enrolledCount = summary?.trainee_count ?? 24;
-  const avgScore = summary?.avg_score_pct ? summary.avg_score_pct.toFixed(1) : "78.4";
-  const passRate = summary?.pass_rate_pct ? summary.pass_rate_pct.toFixed(1) : "87.5";
-  const sessionCount = summary?.session_count ?? 142;
+  const enrolledCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.trainee_count ?? 24);
+  const avgScore = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "—" : summary?.avg_score_pct ? summary.avg_score_pct.toFixed(1) : "78.4";
+  const passRate = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "—" : summary?.pass_rate_pct ? summary.pass_rate_pct.toFixed(1) : "87.5";
+  const sessionCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.session_count ?? 142);
   const scoreChange = summary?.avg_score_change_pct ?? 5.2;
 
   // Active batch object
@@ -283,8 +324,39 @@ export function Dashboard() {
           </p>
         </div>
 
-        {/* Action Controls: Cohort Selector, Log Session, and Live Refresh */}
-        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
+        {/* Action Controls: State Switcher (Dev only), Cohort Selector, Log Session, and Live Refresh */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Step 9 State Switcher Pills (Dev Environment Only) */}
+          {import.meta.env.DEV && (
+            <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60 shadow-2xs">
+              {["live", "loading", "empty", "error"].map((st) => {
+                const isActive = (demoState === null && st === "live") || demoState === st;
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => {
+                      const next = new URLSearchParams(searchParams);
+                      if (st === "live") {
+                        next.delete("state");
+                      } else {
+                        next.set("state", st);
+                      }
+                      setSearchParams(next);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {st}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Cohort Selector */}
           <div className="relative">
             <select
@@ -469,7 +541,7 @@ export function Dashboard() {
             <div className="flex flex-wrap items-center gap-2 pt-3 pb-1 text-[11px]">
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-blue-600"></span>
-                <span>Current Week: <strong>{weekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.0"}%</strong></span>
+                <span>Current Week: <strong>{effectiveWeekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.0"}%</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
                 <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
@@ -480,214 +552,234 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* VIEW A: MILESTONE COLUMNS (Crisp Composed Chart with 75% Reference Line & Spline Trend) */}
-            {progressionView === "columns" && (
-              <div className="w-full h-56 pt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={(weekly || []).map((w, i) => ({
-                      ...w,
-                      label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
-                    }))}
-                    margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#E2E8F0" }}
-                    />
-                    <YAxis
-                      domain={[40, 100]}
-                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                      tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(val) => `${val}%`}
-                    />
-                    <ReferenceLine
-                      y={EXCELLENT_THRESHOLD}
-                      stroke="#2563EB"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.5}
-                      label={{
-                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
-                        position: "insideTopRight",
-                        fill: "#2563EB",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        offset: 4,
-                      }}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                          return (
-                            <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                              <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
-                                <span>{item.week_start || item.label}</span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
-                                    isAbove
-                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                      : "bg-amber-950 text-amber-400 border border-amber-800"
-                                  }`}
-                                >
-                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
-                                </span>
-                              </div>
-                              <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                <span className="text-xl font-black text-white">
-                                  {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                                <span>Benchmark Delta:</span>
-                                <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
-                                </strong>
-                              </div>
-                              <div className="text-[10px] text-slate-400 pt-0.5">
-                                {item.session_count || 0} drills evaluated
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
-                      {(weekly || []).map((entry, index) => {
-                        const isLatest = index === (weekly || []).length - 1;
-                        const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                        return (
-                          <Cell
-                            key={`trainer-bar-cell-${index}`}
-                            fill={isLatest ? "#2563EB" : isAbove ? "#0F172A" : "#94A3B8"}
-                            className="hover:opacity-85 transition-opacity cursor-pointer"
-                          />
-                        );
-                      })}
-                    </Bar>
-                    <Line
-                      type="monotone"
-                      dataKey="avg_score_pct"
-                      stroke="#2563EB"
-                      strokeWidth={2.5}
-                      dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
-                      activeDot={{ r: 6, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+            {/* Step 9 Shared State Conditional Progression Rendering */}
+            {effectiveWeeklyLoading ? (
+              <LoadingState message="Loading weekly milestone progression..." className="py-12" />
+            ) : effectiveWeeklyError ? (
+              <ErrorState
+                title="Unable to Load Progression Trajectory"
+                message={effectiveWeeklyError}
+                onRetry={() => refetchWeekly()}
+                className="py-12"
+              />
+            ) : !effectiveWeekly || effectiveWeekly.length === 0 ? (
+              <EmptyState
+                title="No Milestone Progression Records"
+                description="No weekly drill metrics recorded for this cohort yet."
+                className="py-12"
+              />
+            ) : (
+              <>
+                {/* VIEW A: MILESTONE COLUMNS (Crisp Composed Chart with 75% Reference Line & Spline Trend) */}
+                {progressionView === "columns" && (
+                  <div className="w-full h-56 pt-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart
+                        data={(effectiveWeekly || []).map((w, i) => ({
+                          ...w,
+                          label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
+                        }))}
+                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="label"
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={{ stroke: "#E2E8F0" }}
+                        />
+                        <YAxis
+                          domain={[40, 100]}
+                          ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={EXCELLENT_THRESHOLD}
+                          stroke="#2563EB"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            position: "insideTopRight",
+                            fill: "#2563EB",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            offset: 4,
+                          }}
+                        />
+                        <RechartsTooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const item = payload[0].payload;
+                              const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                              return (
+                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                    <span>{item.week_start || item.label}</span>
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                        isAbove
+                                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                          : "bg-amber-950 text-amber-400 border border-amber-800"
+                                      }`}
+                                    >
+                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-baseline space-x-1.5 pt-0.5">
+                                    <span className="text-xl font-black text-white">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                    <span>Benchmark Delta:</span>
+                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                      {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                    </strong>
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                    {item.session_count || 0} drills evaluated
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
+                          {(effectiveWeekly || []).map((entry, index) => {
+                            const isLatest = index === (effectiveWeekly || []).length - 1;
+                            const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                            return (
+                              <Cell
+                                key={`trainer-bar-cell-${index}`}
+                                fill={isLatest ? "#2563EB" : isAbove ? "#0F172A" : "#94A3B8"}
+                                className="hover:opacity-85 transition-opacity cursor-pointer"
+                              />
+                            );
+                          })}
+                        </Bar>
+                        <Line
+                          type="monotone"
+                          dataKey="avg_score_pct"
+                          stroke="#2563EB"
+                          strokeWidth={2.5}
+                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
-            {/* VIEW B: VELOCITY CURVE (Continuous Area Progression) */}
-            {progressionView === "curve" && (
-              <div className="w-full h-56 pt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={(weekly || []).map((w, i) => ({
-                      ...w,
-                      label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
-                    }))}
-                    margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="velocityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#E2E8F0" }}
-                    />
-                    <YAxis
-                      domain={[40, 100]}
-                      ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                      tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(val) => `${val}%`}
-                    />
-                    <ReferenceLine
-                      y={EXCELLENT_THRESHOLD}
-                      stroke="#2563EB"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.5}
-                      label={{
-                        value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
-                        position: "insideTopRight",
-                        fill: "#2563EB",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        offset: 4,
-                      }}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const item = payload[0].payload;
-                          const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                          return (
-                            <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                              <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
-                                <span>{item.week_start || item.label}</span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
-                                    isAbove
-                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                      : "bg-amber-950 text-amber-400 border border-amber-800"
-                                  }`}
-                                >
-                                  {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
-                                </span>
-                              </div>
-                              <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                <span className="text-xl font-black text-white">
-                                  {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                                <span>Benchmark Delta:</span>
-                                <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                                  {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                    ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                    : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
-                                </strong>
-                              </div>
-                              <div className="text-[10px] text-slate-400 pt-0.5">
-                                {item.session_count || 0} drills evaluated
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="avg_score_pct"
-                      stroke="#2563EB"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#velocityGradient)"
-                      dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+                {/* VIEW B: VELOCITY CURVE (Continuous Area Progression) */}
+                {progressionView === "curve" && (
+                  <div className="w-full h-56 pt-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={(effectiveWeekly || []).map((w, i) => ({
+                          ...w,
+                          label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
+                        }))}
+                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="velocityGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="label"
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={{ stroke: "#E2E8F0" }}
+                        />
+                        <YAxis
+                          domain={[40, 100]}
+                          ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={EXCELLENT_THRESHOLD}
+                          stroke="#2563EB"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            position: "insideTopRight",
+                            fill: "#2563EB",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            offset: 4,
+                          }}
+                        />
+                        <RechartsTooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const item = payload[0].payload;
+                              const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                              return (
+                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                    <span>{item.week_start || item.label}</span>
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                        isAbove
+                                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                          : "bg-amber-950 text-amber-400 border border-amber-800"
+                                      }`}
+                                    >
+                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-baseline space-x-1.5 pt-0.5">
+                                    <span className="text-xl font-black text-white">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                    <span>Benchmark Delta:</span>
+                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                      {item.avg_score_pct >= EXCELLENT_THRESHOLD
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                    </strong>
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                    {item.session_count || 0} drills evaluated
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="avg_score_pct"
+                          stroke="#2563EB"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#velocityGradient)"
+                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -717,152 +809,172 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto pt-2">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-2.5 px-3">Rank</th>
-                    <th className="py-2.5 px-3">Trainee Candidate</th>
-                    <th className="py-2.5 px-3">Avg Score</th>
-                    <th className="py-2.5 px-3">Drills</th>
-                    <th className="py-2.5 px-3">Mastery Standing</th>
-                    <th className="py-2.5 px-3 text-right">Dossier</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredLeaderboard.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                        No trainees found matching query.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredLeaderboard.map((trainee, idx) => {
-                      const rank = trainee.rank ?? idx + 1;
-                      const score = trainee.avg_score_pct ? trainee.avg_score_pct.toFixed(1) : "0.0";
-                      const isMastery = (trainee.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
-                      const isCompetent = (trainee.avg_score_pct || 0) >= PASS_THRESHOLD && !isMastery;
-                      const avatarUrl = getTraineeAvatar(trainee, idx);
-
-                      return (
-                        <tr
-                          key={trainee.trainee_id || idx}
-                          className="hover:bg-slate-50/80 transition-colors group"
-                        >
-                          {/* Rank Badge */}
-                          <td className="py-3 px-3">
-                            <span
-                              className={`w-6 h-6 rounded-md font-black text-xs flex items-center justify-center ${
-                                rank === 1
-                                  ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs"
-                                  : rank === 2
-                                  ? "bg-slate-200 text-slate-800"
-                                  : rank === 3
-                                  ? "bg-amber-50 text-amber-800 border border-amber-200"
-                                  : "text-slate-400 font-bold"
-                              }`}
-                            >
-                              #{rank}
-                            </span>
-                          </td>
-
-                          {/* Trainee Name with Real Photo Avatar */}
-                          <td className="py-3 px-3">
-                            <Link
-                              to={`/trainees/${trainee.trainee_id}`}
-                              className="font-bold text-slate-900 hover:text-blue-600 transition-colors flex items-center space-x-3"
-                            >
-                              <img
-                                src={avatarUrl}
-                                alt={trainee.name}
-                                className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100 shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <span className="font-bold text-slate-900 truncate block text-xs">
-                                  {trainee.name}
-                                </span>
-                                <span className="text-[10px] text-slate-400 block truncate">
-                                  {trainee.specialization || "Full-Stack Core Track"}
-                                </span>
-                              </div>
-                            </Link>
-                          </td>
-
-                          {/* Score Progress */}
-                          <td className="py-3 px-3">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-black text-slate-900 w-12">{score}%</span>
-                              <div className="w-16 sm:w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
-                                <div
-                                  style={{ width: `${Math.min(100, trainee.avg_score_pct || 0)}%` }}
-                                  className={`h-full rounded-full ${
-                                    isMastery
-                                      ? "bg-emerald-500"
-                                      : isCompetent
-                                      ? "bg-blue-600"
-                                      : "bg-rose-500"
-                                  }`}
-                                />
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Completed Sessions */}
-                          <td className="py-3 px-3 font-semibold text-slate-600">
-                            {trainee.session_count ?? 1} drills
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-3 px-3">
-                            <span
-                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                                isMastery
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : isCompetent
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-rose-50 text-rose-700 border-rose-200"
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  isMastery ? "bg-emerald-500" : isCompetent ? "bg-blue-500" : "bg-rose-500"
-                                }`}
-                              />
-                              <span>{isMastery ? "Mastery" : isCompetent ? "Competent" : "Remediation"}</span>
-                            </span>
-                          </td>
-
-                          {/* Direct Link */}
-                          <td className="py-3 px-3 text-right">
-                            <Link
-                              to={`/trainees/${trainee.trainee_id}`}
-                              className="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                            >
-                              Dossier →
-                            </Link>
+            {/* Step 9 Shared State Conditional Leaderboard Rendering */}
+            {effectiveLeaderboardLoading ? (
+              <LoadingState message="Loading cohort leaderboard rankings..." className="py-12" />
+            ) : effectiveLeaderboardError ? (
+              <ErrorState
+                title="Unable to Load Leaderboard"
+                message={effectiveLeaderboardError}
+                onRetry={() => refetchLeaderboard()}
+                className="py-12"
+              />
+            ) : effectiveLeaderboard.length === 0 ? (
+              <EmptyState
+                title="No Trainee Rankings Available"
+                description="No completed drills found for the selected cohort."
+                className="py-12"
+              />
+            ) : (
+              <>
+                {/* Table */}
+                <div className="overflow-x-auto pt-2">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="py-2.5 px-3">Rank</th>
+                        <th className="py-2.5 px-3">Trainee Candidate</th>
+                        <th className="py-2.5 px-3">Avg Score</th>
+                        <th className="py-2.5 px-3">Drills</th>
+                        <th className="py-2.5 px-3">Mastery Standing</th>
+                        <th className="py-2.5 px-3 text-right">Dossier</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredLeaderboard.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                            No trainees found matching query.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      ) : (
+                        filteredLeaderboard.map((trainee, idx) => {
+                          const rank = trainee.rank ?? idx + 1;
+                          const score = trainee.avg_score_pct ? trainee.avg_score_pct.toFixed(1) : "0.0";
+                          const isMastery = (trainee.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
+                          const isCompetent = (trainee.avg_score_pct || 0) >= PASS_THRESHOLD && !isMastery;
+                          const avatarUrl = getTraineeAvatar(trainee, idx);
 
-            {/* Footer link to full directory */}
-            <div className="pt-4 mt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-slate-400">
-                Displaying top {filteredLeaderboard.length} candidates by SQL window ranking
-              </span>
-              <Link
-                to="/trainees"
-                className="font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition-colors"
-              >
-                <span>View Full Directory</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+                          return (
+                            <tr
+                              key={trainee.trainee_id || idx}
+                              className="hover:bg-slate-50/80 transition-colors group"
+                            >
+                              {/* Rank Badge */}
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`w-6 h-6 rounded-md font-black text-xs flex items-center justify-center ${
+                                    rank === 1
+                                      ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs"
+                                      : rank === 2
+                                      ? "bg-slate-200 text-slate-800"
+                                      : rank === 3
+                                      ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                      : "text-slate-400 font-bold"
+                                  }`}
+                                >
+                                  #{rank}
+                                </span>
+                              </td>
+
+                              {/* Trainee Name with Real Photo Avatar */}
+                              <td className="py-3 px-3">
+                                <Link
+                                  to={`/trainees/${trainee.trainee_id}`}
+                                  className="font-bold text-slate-900 hover:text-blue-600 transition-colors flex items-center space-x-3"
+                                >
+                                  <img
+                                    src={avatarUrl}
+                                    alt={trainee.name}
+                                    className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100 shrink-0"
+                                  />
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-slate-900 truncate block text-xs">
+                                      {trainee.name}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 block truncate">
+                                      {trainee.specialization || "Full-Stack Core Track"}
+                                    </span>
+                                  </div>
+                                </Link>
+                              </td>
+
+                              {/* Score Progress */}
+                              <td className="py-3 px-3">
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-black text-slate-900 w-12">{score}%</span>
+                                  <div className="w-16 sm:w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
+                                    <div
+                                      style={{ width: `${Math.min(100, trainee.avg_score_pct || 0)}%` }}
+                                      className={`h-full rounded-full ${
+                                        isMastery
+                                          ? "bg-emerald-500"
+                                          : isCompetent
+                                          ? "bg-blue-600"
+                                          : "bg-rose-500"
+                                      }`}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Completed Sessions */}
+                              <td className="py-3 px-3 font-semibold text-slate-600">
+                                {trainee.session_count ?? 1} drills
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                    isMastery
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : isCompetent
+                                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                                      : "bg-rose-50 text-rose-700 border-rose-200"
+                                  }`}
+                                >
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      isMastery ? "bg-emerald-500" : isCompetent ? "bg-blue-500" : "bg-rose-500"
+                                    }`}
+                                  />
+                                  <span>{isMastery ? "Mastery" : isCompetent ? "Competent" : "Remediation"}</span>
+                                </span>
+                              </td>
+
+                              {/* Direct Link */}
+                              <td className="py-3 px-3 text-right">
+                                <Link
+                                  to={`/trainees/${trainee.trainee_id}`}
+                                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  Dossier →
+                                </Link>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer link to full directory */}
+                <div className="pt-4 mt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">
+                    Displaying top {filteredLeaderboard.length} candidates by SQL window ranking
+                  </span>
+                  <Link
+                    to="/trainees"
+                    className="font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition-colors"
+                  >
+                    <span>View Full Directory</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -883,59 +995,79 @@ export function Dashboard() {
               </span>
             </div>
 
-            <div className="pt-4">
-              <div className="flex items-center space-x-3.5">
-                <img
-                  src={
-                    topPerformer?.avatar_url ||
-                    "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
-                  }
-                  alt={topPerformer?.name || "Top Performer"}
-                  className="w-14 h-14 rounded-2xl object-cover ring-2 ring-amber-400/50 shadow-sm shrink-0"
-                />
-                <div className="min-w-0">
-                  <h4 className="text-base font-bold text-slate-900 leading-tight truncate">
-                    {topPerformer?.name || "Elena Rostova"}
-                  </h4>
-                  <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                    {activeBatch?.name || "Active Batch"}
-                  </p>
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mt-1">
-                    94.6% All-Time Peak
-                  </span>
+            {/* Step 9 Shared State Conditional Top Performer Rendering */}
+            {effectiveTopLoading ? (
+              <LoadingState message="Calculating top performer..." compact className="py-8" />
+            ) : effectiveTopError ? (
+              <ErrorState
+                title="Top Performer Unavailable"
+                message={effectiveTopError}
+                onRetry={() => refetchTop()}
+                compact
+                className="py-8"
+              />
+            ) : !effectiveTopPerformer ? (
+              <EmptyState
+                title="No Leading Performer"
+                description="No qualifying trainee sessions recorded yet."
+                compact
+                className="py-8"
+              />
+            ) : (
+              <div className="pt-4">
+                <div className="flex items-center space-x-3.5">
+                  <img
+                    src={
+                      effectiveTopPerformer?.avatar_url ||
+                      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
+                    }
+                    alt={effectiveTopPerformer?.name || "Top Performer"}
+                    className="w-14 h-14 rounded-2xl object-cover ring-2 ring-amber-400/50 shadow-sm shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h4 className="text-base font-bold text-slate-900 leading-tight truncate">
+                      {effectiveTopPerformer?.name || "Elena Rostova"}
+                    </h4>
+                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                      {activeBatch?.name || "Active Batch"}
+                    </p>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mt-1">
+                      94.6% All-Time Peak
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                    Mean Score
-                  </span>
-                  <span className="text-lg font-black text-slate-900 block mt-0.5">
-                    {topPerformer?.avg_score_pct ? `${topPerformer.avg_score_pct.toFixed(1)}%` : "94.6%"}
-                  </span>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                      Mean Score
+                    </span>
+                    <span className="text-lg font-black text-slate-900 block mt-0.5">
+                      {effectiveTopPerformer?.avg_score_pct ? `${effectiveTopPerformer.avg_score_pct.toFixed(1)}%` : "94.6%"}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                      Sessions Logged
+                    </span>
+                    <span className="text-lg font-black text-slate-900 block mt-0.5">
+                      {effectiveTopPerformer?.session_count ?? 14}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                    Sessions Logged
-                  </span>
-                  <span className="text-lg font-black text-slate-900 block mt-0.5">
-                    {topPerformer?.session_count ?? 14}
-                  </span>
-                </div>
-              </div>
 
-              {topPerformer?.trainee_id && (
-                <Link
-                  to={`/trainees/${topPerformer.trainee_id}`}
-                  className="mt-4 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1 transition-colors shadow-2xs"
-                >
-                  <span>Inspect Trainee Dossier</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
-              )}
-            </div>
+                {effectiveTopPerformer?.trainee_id && (
+                  <Link
+                    to={`/trainees/${effectiveTopPerformer.trainee_id}`}
+                    className="mt-4 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1 transition-colors shadow-2xs"
+                  >
+                    <span>Inspect Trainee Dossier</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Widget 4: UNIQUE Semicircle Competency Arc Gauge (Inspired by Reference Image 2) */}
@@ -949,92 +1081,111 @@ export function Dashboard() {
               </span>
             </div>
 
-            {/* Custom SVG Semicircle Radial Gauge */}
-            <div className="flex flex-col items-center justify-center pt-2">
-              <svg viewBox="0 0 200 115" className="w-52 h-28 overflow-visible">
-                {/* Background Full Track */}
-                <path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="#F1F5F9"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
+            {/* Step 9 Shared State Conditional Competency Arc Rendering */}
+            {effectiveBandsLoading ? (
+              <LoadingState message="Calculating competency distribution..." compact className="py-8" />
+            ) : effectiveBandsError ? (
+              <ErrorState
+                title="Distribution Unavailable"
+                message={effectiveBandsError}
+                onRetry={() => refetchBands()}
+                compact
+                className="py-8"
+              />
+            ) : !effectiveBands || effectiveBands.length === 0 ? (
+              <EmptyState
+                title="No Distribution Data"
+                description="No evaluation data available to calculate competency bands."
+                compact
+                className="py-8"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center pt-2">
+                <svg viewBox="0 0 200 115" className="w-52 h-28 overflow-visible">
+                  {/* Background Full Track */}
+                  <path
+                    d="M 20 100 A 80 80 0 0 1 180 100"
+                    fill="none"
+                    stroke="#F1F5F9"
+                    strokeWidth="16"
+                    strokeLinecap="round"
+                  />
 
-                {/* Segment 1: Mastery (Emerald) */}
-                <path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="#10B981"
-                  strokeWidth="16"
-                  strokeDasharray={`${masteryArcProps.lenExc} ${ARC_TOTAL}`}
-                  strokeDashoffset="0"
-                  strokeLinecap="round"
-                />
+                  {/* Segment 1: Mastery (Emerald) */}
+                  <path
+                    d="M 20 100 A 80 80 0 0 1 180 100"
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="16"
+                    strokeDasharray={`${masteryArcProps.lenExc} ${ARC_TOTAL}`}
+                    strokeDashoffset="0"
+                    strokeLinecap="round"
+                  />
 
-                {/* Segment 2: Competent (Blue) */}
-                <path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="#2563EB"
-                  strokeWidth="16"
-                  strokeDasharray={`${masteryArcProps.lenAvg} ${ARC_TOTAL}`}
-                  strokeDashoffset={`-${masteryArcProps.lenExc}`}
-                />
+                  {/* Segment 2: Competent (Blue) */}
+                  <path
+                    d="M 20 100 A 80 80 0 0 1 180 100"
+                    fill="none"
+                    stroke="#2563EB"
+                    strokeWidth="16"
+                    strokeDasharray={`${masteryArcProps.lenAvg} ${ARC_TOTAL}`}
+                    strokeDashoffset={`-${masteryArcProps.lenExc}`}
+                  />
 
-                {/* Segment 3: Remediation (Rose) */}
-                <path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="#F43F5E"
-                  strokeWidth="16"
-                  strokeDasharray={`${masteryArcProps.lenStr} ${ARC_TOTAL}`}
-                  strokeDashoffset={`-${masteryArcProps.lenExc + masteryArcProps.lenAvg}`}
-                  strokeLinecap="round"
-                />
+                  {/* Segment 3: Remediation (Rose) */}
+                  <path
+                    d="M 20 100 A 80 80 0 0 1 180 100"
+                    fill="none"
+                    stroke="#F43F5E"
+                    strokeWidth="16"
+                    strokeDasharray={`${masteryArcProps.lenStr} ${ARC_TOTAL}`}
+                    strokeDashoffset={`-${masteryArcProps.lenExc + masteryArcProps.lenAvg}`}
+                    strokeLinecap="round"
+                  />
 
-                {/* Center Gauge Telemetry */}
-                <text x="100" y="80" textAnchor="middle" className="text-3xl font-black fill-slate-900 tracking-tight">
-                  {passRate}%
-                </text>
-                <text x="100" y="98" textAnchor="middle" className="text-[9px] font-bold fill-slate-400 uppercase tracking-wider">
-                  Qualified Rate
-                </text>
-              </svg>
+                  {/* Center Gauge Telemetry */}
+                  <text x="100" y="80" textAnchor="middle" className="text-3xl font-black fill-slate-900 tracking-tight">
+                    {passRate}%
+                  </text>
+                  <text x="100" y="98" textAnchor="middle" className="text-[9px] font-bold fill-slate-400 uppercase tracking-wider">
+                    Qualified Rate
+                  </text>
+                </svg>
 
-              {/* Three Segment Breakdown Chips */}
-              <div className="grid grid-cols-3 gap-2 w-full mt-4 pt-3 border-t border-slate-100 text-center">
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span className="text-[10px] font-bold text-slate-700">Mastery</span>
+                {/* Three Segment Breakdown Chips */}
+                <div className="grid grid-cols-3 gap-2 w-full mt-4 pt-3 border-t border-slate-100 text-center">
+                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span className="text-[10px] font-bold text-slate-700">Mastery</span>
+                    </div>
+                    <div className="text-xs font-black text-slate-900 mt-1">
+                      {masteryArcProps.excellent.toFixed(0)}%
+                    </div>
                   </div>
-                  <div className="text-xs font-black text-slate-900 mt-1">
-                    {masteryArcProps.excellent.toFixed(0)}%
-                  </div>
-                </div>
 
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                    <span className="text-[10px] font-bold text-slate-700">Competent</span>
+                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      <span className="text-[10px] font-bold text-slate-700">Competent</span>
+                    </div>
+                    <div className="text-xs font-black text-slate-900 mt-1">
+                      {masteryArcProps.average.toFixed(0)}%
+                    </div>
                   </div>
-                  <div className="text-xs font-black text-slate-900 mt-1">
-                    {masteryArcProps.average.toFixed(0)}%
-                  </div>
-                </div>
 
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-center space-x-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    <span className="text-[10px] font-bold text-slate-700">Action</span>
-                  </div>
-                  <div className="text-xs font-black text-slate-900 mt-1">
-                    {masteryArcProps.struggling.toFixed(0)}%
+                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-center space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      <span className="text-[10px] font-bold text-slate-700">Action</span>
+                    </div>
+                    <div className="text-xs font-black text-slate-900 mt-1">
+                      {masteryArcProps.struggling.toFixed(0)}%
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Widget 5: ML Early-Warning Intervention Roster (With REAL Photo Avatars) */}
@@ -1058,7 +1209,7 @@ export function Dashboard() {
                   <span>{exportingCsv ? "Exporting..." : "Export CSV"}</span>
                 </button>
                 <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
-                  {(attention || []).length} Trainees Flagged
+                  {(effectiveAttention || []).length} Trainees Flagged
                 </span>
               </div>
             </div>
@@ -1067,14 +1218,25 @@ export function Dashboard() {
               Random Forest model with rule fallback identifying learners with declining score trajectories:
             </p>
 
-            {/* List with Real Photo Avatars & Direct Action */}
-            <div className="space-y-3 mt-3">
-              {(attention || []).length === 0 ? (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold text-center">
-                  All cohort trainees are currently performing above risk thresholds.
-                </div>
-              ) : (
-                (attention || []).map((t, aIdx) => {
+            {/* Step 9 Shared State Conditional ML Intervention Alerts Rendering */}
+            {effectiveAttentionLoading ? (
+              <LoadingState message="Analyzing early-warning risk patterns..." className="py-8" />
+            ) : effectiveAttentionError ? (
+              <ErrorState
+                title="Intervention Feed Unavailable"
+                message={effectiveAttentionError}
+                onRetry={() => refetchAttention()}
+                className="py-8"
+              />
+            ) : (effectiveAttention || []).length === 0 ? (
+              <EmptyState
+                title="Zero Trainees at Risk"
+                description="All cohort trainees are currently performing above risk thresholds."
+                className="py-8"
+              />
+            ) : (
+              <div className="space-y-3 mt-3">
+                {(effectiveAttention || []).map((t, aIdx) => {
                   const avatarUrl = getTraineeAvatar(t, aIdx);
                   return (
                     <div
@@ -1116,9 +1278,9 @@ export function Dashboard() {
                       </div>
                     </div>
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </div>
 
         </div>
@@ -1159,15 +1321,22 @@ export function Dashboard() {
           </div>
         </div>
 
-        {heatmapLoading ? (
-          <div className="py-12 flex items-center justify-center space-x-2 text-xs text-slate-500">
-            <RotateCw className="w-4 h-4 animate-spin text-brand" />
-            <span>Loading cohort heatmap matrix...</span>
-          </div>
-        ) : !heatmapData || !heatmapData.rows || heatmapData.rows.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400">
-            No student assessment records available for heatmap rendering in this cohort.
-          </div>
+        {/* Step 9 Shared State Conditional Heatmap Rendering */}
+        {effectiveHeatmapLoading ? (
+          <LoadingState message="Loading cohort heatmap matrix..." className="py-12" />
+        ) : effectiveHeatmapError ? (
+          <ErrorState
+            title="Unable to Load Cohort Heatmap"
+            message={effectiveHeatmapError}
+            onRetry={() => refetchHeatmap()}
+            className="py-12"
+          />
+        ) : !effectiveHeatmapData || !effectiveHeatmapData.rows || effectiveHeatmapData.rows.length === 0 ? (
+          <EmptyState
+            title="No Heatmap Records Available"
+            description="No student assessment records available for heatmap rendering in this cohort."
+            className="py-12"
+          />
         ) : (
           <div className="overflow-x-auto mt-4">
             <table className="w-full border-collapse text-xs">
@@ -1176,7 +1345,7 @@ export function Dashboard() {
                   <th className="py-2.5 px-3 font-bold text-slate-500 uppercase tracking-wider text-[11px] min-w-[170px]">
                     Trainee
                   </th>
-                  {(heatmapData.modules || []).map((m) => (
+                  {(effectiveHeatmapData.modules || []).map((m) => (
                     <th
                       key={m.id}
                       className="py-2.5 px-3 font-bold text-slate-600 text-center tracking-tight text-[11px] min-w-[120px]"
@@ -1187,7 +1356,7 @@ export function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {heatmapData.rows.map((row, rIdx) => {
+                {effectiveHeatmapData.rows.map((row, rIdx) => {
                   const avatarUrl = getTraineeAvatar({ trainee_id: row.trainee_id, name: row.trainee_name }, rIdx);
                   return (
                     <tr key={row.trainee_id} className="hover:bg-slate-50/80 transition-colors">

@@ -76,3 +76,7 @@ Thumbs.db
 # Vite & Bundler cache
 .vite/
 .parcel-cache/
+
+# Local verification scratch scripts and artifacts
+scratch/
+
