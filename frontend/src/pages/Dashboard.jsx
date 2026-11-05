@@ -35,12 +35,10 @@ import {
   RotateCw,
   Plus,
   Search,
-  ArrowUpRight,
   ChevronRight,
   X,
   CheckCircle2,
   BrainCircuit,
-  Sparkles,
   Download,
   LayoutGrid,
 } from "lucide-react";
@@ -967,10 +965,9 @@ export function Dashboard() {
                   </span>
                   <Link
                     to="/trainees"
-                    className="font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition-colors"
+                    className="font-bold text-blue-600 hover:text-blue-700 flex items-center transition-colors"
                   >
                     <span>View Full Directory</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </>
@@ -989,8 +986,7 @@ export function Dashboard() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Cohort Leading Performer
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200 flex items-center space-x-1">
-                <Sparkles className="w-3 h-3 text-amber-600" />
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200 flex items-center">
                 <span>Rank #1 Overall</span>
               </span>
             </div>
@@ -1060,10 +1056,9 @@ export function Dashboard() {
                 {effectiveTopPerformer?.trainee_id && (
                   <Link
                     to={`/trainees/${effectiveTopPerformer.trainee_id}`}
-                    className="mt-4 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1 transition-colors shadow-2xs"
+                    className="mt-4 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center transition-colors shadow-2xs"
                   >
                     <span>Inspect Trainee Dossier</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 )}
               </div>
@@ -1391,7 +1386,7 @@ export function Dashboard() {
                         return (
                           <td key={cell.module_id} className="py-2 px-2 text-center">
                             <div
-                              className={`py-1.5 px-2 rounded-lg border text-xs transition-transform hover:scale-105 ${bandClass}`}
+                              className={`py-1.5 px-2 rounded-lg border text-xs ${bandClass}`}
                               title={
                                 hasScore
                                   ? `${cell.module_name}: ${cell.score_pct.toFixed(1)}% (${cell.session_count} session${cell.session_count === 1 ? "" : "s"})`

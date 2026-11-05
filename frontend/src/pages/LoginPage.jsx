@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Spinner } from "../components/Spinner.jsx";
-import { ArrowLeft, Check, Lock, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Lock, Shield } from "lucide-react";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -210,35 +210,35 @@ export function LoginPage() {
         {/* =========================================================================
             RIGHT COLUMN: VECTOR ILLUSTRATION PANEL (Matching reference Image 2)
             ========================================================================= */}
-        <div className="hidden md:flex flex-col items-center justify-center p-8 bg-slate-900 relative overflow-hidden">
+        <div className="hidden md:flex flex-col items-center justify-center p-8 bg-slate-50 border-l border-slate-200 relative overflow-hidden">
           {/* Decorative Cloud Shapes (from Reference Image 2) */}
-          <div className="absolute top-6 left-6 w-28 h-12 bg-white/20 rounded-full blur-[1px]" />
-          <div className="absolute top-16 right-8 w-36 h-14 bg-white/25 rounded-full blur-[1px]" />
-          <div className="absolute bottom-8 left-8 w-44 h-16 bg-white/20 rounded-full blur-[1px]" />
-          <div className="absolute bottom-16 right-6 w-32 h-12 bg-white/15 rounded-full blur-[1px]" />
+          <div className="absolute top-6 left-6 w-28 h-12 bg-white/60 rounded-full blur-[1px]" />
+          <div className="absolute top-16 right-8 w-36 h-14 bg-white/70 rounded-full blur-[1px]" />
+          <div className="absolute bottom-8 left-8 w-44 h-16 bg-white/60 rounded-full blur-[1px]" />
+          <div className="absolute bottom-16 right-6 w-32 h-12 bg-white/50 rounded-full blur-[1px]" />
 
           {/* Central Illustrated Card Container */}
           <div className="relative z-10 w-full max-w-xs flex flex-col items-center">
             {/* Speech Bubble with Checkmark (from Reference Image 2) */}
-            <div className="absolute -top-6 left-4 z-20 bg-white rounded-2xl p-3 shadow-lg flex items-center justify-center transform -rotate-6 animate-bounce">
+            <div className="absolute -top-6 left-4 z-20 bg-white rounded-2xl p-3 shadow-lg flex items-center justify-center transform -rotate-6">
               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                 <Check className="w-5 h-5 stroke-[3]" />
               </div>
             </div>
 
             {/* Mobile / Screen Frame with Biometric Scanner */}
-            <div className="w-52 h-80 rounded-[2.5rem] bg-slate-900 border-4 border-slate-800 shadow-2xl p-3 relative flex flex-col items-center justify-between overflow-hidden">
+            <div className="w-52 h-80 rounded-[2.5rem] bg-white border-4 border-slate-200 shadow-xl p-3 relative flex flex-col items-center justify-between overflow-hidden">
               {/* Speaker notch */}
-              <div className="w-16 h-3 bg-slate-800 rounded-full mb-4"></div>
+              <div className="w-16 h-3 bg-slate-200 rounded-full mb-4"></div>
 
               {/* Screen interior with solid slate background */}
-              <div className="w-full h-full rounded-[1.8rem] bg-slate-800 p-4 flex flex-col items-center justify-center text-center relative">
+              <div className="w-full h-full rounded-[1.8rem] bg-slate-50 border border-slate-200/80 p-4 flex flex-col items-center justify-center text-center relative">
                 {/* Fingerprint Biometric Target */}
-                <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center relative mb-4">
-                  <div className="w-14 h-14 rounded-full border-2 border-white/60 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full border-2 border-slate-300 flex items-center justify-center relative mb-4">
+                  <div className="w-14 h-14 rounded-full border-2 border-slate-400 flex items-center justify-center">
                     {/* SVG Fingerprint / Biometric Icon */}
                     <svg
-                      className="w-10 h-10 text-white"
+                      className="w-10 h-10 text-slate-700"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -258,14 +258,14 @@ export function LoginPage() {
                     </svg>
                   </div>
                   {/* Radiating scanner pulse */}
-                  <div className="absolute inset-0 rounded-full border border-white animate-ping opacity-25"></div>
+                  <div className="absolute inset-0 rounded-full border border-blue-500 animate-ping opacity-25"></div>
                 </div>
 
                 {/* Progress bar line */}
-                <div className="w-24 h-1.5 bg-white/30 rounded-full overflow-hidden mb-2">
-                  <div className="w-2/3 h-full bg-cyan-300 rounded-full"></div>
+                <div className="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden mb-2">
+                  <div className="w-2/3 h-full bg-blue-600 rounded-full"></div>
                 </div>
-                <span className="text-[10px] text-white/90 font-medium">
+                <span className="text-[10px] text-slate-600 font-medium">
                   Verified Trainee Session
                 </span>
               </div>
@@ -280,9 +280,9 @@ export function LoginPage() {
           </div>
 
           {/* Subtext under graphic */}
-          <div className="mt-8 text-center text-white/90 z-10">
-            <h3 className="text-sm font-bold">Secure Performance Analytics</h3>
-            <p className="text-[11px] text-slate-300 mt-0.5">
+          <div className="mt-8 text-center z-10">
+            <h3 className="text-sm font-bold text-slate-800">Secure Performance Analytics</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
               Role-guarded cohort metrics & longitudinal scoring
             </p>
           </div>

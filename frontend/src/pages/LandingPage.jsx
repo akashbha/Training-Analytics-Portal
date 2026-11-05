@@ -706,7 +706,7 @@ __table_args__ = (
           <div className="mt-8 flex justify-center">
             <Link
               to="/login"
-              className="inline-flex items-center px-10 py-3.5 rounded-full bg-[#FACC15] hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest shadow-md transition-all hover:scale-105 cursor-pointer"
+              className="inline-flex items-center px-10 py-3.5 rounded-full bg-[#FACC15] hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest shadow-md transition-all cursor-pointer"
             >
               <span>Launch Portal Now</span>
               <ArrowRight className="w-4 h-4 ml-2" />

@@ -107,7 +107,7 @@ export function LiveProvider({ children }) {
             className="pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center space-x-3 text-xs animate-in fade-in slide-in-from-right-5 duration-300 max-w-sm"
           >
             <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0">
-              <Bell className="w-3.5 h-3.5 text-white animate-bounce" />
+              <Bell className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-bold text-white tracking-tight">{toast.message}</p>
