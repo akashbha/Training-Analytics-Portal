@@ -62,7 +62,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-blue-600 selection:text-white">
       {/* Centered Modal Container */}
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* =========================================================================
@@ -72,7 +72,7 @@ export function LoginPage() {
           <div>
             {/* Top Brand Logo */}
             <div className="flex items-center space-x-2.5 mb-8">
-              <span className="w-3 h-3 rounded-sm bg-indigo-600 inline-block"></span>
+              <span className="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>
               <span className="text-xs font-black uppercase tracking-wider text-slate-800">
                 Training Portal
               </span>
@@ -113,7 +113,7 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -126,7 +126,7 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -137,12 +137,12 @@ export function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
                   />
                   <span>Remember me</span>
                 </label>
 
-                <span className="text-slate-400 text-xs hover:text-indigo-600 cursor-pointer transition-colors">
+                <span className="text-slate-400 text-xs hover:text-blue-600 cursor-pointer transition-colors">
                   Forgot Password?
                 </span>
               </div>
@@ -152,7 +152,7 @@ export function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-36 py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all flex items-center justify-center cursor-pointer disabled:opacity-60"
+                  className="w-full sm:w-36 py-3 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all flex items-center justify-center cursor-pointer disabled:opacity-60"
                 >
                   {loading ? (
                     <Spinner size="sm" />
@@ -172,21 +172,21 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => handleFillDemo("trainer@example.com", "Trainer@123")}
-                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-700 hover:text-blue-700 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Trainer
                 </button>
                 <button
                   type="button"
                   onClick={() => handleFillDemo("admin@example.com", "Admin123!")}
-                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-700 hover:text-blue-700 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Admin
                 </button>
                 <button
                   type="button"
                   onClick={() => handleFillDemo("trainee@example.com", "Trainee@123")}
-                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-700 hover:text-blue-700 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Trainee
                 </button>
@@ -198,7 +198,7 @@ export function LoginPage() {
           <div className="mt-8 pt-4 flex items-center justify-between text-xs text-slate-500">
             <Link
               to="/"
-              className="inline-flex items-center text-slate-500 hover:text-indigo-600 font-semibold transition-colors"
+              className="inline-flex items-center text-slate-500 hover:text-blue-600 font-semibold transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5 mr-1" />
               <span>Back to Portal Overview</span>
@@ -210,7 +210,7 @@ export function LoginPage() {
         {/* =========================================================================
             RIGHT COLUMN: VECTOR ILLUSTRATION PANEL (Matching reference Image 2)
             ========================================================================= */}
-        <div className="hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 relative overflow-hidden">
+        <div className="hidden md:flex flex-col items-center justify-center p-8 bg-slate-900 relative overflow-hidden">
           {/* Decorative Cloud Shapes (from Reference Image 2) */}
           <div className="absolute top-6 left-6 w-28 h-12 bg-white/20 rounded-full blur-[1px]" />
           <div className="absolute top-16 right-8 w-36 h-14 bg-white/25 rounded-full blur-[1px]" />
@@ -221,7 +221,7 @@ export function LoginPage() {
           <div className="relative z-10 w-full max-w-xs flex flex-col items-center">
             {/* Speech Bubble with Checkmark (from Reference Image 2) */}
             <div className="absolute -top-6 left-4 z-20 bg-white rounded-2xl p-3 shadow-lg flex items-center justify-center transform -rotate-6 animate-bounce">
-              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                 <Check className="w-5 h-5 stroke-[3]" />
               </div>
             </div>
@@ -231,8 +231,8 @@ export function LoginPage() {
               {/* Speaker notch */}
               <div className="w-16 h-3 bg-slate-800 rounded-full mb-4"></div>
 
-              {/* Screen interior with radiant gradient */}
-              <div className="w-full h-full rounded-[1.8rem] bg-gradient-to-b from-purple-500 via-fuchsia-500 to-pink-500 p-4 flex flex-col items-center justify-center text-center relative">
+              {/* Screen interior with solid slate background */}
+              <div className="w-full h-full rounded-[1.8rem] bg-slate-800 p-4 flex flex-col items-center justify-center text-center relative">
                 {/* Fingerprint Biometric Target */}
                 <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center relative mb-4">
                   <div className="w-14 h-14 rounded-full border-2 border-white/60 flex items-center justify-center">
@@ -273,7 +273,7 @@ export function LoginPage() {
 
             {/* Security Padlock Widget (from Reference Image 2) */}
             <div className="absolute -bottom-4 -right-4 z-20 bg-white rounded-2xl p-4 shadow-xl border border-slate-100 flex items-center justify-center transform rotate-6">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                 <Lock className="w-6 h-6" />
               </div>
             </div>
@@ -282,7 +282,7 @@ export function LoginPage() {
           {/* Subtext under graphic */}
           <div className="mt-8 text-center text-white/90 z-10">
             <h3 className="text-sm font-bold">Secure Performance Analytics</h3>
-            <p className="text-[11px] text-indigo-100/80 mt-0.5">
+            <p className="text-[11px] text-slate-300 mt-0.5">
               Role-guarded cohort metrics & longitudinal scoring
             </p>
           </div>

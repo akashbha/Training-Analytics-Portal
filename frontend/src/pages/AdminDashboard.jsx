@@ -1,7 +1,6 @@
 // src/pages/AdminDashboard.jsx
 // Administrator Governance Console: Platform-wide telemetry, multi-cohort analytics,
 // compliance audit trail, user onboarding/RBAC, and cohort batch governance.
-// De-slopped: Removed invisible buttons, eliminated all purple AI-slop, and removed embedded duplicate dashboard.
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -1635,7 +1634,7 @@ export function AdminDashboard() {
               {/* Service 2: ML Early-Warning */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
                     <Cpu className="w-3.5 h-3.5" />
                   </div>
                   <div>
@@ -1704,7 +1703,7 @@ export function AdminDashboard() {
       <section className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-2xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600">
+            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
@@ -1906,7 +1905,7 @@ export function AdminDashboard() {
       </section>
 
       {/* =========================================================================
-          5. MODALS (Cleaned of Purple AI-Slop)
+          5. MODALS
           ========================================================================= */}
 
       {/* MODAL: Provision User Account */}

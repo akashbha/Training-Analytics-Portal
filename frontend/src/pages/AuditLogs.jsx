@@ -125,7 +125,7 @@ export function AuditLogs() {
     if (action.includes("password")) {
       return "bg-amber-100 text-amber-800 border-amber-200";
     }
-    return "bg-purple-100 text-brand border-purple-200";
+    return "bg-slate-100 text-slate-700 border-slate-200";
   };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -136,7 +136,7 @@ export function AuditLogs() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-900"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-900"></span>
             <span className="text-xs font-bold uppercase tracking-wider text-brand">Compliance & Governance</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">Append-Only Audit Log</h1>
@@ -148,7 +148,7 @@ export function AuditLogs() {
         <div>
           <button
             onClick={() => fetchLogs()}
-            className="px-4 py-2 bg-white border border-purple-100 hover:bg-brand-light text-slate-700 hover:text-brand rounded-full font-bold text-xs shadow-xs flex items-center space-x-2 transition-all cursor-pointer"
+            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-blue-600 rounded-full font-bold text-xs shadow-xs flex items-center space-x-2 transition-all cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh Logs</span>
@@ -157,7 +157,7 @@ export function AuditLogs() {
       </div>
 
       {/* Filter Bar */}
-      <Card variant="white" className="p-4 border-purple-100 shadow-xs">
+      <Card variant="white" className="p-4 border-slate-200 shadow-xs">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center space-x-2">
             <Filter className="w-3.5 h-3.5 text-brand" />
@@ -209,7 +209,7 @@ export function AuditLogs() {
       </Card>
 
       {/* Audit Logs Table */}
-      <Card variant="white" className="border-purple-100 shadow-xs overflow-hidden">
+      <Card variant="white" className="border-slate-200 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center space-y-3">
             <Spinner size="lg" />
@@ -236,7 +236,7 @@ export function AuditLogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-purple-100 bg-purple-50/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 bg-slate-50/60 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-4">Timestamp</th>
                   <th className="py-3 px-4">Action</th>
                   <th className="py-3 px-4">Entity</th>
@@ -244,7 +244,7 @@ export function AuditLogs() {
                   <th className="py-3 px-4 text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 {logs.map((log) => {
                   const dateFormatted = log.created_at
                     ? new Date(log.created_at).toLocaleString("en-US", {
@@ -261,7 +261,7 @@ export function AuditLogs() {
 
                   return (
                     <React.Fragment key={log.id}>
-                      <tr className="hover:bg-purple-50/40 transition-colors">
+                      <tr className="hover:bg-slate-50/60 transition-colors">
                         <td className="py-3 px-4 font-mono text-slate-600 whitespace-nowrap">
                           {dateFormatted}
                         </td>
@@ -288,7 +288,7 @@ export function AuditLogs() {
                             <button
                               type="button"
                               onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-brand-light text-slate-700 hover:text-brand transition-colors cursor-pointer"
+                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
                             >
                               {isExpanded ? "Hide" : "Inspect"}
                             </button>
@@ -300,9 +300,9 @@ export function AuditLogs() {
 
                       {/* Expandable Details Row */}
                       {isExpanded && log.details && (
-                        <tr className="bg-purple-50/30">
+                        <tr className="bg-slate-50/50">
                           <td colSpan={5} className="p-4">
-                            <div className="bg-slate-900 text-purple-200 p-3 rounded-2xl font-mono text-[11px] overflow-x-auto shadow-inner border border-purple-500/20">
+                            <div className="bg-slate-900 text-slate-300 p-3 rounded-2xl font-mono text-[11px] overflow-x-auto shadow-inner border border-slate-700">
                               <pre>{JSON.stringify(log.details, null, 2)}</pre>
                             </div>
                           </td>
@@ -318,7 +318,7 @@ export function AuditLogs() {
 
         {/* Pagination Footer */}
         {total > pageSize && (
-          <div className="px-4 py-3 border-t border-purple-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
             <span>
               Showing {logs.length} of {total} events
             </span>

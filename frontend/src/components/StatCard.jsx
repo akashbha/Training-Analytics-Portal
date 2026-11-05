@@ -1,6 +1,6 @@
 // src/components/StatCard.jsx
 // Metric display widget showcasing KPIs with animated loading skeletons and value-change flash highlights.
-// Smoothly pulses with a brand purple glow when real-time updates modify the card's value.
+// Smoothly pulses with an accent ring when real-time updates modify the card's value.
 
 import React, { useState, useEffect, useRef } from "react";
 import { Card } from "./Card.jsx";
@@ -52,7 +52,7 @@ export function StatCard({
 
   const flashStyles = flashing
     ? isDark
-      ? "ring-2 ring-purple-300 bg-white/15 scale-[1.02] transition-all duration-300"
+      ? "ring-2 ring-blue-300 bg-white/15 scale-[1.02] transition-all duration-300"
       : "ring-2 ring-blue-500/50 bg-blue-50/50 scale-[1.02] transition-all duration-300"
     : "transition-all duration-300";
 
@@ -64,7 +64,7 @@ export function StatCard({
       <div className="flex items-center justify-between">
         <span
           className={`text-[11px] font-bold tracking-wider uppercase ${
-            isDark ? "text-purple-200" : "text-slate-400"
+            isDark ? "text-slate-400" : "text-slate-400"
           }`}
         >
           {title}
@@ -89,7 +89,7 @@ export function StatCard({
         {subtext && (
           <div
             className={`text-xs mt-1.5 font-medium ${
-              isDark ? "text-purple-200/80" : "text-slate-500"
+              isDark ? "text-slate-400" : "text-slate-500"
             }`}
           >
             {subtext}

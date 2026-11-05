@@ -28,7 +28,7 @@ export function ChartCard({
         <div>
           <h2 className="text-lg font-bold tracking-tight">{title}</h2>
           {subtitle && (
-            <p className={`text-xs mt-0.5 ${isDark ? "text-purple-200" : "text-slate-500"}`}>
+            <p className={`text-xs mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
               {subtitle}
             </p>
           )}
@@ -41,7 +41,7 @@ export function ChartCard({
         {loading ? (
           <div className="w-full h-full flex flex-col items-center justify-center py-10 space-y-3">
             <Spinner size="lg" className={isDark ? "text-white" : "text-brand"} />
-            <span className={`text-xs font-medium ${isDark ? "text-purple-200" : "text-slate-500"}`}>
+            <span className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
               Loading analytics...
             </span>
           </div>
@@ -66,7 +66,7 @@ export function ChartCard({
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDark ? "bg-white/10" : "bg-brand-light text-brand"}`}>
               —
             </div>
-            <p className={`text-sm font-medium ${isDark ? "text-purple-200" : "text-slate-500"}`}>
+            <p className={`text-sm font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
               {emptyMessage}
             </p>
           </div>

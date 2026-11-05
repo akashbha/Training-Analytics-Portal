@@ -1,6 +1,5 @@
 // src/components/Card.jsx
-// Signature rounded-3xl card container matching the portal's purple aesthetic theme.
-// Supports standard white surface cards and hero dark purple focus containers.
+// Standard card container with white, dark, and light surface variants.
 
 import React from "react";
 

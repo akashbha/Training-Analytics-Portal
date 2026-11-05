@@ -272,7 +272,7 @@ export function Batches() {
                 className={`group cursor-pointer rounded-3xl bg-white p-6 shadow-xs hover:shadow-md transition-all relative flex flex-col justify-between ${
                   isBelowTarget
                     ? "ring-2 ring-rose-400 border border-rose-200"
-                    : "border border-purple-100 hover:border-brand/40"
+                    : "border border-slate-200 hover:border-blue-500/40"
                 }`}
               >
                 <div>
@@ -297,7 +297,7 @@ export function Batches() {
                             type="button"
                             onClick={(e) => handleOpenEdit(batch, e)}
                             title="Edit batch"
-                            className="p-1.5 rounded-full hover:bg-purple-50 text-slate-400 hover:text-brand transition-colors cursor-pointer"
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -323,7 +323,7 @@ export function Batches() {
                   </div>
 
                   {/* Key Metrics Row */}
-                  <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-purple-50/50 border border-purple-100 mb-4">
+                  <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200 mb-4">
                     <div>
                       <div className="flex items-center space-x-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <Users className="w-3 h-3 text-brand" />
@@ -382,7 +382,7 @@ export function Batches() {
       {/* Add / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl border border-purple-100 animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h2 className="text-lg font-black text-slate-900">
                 {editingBatch ? "Edit Training Batch" : "Create New Training Batch"}

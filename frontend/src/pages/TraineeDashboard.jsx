@@ -129,9 +129,9 @@ function ScatterCustomTooltip({ active, payload }) {
 function getModuleCategory(moduleName = "") {
   const lower = moduleName.toLowerCase();
   if (lower.includes("react")) return { label: "Frontend", bg: "bg-sky-50 text-sky-700 border-sky-200" };
-  if (lower.includes("fastapi")) return { label: "REST API", bg: "bg-indigo-50 text-indigo-700 border-indigo-200" };
+  if (lower.includes("fastapi")) return { label: "REST API", bg: "bg-blue-50 text-blue-700 border-blue-200" };
   if (lower.includes("postgres") || lower.includes("schema") || lower.includes("sql"))
-    return { label: "Database", bg: "bg-violet-50 text-violet-700 border-violet-200" };
+    return { label: "Database", bg: "bg-slate-100 text-slate-700 border-slate-300" };
   if (lower.includes("python")) return { label: "Core Logic", bg: "bg-amber-50 text-amber-700 border-amber-200" };
   return { label: "Module", bg: "bg-slate-100 text-slate-700 border-slate-200" };
 }

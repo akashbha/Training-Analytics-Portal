@@ -323,7 +323,7 @@ export function Trainees() {
       </Card>
 
       {/* Trainees Paginated Table */}
-      <Card variant="white" className="p-0 overflow-hidden shadow-xs border-purple-100/70">
+      <Card variant="white" className="p-0 overflow-hidden shadow-xs border-slate-200">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-2">
             <Spinner size="lg" />
@@ -356,7 +356,7 @@ export function Trainees() {
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-purple-100 bg-purple-50/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 bg-slate-50/60 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-4">Trainee</th>
                   <th className="py-3 px-4">Cohort Batch</th>
                   <th className="py-3 px-4 text-center">Sessions</th>
@@ -364,7 +364,7 @@ export function Trainees() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 {trainees.map((trainee) => {
                   const hasSessions = (trainee.session_count || 0) > 0;
                   const initials = trainee.name
@@ -380,7 +380,7 @@ export function Trainees() {
                     <tr
                       key={trainee.id}
                       onClick={() => handleRowClick(trainee.id)}
-                      className="hover:bg-purple-50/50 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
                     >
                       {/* Name & Initials Avatar */}
                       <td className="py-3.5 px-4">
@@ -402,7 +402,7 @@ export function Trainees() {
 
                       {/* Batch */}
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-full bg-purple-50 text-brand text-[11px] font-bold border border-purple-100">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200">
                           {trainee.batch_name || `Batch #${trainee.batch_id}`}
                         </span>
                       </td>
@@ -432,7 +432,7 @@ export function Trainees() {
                             type="button"
                             onClick={(e) => handleOpenEdit(trainee, e)}
                             title="Edit trainee"
-                            className="p-1.5 rounded-full hover:bg-purple-100/70 text-slate-400 hover:text-brand transition-colors cursor-pointer"
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -459,7 +459,7 @@ export function Trainees() {
 
         {/* Pagination Footer */}
         {totalItems > 0 && (
-          <div className="p-4 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-semibold bg-white">
+          <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-semibold bg-white">
             <div>
               Showing <span className="text-slate-800">{trainees.length}</span> of{" "}
               <span className="text-slate-800">{totalItems}</span> enrolled trainees
@@ -470,7 +470,7 @@ export function Trainees() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                className="px-3 py-1.5 rounded-full border border-purple-100 bg-white hover:bg-purple-50 disabled:opacity-40 text-slate-700 flex items-center space-x-1 cursor-pointer disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 flex items-center space-x-1 cursor-pointer disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Prev</span>
@@ -484,7 +484,7 @@ export function Trainees() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                className="px-3 py-1.5 rounded-full border border-purple-100 bg-white hover:bg-purple-50 disabled:opacity-40 text-slate-700 flex items-center space-x-1 cursor-pointer disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 flex items-center space-x-1 cursor-pointer disabled:cursor-not-allowed"
               >
                 <span>Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -497,7 +497,7 @@ export function Trainees() {
       {/* Add / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl border border-purple-100 animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h2 className="text-lg font-black text-slate-900">
                 {editingTrainee ? "Edit Trainee Profile" : "Enroll New Trainee"}

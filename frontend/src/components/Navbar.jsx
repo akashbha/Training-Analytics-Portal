@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 // Anchored, clean edge-to-edge header for the Training Analytics Portal.
-// Eliminates the squeezed floating pill navbar, purple badges, and fake enterprise branding.
+// Clean edge-to-edge header for the Training Analytics Portal.
 
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";

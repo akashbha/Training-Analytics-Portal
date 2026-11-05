@@ -372,7 +372,7 @@ export function AddSession() {
           {/* LEFT: White Form Card (7 Cols) */}
           <div className="lg:col-span-7">
             <Card variant="white" className="p-7 shadow-xs">
-              <div className="flex items-center space-x-2.5 pb-4 border-b border-purple-100 mb-6">
+              <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 mb-6">
                 <div className="p-2 rounded-2xl bg-brand-light text-brand">
                   <FileText className="w-4 h-4" />
                 </div>
@@ -595,7 +595,7 @@ export function AddSession() {
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
                   isDragging
-                    ? "border-brand bg-indigo-50/50 scale-[1.01]"
+                    ? "border-brand bg-blue-50/50 scale-[1.01]"
                     : "border-slate-300 hover:border-brand bg-slate-50 hover:bg-slate-100/70"
                 }`}
               >

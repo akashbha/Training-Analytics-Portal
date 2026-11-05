@@ -1,5 +1,5 @@
 // src/pages/Users.jsx
-// Administrative user lifecycle management portal matching the purple theme specification.
+// Administrative user lifecycle management portal.
 // Supports user creation with auto-generated temporary credentials, role mutations, activations, and self-protection guards.
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -260,7 +260,7 @@ export function Users() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => fetchUsers()}
-            className="p-2.5 rounded-full bg-white border border-purple-100 hover:bg-brand-light text-slate-600 hover:text-brand transition-colors cursor-pointer shadow-xs"
+            className="p-2.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer shadow-xs"
             title="Refresh list"
           >
             <RefreshCw className="w-4 h-4" />
@@ -279,7 +279,7 @@ export function Users() {
       </div>
 
       {/* Filter Bar */}
-      <Card variant="white" className="p-4 border-purple-100 shadow-xs">
+      <Card variant="white" className="p-4 border-slate-200 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -315,7 +315,7 @@ export function Users() {
       </Card>
 
       {/* Users Table */}
-      <Card variant="white" className="border-purple-100 shadow-xs overflow-hidden">
+      <Card variant="white" className="border-slate-200 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center space-y-3">
             <Spinner size="lg" />
@@ -342,7 +342,7 @@ export function Users() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-purple-100 bg-purple-50/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 bg-slate-50/60 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-4">User</th>
                   <th className="py-3 px-4">Role</th>
                   <th className="py-3 px-4">Status</th>
@@ -350,18 +350,18 @@ export function Users() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-50">
+              <tbody className="divide-y divide-slate-100">
                 {users.map((u) => {
                   const isSelf = u.id === currentAdmin?.id;
                   const roleBadgeClass =
                     u.role === "admin"
-                      ? "bg-purple-900 text-white"
+                      ? "bg-slate-900 text-white"
                       : u.role === "trainer"
                       ? "bg-brand text-white"
-                      : "bg-purple-100 text-brand";
+                      : "bg-slate-100 text-slate-700";
 
                   return (
-                    <tr key={u.id} className="hover:bg-purple-50/40 transition-colors">
+                    <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                       {/* Email & Self Tag */}
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex items-center space-x-2">
@@ -469,7 +469,7 @@ export function Users() {
                           <button
                             type="button"
                             onClick={() => handleResetPassword(u)}
-                            className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-brand hover:bg-purple-100 transition-colors cursor-pointer flex items-center space-x-1"
+                            className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer flex items-center space-x-1"
                             title="Generate a new temporary password"
                           >
                             <KeyRound className="w-3 h-3" />
@@ -487,7 +487,7 @@ export function Users() {
 
         {/* Pagination Footer */}
         {total > pageSize && (
-          <div className="px-4 py-3 border-t border-purple-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
             <span>
               Showing {users.length} of {total} accounts
             </span>
@@ -517,8 +517,8 @@ export function Users() {
       {/* Add User Modal */}
       {addModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card variant="white" className="w-full max-w-md p-6 shadow-xl border-purple-100 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-purple-100">
+          <Card variant="white" className="w-full max-w-md p-6 shadow-xl border-slate-200 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Provision User Account</h2>
               <button
                 onClick={() => setAddModalOpen(false)}
@@ -626,7 +626,7 @@ export function Users() {
       {/* Temporary Password Reveal Modal */}
       {revealModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card variant="white" className="w-full max-w-md p-6 shadow-2xl border-purple-100 animate-in fade-in zoom-in-95 text-center">
+          <Card variant="white" className="w-full max-w-md p-6 shadow-2xl border-slate-200 animate-in fade-in zoom-in-95 text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-xl font-black mb-3">
               ✓
             </div>
@@ -635,7 +635,7 @@ export function Users() {
               Credentials for <strong className="text-slate-800">{revealModal.email}</strong>. Copy and share these credentials now; temporary passwords are not shown again.
             </p>
 
-            <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl flex items-center justify-between font-mono text-sm font-bold text-brand mb-6">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between font-mono text-sm font-bold text-slate-900 mb-6">
               <span>{revealModal.tempPassword}</span>
               <button
                 type="button"

@@ -104,7 +104,7 @@ export function LiveProvider({ children }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl border border-purple-500/30 flex items-center space-x-3 text-xs animate-in fade-in slide-in-from-right-5 duration-300 max-w-sm"
+            className="pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center space-x-3 text-xs animate-in fade-in slide-in-from-right-5 duration-300 max-w-sm"
           >
             <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0">
               <Bell className="w-3.5 h-3.5 text-white animate-bounce" />
@@ -112,7 +112,7 @@ export function LiveProvider({ children }) {
             <div className="min-w-0 flex-1">
               <p className="font-bold text-white tracking-tight">{toast.message}</p>
               {toast.details && (
-                <p className="text-[10px] text-purple-200 mt-0.5">{toast.details}</p>
+                <p className="text-[10px] text-slate-300 mt-0.5">{toast.details}</p>
               )}
             </div>
             <button
