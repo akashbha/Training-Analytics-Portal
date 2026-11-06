@@ -17,8 +17,28 @@ ROLE_SCOPES: Dict[str, List[str]] = {
     "admin": ["admin", "trainer", "trainee", "all"]
 }
 
+# Standard English stopwords to remove conversational filler from natural language queries
+ENGLISH_STOPWORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
+    "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
+    "can", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't",
+    "down", "during", "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't",
+    "have", "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers",
+    "herself", "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if",
+    "in", "into", "is", "isn't", "it", "it's", "its", "itself", "let's", "me", "more", "most", "my",
+    "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our",
+    "ours", "ourselves", "out", "over", "own", "same", "she", "she'd", "she'll", "she's", "should",
+    "shouldn't", "so", "some", "such", "than", "that", "that's", "the", "their", "theirs", "them",
+    "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll", "they're",
+    "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was",
+    "wasn't", "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's", "when",
+    "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with",
+    "won't", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours",
+    "yourself", "yourselves"
+}
+
 def sanitize_query(raw_query: Optional[str]) -> str:
-    """Validates, caps length at 200 characters, and removes FTS5 operators and quotes."""
+    """Validates, caps length at 200 characters, removes FTS5 operators, strips stopwords, and joins with OR."""
     if raw_query is None or not raw_query.strip():
         raise AppException(
             code="INVALID_QUERY",
@@ -31,11 +51,14 @@ def sanitize_query(raw_query: Optional[str]) -> str:
 
     # Remove quotes and FTS5 punctuation operators
     cleaned = re.sub(r'[*"\'():^{}+~[\]/\\<>=?!@#$%&]', ' ', truncated)
-    tokens = cleaned.split()
+    raw_tokens = cleaned.lower().split()
 
-    # Filter out standalone FTS5 keywords
+    # Filter out standalone FTS5 keywords, English stopwords, and tokens shorter than 2 characters
     fts5_reserved = {"and", "or", "not", "near"}
-    valid_tokens = [t for t in tokens if t.lower() not in fts5_reserved]
+    valid_tokens = [
+        t for t in raw_tokens
+        if len(t) >= 2 and t not in ENGLISH_STOPWORDS and t not in fts5_reserved
+    ]
 
     if not valid_tokens:
         raise AppException(
@@ -44,8 +67,8 @@ def sanitize_query(raw_query: Optional[str]) -> str:
             status_code=422
         )
 
-    # Format tokens with double quotes to ensure exact token matching without syntax errors
-    return " ".join(f'"{t}"' for t in valid_tokens)
+    # Join remaining tokens with OR, each quoted, so FTS5 matches any term
+    return " OR ".join(f'"{t}"' for t in valid_tokens)
 
 def help_search(
     query: str,
@@ -74,12 +97,12 @@ def help_search(
 
     try:
         stmt = text("""
-            SELECT c.source_path, c.heading, c.text, c.role, f.rank
+            SELECT c.source_path, c.heading, c.text, c.role, bm25(help_chunks_fts) AS bm25_score
             FROM help_chunks_fts f
             JOIN help_chunks c ON c.id = f.rowid
             WHERE help_chunks_fts MATCH :match_query
               AND c.role IN :allowed_roles
-            ORDER BY f.rank ASC
+            ORDER BY bm25(help_chunks_fts) ASC
             LIMIT :result_limit
         """).bindparams(bindparam("allowed_roles", expanding=True))
 
@@ -99,7 +122,7 @@ def help_search(
                 "heading": r.heading,
                 "text": r.text,
                 "role": r.role,
-                "score": float(round(abs(r.rank), 4))
+                "score": float(round(abs(r.bm25_score), 4))
             })
 
         return results
