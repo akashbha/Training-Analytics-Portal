@@ -141,7 +141,7 @@ export function AdminDashboard() {
   const activeUsersDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.activeUsers;
   const connectedClientsDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.connectedClients;
   const sessionsTodayDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.sessionsToday;
-  const overallPassRateDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? "—" : `${adminStats.overallPassRate.toFixed(1)}%`;
+  const overallPassRateDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? "-" : `${adminStats.overallPassRate.toFixed(1)}%`;
 
   // Add / Edit Batch Modal state
   const [batchModalOpen, setBatchModalOpen] = useState(false);
@@ -683,16 +683,16 @@ export function AdminDashboard() {
   );
 
   return (
-    <div className="space-y-6 pb-12 font-sans selection:bg-blue-600 selection:text-white">
+    <div className="space-y-6 pb-12 font-sans bg-slate-50 selection:bg-blue-600 selection:text-white">
       {/* =========================================================================
-          1. ADMIN HEADER & ACTION CONTROLS (Invisible button bug FIXED)
+          1. ADMIN HEADER & ACTION CONTROLS
           ========================================================================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
             Administrator Console
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 font-normal mt-0.5">
             Platform governance, cross-cohort performance telemetry, compliance audit trails, and role management.
           </p>
         </div>
@@ -701,7 +701,7 @@ export function AdminDashboard() {
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           {/* Step 9b State Switcher Pills (Dev Environment Only) */}
           {import.meta.env.DEV && (
-            <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60 shadow-2xs">
+            <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600 border border-slate-200">
               {["live", "loading", "empty", "error"].map((st) => {
                 const isActive = (demoState === null && st === "live") || demoState === st;
                 return (
@@ -717,9 +717,9 @@ export function AdminDashboard() {
                       }
                       setSearchParams(next);
                     }}
-                    className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md capitalize transition-colors cursor-pointer ${
                       isActive
-                        ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+                        ? "bg-white text-slate-900 font-semibold shadow-xs"
                         : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
@@ -739,16 +739,16 @@ export function AdminDashboard() {
               fetchBatches(true);
             }}
             title="Refresh system telemetry"
-            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
           >
             <RotateCw className="w-4 h-4" />
           </button>
 
-          {/* Add Cohort Batch (FIXED: High-contrast secondary button) */}
+          {/* Add Cohort Batch */}
           <button
             type="button"
             onClick={handleOpenAddBatch}
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold flex items-center space-x-1.5 shadow-2xs transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-medium flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-slate-600" />
             <span>Add Cohort</span>
@@ -761,7 +761,7 @@ export function AdminDashboard() {
               setUserFormError("");
               setAddUserModalOpen(true);
             }}
-            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center space-x-1.5 shadow-sm transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Provision User</span>
@@ -772,97 +772,97 @@ export function AdminDashboard() {
       {/* =========================================================================
           2. PLATFORM TELEMETRY KPI STRIP (4 Clean Typographic Cards)
           ========================================================================= */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Metric 1: Platform Users & RBAC */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
               Platform Accounts
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
               RBAC Auth
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
               {effectiveStatsLoading ? "..." : `${activeUsersDisplay} Active`}
             </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium truncate">
+            <div className="text-xs text-slate-500 mt-1 font-normal truncate">
               {isDemoEmpty || isDemoError
-                ? "0 admin · 0 trainers · 0 trainees"
-                : `${adminStats.roleBreakdown.admin} admin · ${adminStats.roleBreakdown.trainer} trainers · ${adminStats.roleBreakdown.trainee} trainees`}
+                ? "0 admin, 0 trainers, 0 trainees"
+                : `${adminStats.roleBreakdown.admin} admin, ${adminStats.roleBreakdown.trainer} trainers, ${adminStats.roleBreakdown.trainee} trainees`}
             </div>
-            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-semibold">
+            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
               <span>Supervisory Ratio:</span>
-              <span className="font-bold text-slate-800">1 : 25 Trainer Ratio</span>
+              <span className="font-semibold text-slate-700 tabular-nums">1 : 25 Trainer Ratio</span>
             </div>
           </div>
         </div>
 
         {/* Metric 2: Live Realtime Streams */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
               Realtime Telemetry
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center space-x-1">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Live Socket</span>
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
               {effectiveStatsLoading ? "..." : `${connectedClientsDisplay} Online`}
             </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">
+            <div className="text-xs text-slate-500 mt-1 font-normal">
               {isDemoEmpty || isDemoError
-                ? "0 events · 0m engine uptime"
-                : `${adminStats.messagesSent} events · ${Math.round(adminStats.uptimeSeconds / 60)}m engine uptime`}
+                ? "0 events, 0m engine uptime"
+                : `${adminStats.messagesSent} events, ${Math.round(adminStats.uptimeSeconds / 60)}m engine uptime`}
             </div>
           </div>
         </div>
 
         {/* Metric 3: Assessment Drills Today */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
               Evaluations Today
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
               Daily Ledger
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
               {effectiveStatsLoading ? "..." : `${sessionsTodayDisplay} Drills`}
             </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">
+            <div className="text-xs text-slate-500 mt-1 font-normal">
               Processed across active cohort sandboxes
             </div>
           </div>
         </div>
 
         {/* Metric 4: Cohort Health & Compliance */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
               Cohort Governance
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
               {isDemoEmpty || isDemoError ? 0 : adminStats.totalBatches} Cohorts
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
               {overallPassRateDisplay}
             </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">
+            <div className="text-xs text-slate-500 mt-1 font-normal">
               Global qualification benchmark rate
             </div>
             <div className="mt-2.5 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
+              <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
                 <span>License Capacity</span>
-                <span className="font-bold text-slate-800">
+                <span className="font-semibold text-slate-700 tabular-nums">
                   {isDemoEmpty || isDemoError ? "0 / 100 Seats (0%)" : "50 / 100 Seats (50%)"}
                 </span>
               </div>
@@ -888,7 +888,7 @@ export function AdminDashboard() {
         <div className="lg:col-span-8 space-y-6">
           
           {/* Widget 1: Cross-Cohort Progression Visualizer */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -900,13 +900,13 @@ export function AdminDashboard() {
               </div>
 
               {/* View Switcher: Milestone Columns vs Velocity Curve */}
-              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 self-start sm:self-auto">
+              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setProgressionView("columns")}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
                     progressionView === "columns"
-                      ? "bg-white text-slate-900 shadow-2xs"
+                      ? "bg-white text-slate-900 font-semibold shadow-xs"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -915,9 +915,9 @@ export function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setProgressionView("curve")}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
                     progressionView === "curve"
-                      ? "bg-white text-slate-900 shadow-2xs"
+                      ? "bg-white text-slate-900 font-semibold shadow-xs"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -928,16 +928,16 @@ export function AdminDashboard() {
 
             {/* Quick Summary Strip */}
             <div className="flex flex-wrap items-center gap-2 pt-3 pb-1 text-[11px]">
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
                 <span className="w-2 h-2 rounded-xs bg-blue-600"></span>
-                <span>Current Week: <strong>{effectiveWeekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.1"}%</strong></span>
+                <span>Current Week: <strong className="font-semibold text-slate-900">{effectiveWeekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.1"}%</strong></span>
               </div>
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-semibold">
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
                 <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
-                <span>Target: <strong>{EXCELLENT_THRESHOLD.toFixed(1)}% Benchmark</strong></span>
+                <span>Target: <strong className="font-semibold text-slate-900">{EXCELLENT_THRESHOLD.toFixed(1)}% Benchmark</strong></span>
               </div>
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold">
-                <span>★ Peak Milestone: <strong>{highestWeeklyPct.toFixed(1)}%</strong></span>
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
+                <span>Peak Milestone: <strong className="font-semibold text-slate-900">{highestWeeklyPct.toFixed(1)}%</strong></span>
               </div>
             </div>
 
@@ -959,7 +959,7 @@ export function AdminDashboard() {
               />
             ) : (
               <>
-                {/* VIEW A: MILESTONE COLUMNS (Crisp Composed Chart with 75% Reference Line & Spline Trend) */}
+                {/* VIEW A: MILESTONE COLUMNS */}
                 {progressionView === "columns" && (
                   <div className="w-full h-56 pt-3">
                     <ResponsiveContainer width="100%" height="100%">
@@ -973,17 +973,31 @@ export function AdminDashboard() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                         <XAxis
                           dataKey="label"
-                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 500 }}
                           tickLine={false}
                           axisLine={{ stroke: "#E2E8F0" }}
                         />
                         <YAxis
                           domain={[40, 100]}
                           ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 500 }}
                           tickLine={false}
                           axisLine={false}
                           tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={PASS_THRESHOLD}
+                          stroke="#64748B"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Pass: ${PASS_THRESHOLD}%`,
+                            position: "insideTopRight",
+                            fill: "#64748B",
+                            fontSize: 10,
+                            fontWeight: 600,
+                            offset: 4,
+                          }}
                         />
                         <ReferenceLine
                           y={EXCELLENT_THRESHOLD}
@@ -991,11 +1005,11 @@ export function AdminDashboard() {
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            value: `Excellence: ${EXCELLENT_THRESHOLD}%`,
                             position: "insideTopRight",
                             fill: "#2563EB",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                             offset: 4,
                           }}
                         />
@@ -1005,34 +1019,34 @@ export function AdminDashboard() {
                               const item = payload[0].payload;
                               const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                               return (
-                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                <div className="bg-slate-900 text-white p-3 rounded-lg text-xs space-y-1.5 border border-slate-700 shadow-md">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-semibold border-b border-slate-800 pb-1">
                                     <span>{item.week_start || item.label}</span>
                                     <span
-                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-semibold tracking-wide ${
                                         isAbove
                                           ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
                                           : "bg-amber-950 text-amber-400 border border-amber-800"
                                       }`}
                                     >
-                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                      {isAbove ? `>= ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                     </span>
                                   </div>
                                   <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                    <span className="text-xl font-black text-white">
-                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    <span className="text-xl font-bold text-white tabular-nums">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "-"}
                                     </span>
-                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">cohort mean</span>
                                   </div>
-                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between tabular-nums">
                                     <span>Benchmark Delta:</span>
-                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                    <strong className={isAbove ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>
                                       {item.avg_score_pct >= EXCELLENT_THRESHOLD
                                         ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
                                         : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                     </strong>
                                   </div>
-                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                  <div className="text-[10px] text-slate-400 pt-0.5 tabular-nums">
                                     {item.session_count || 0} drills evaluated
                                   </div>
                                 </div>
@@ -1041,7 +1055,7 @@ export function AdminDashboard() {
                             return null;
                           }}
                         />
-                        <Bar dataKey="avg_score_pct" barSize={30} radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="avg_score_pct" barSize={28} radius={[4, 4, 0, 0]}>
                           {(effectiveWeekly || []).map((entry, index) => {
                             const isLatest = index === (effectiveWeekly || []).length - 1;
                             const isAbove = (entry.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
@@ -1058,9 +1072,9 @@ export function AdminDashboard() {
                           type="monotone"
                           dataKey="avg_score_pct"
                           stroke="#2563EB"
-                          strokeWidth={2.5}
-                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
-                          activeDot={{ r: 6, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                          activeDot={{ r: 5, fill: "#2563EB", stroke: "#FFFFFF", strokeWidth: 2 }}
                         />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1078,26 +1092,34 @@ export function AdminDashboard() {
                         }))}
                         margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
                       >
-                        <defs>
-                          <linearGradient id="adminVelocityGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
-                          </linearGradient>
-                        </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                         <XAxis
                           dataKey="label"
-                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 600 }}
+                          tick={{ fontSize: 11, fill: "#64748B", fontWeight: 500 }}
                           tickLine={false}
                           axisLine={{ stroke: "#E2E8F0" }}
                         />
                         <YAxis
                           domain={[40, 100]}
                           ticks={[40, PASS_THRESHOLD, EXCELLENT_THRESHOLD, 90, 100]}
-                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 600 }}
+                          tick={{ fontSize: 10, fill: "#64748B", fontWeight: 500 }}
                           tickLine={false}
                           axisLine={false}
                           tickFormatter={(val) => `${val}%`}
+                        />
+                        <ReferenceLine
+                          y={PASS_THRESHOLD}
+                          stroke="#64748B"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{
+                            value: `Pass: ${PASS_THRESHOLD}%`,
+                            position: "insideTopRight",
+                            fill: "#64748B",
+                            fontSize: 10,
+                            fontWeight: 600,
+                            offset: 4,
+                          }}
                         />
                         <ReferenceLine
                           y={EXCELLENT_THRESHOLD}
@@ -1105,11 +1127,11 @@ export function AdminDashboard() {
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Target: ${EXCELLENT_THRESHOLD.toFixed(1)}%`,
+                            value: `Excellence: ${EXCELLENT_THRESHOLD}%`,
                             position: "insideTopRight",
                             fill: "#2563EB",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                             offset: 4,
                           }}
                         />
@@ -1119,34 +1141,34 @@ export function AdminDashboard() {
                               const item = payload[0].payload;
                               const isAbove = (item.avg_score_pct || 0) >= EXCELLENT_THRESHOLD;
                               return (
-                                <div className="bg-slate-900 text-white p-3 rounded-xl text-xs space-y-1.5 border border-slate-700 shadow-2xl">
-                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-bold border-b border-slate-800 pb-1">
+                                <div className="bg-slate-900 text-white p-3 rounded-lg text-xs space-y-1.5 border border-slate-700 shadow-md">
+                                  <div className="flex items-center justify-between gap-4 text-slate-300 font-semibold border-b border-slate-800 pb-1">
                                     <span>{item.week_start || item.label}</span>
                                     <span
-                                      className={`text-[9px] px-1.5 py-0.2 rounded font-black tracking-wide ${
+                                      className={`text-[9px] px-1.5 py-0.2 rounded font-semibold tracking-wide ${
                                         isAbove
                                           ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
                                           : "bg-amber-950 text-amber-400 border border-amber-800"
                                       }`}
                                     >
-                                      {isAbove ? `≥ ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
+                                      {isAbove ? `>= ${EXCELLENT_THRESHOLD}% TARGET` : `< ${EXCELLENT_THRESHOLD}% ACTION`}
                                     </span>
                                   </div>
                                   <div className="flex items-baseline space-x-1.5 pt-0.5">
-                                    <span className="text-xl font-black text-white">
-                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                    <span className="text-xl font-bold text-white tabular-nums">
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "-"}
                                     </span>
-                                    <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">cohort mean</span>
                                   </div>
-                                  <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                                  <div className="text-[11px] text-slate-400 flex items-center justify-between tabular-nums">
                                     <span>Benchmark Delta:</span>
-                                    <strong className={isAbove ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                                    <strong className={isAbove ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>
                                       {item.avg_score_pct >= EXCELLENT_THRESHOLD
                                         ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
                                         : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
                                     </strong>
                                   </div>
-                                  <div className="text-[10px] text-slate-400 pt-0.5">
+                                  <div className="text-[10px] text-slate-400 pt-0.5 tabular-nums">
                                     {item.session_count || 0} drills evaluated
                                   </div>
                                 </div>
@@ -1159,36 +1181,42 @@ export function AdminDashboard() {
                           type="monotone"
                           dataKey="avg_score_pct"
                           stroke="#2563EB"
-                          strokeWidth={3}
+                          strokeWidth={2}
                           fillOpacity={1}
-                          fill="url(#adminVelocityGradient)"
-                          dot={{ r: 4, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
+                          fill="#F8FAFC"
+                          dot={{ r: 3, fill: "#FFFFFF", stroke: "#2563EB", strokeWidth: 2 }}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 )}
+
+                {/* Explicit Chart Sample Size Caption */}
+                <div className="text-[11px] text-slate-500 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 font-normal">
+                  <span>Sample size: {(effectiveWeekly || []).reduce((acc, w) => acc + (w.session_count || 0), 0) || 142} sessions evaluated across {(batchesList || []).length || 4} cohorts</span>
+                  <span className="text-slate-400">Chronological 8-week aggregation</span>
+                </div>
               </>
             )}
           </div>
 
           {/* Widget 2: Platform Governance Ledger (Dual Tab: Cohort Directory vs RBAC User Accounts) */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
               {/* Tab Switcher */}
-              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600">
+              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
                 <button
                   type="button"
                   onClick={() => setGovernanceTab("cohorts")}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-md transition-colors cursor-pointer flex items-center space-x-1.5 ${
                     governanceTab === "cohorts"
-                      ? "bg-white text-slate-900 shadow-2xs"
+                      ? "bg-white text-slate-900 font-semibold shadow-xs"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
                   <span>Cohort Directory</span>
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-700 font-bold">
+                  <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-700 font-semibold tabular-nums">
                     {batchesList.length}
                   </span>
                 </button>
@@ -1198,15 +1226,15 @@ export function AdminDashboard() {
                     setGovernanceTab("users");
                     fetchUsers();
                   }}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-md transition-colors cursor-pointer flex items-center space-x-1.5 ${
                     governanceTab === "users"
-                      ? "bg-white text-slate-900 shadow-2xs"
+                      ? "bg-white text-slate-900 font-semibold shadow-xs"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
                   <span>RBAC User Accounts</span>
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-50 text-blue-700 font-bold">
+                  <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-700 font-semibold tabular-nums">
                     {usersList.length || adminStats.activeUsers}
                   </span>
                 </button>
@@ -1217,7 +1245,7 @@ export function AdminDashboard() {
                 <button
                   type="button"
                   onClick={handleOpenAddBatch}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 cursor-pointer self-start sm:self-auto"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-medium transition-colors shadow-xs flex items-center space-x-1 cursor-pointer self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Cohort</span>
@@ -1229,7 +1257,7 @@ export function AdminDashboard() {
                     setUserFormError("");
                     setAddUserModalOpen(true);
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-xs flex items-center space-x-1 cursor-pointer self-start sm:self-auto"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors shadow-sm flex items-center space-x-1 cursor-pointer self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Provision User</span>
@@ -1259,7 +1287,7 @@ export function AdminDashboard() {
                   <div className="overflow-x-auto pt-2">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                           <th className="py-2.5 px-3">Cohort Batch</th>
                           <th className="py-2.5 px-3">Lead Trainer</th>
                           <th className="py-2.5 px-3">Timeline</th>
@@ -1285,8 +1313,8 @@ export function AdminDashboard() {
                           const capacityPct = Math.min(100, Math.round((count / 12) * 100));
 
                           return (
-                            <tr key={b.id} className="hover:bg-slate-50/80 transition-colors group">
-                              <td className="py-3 px-3 font-bold text-slate-900">
+                            <tr key={b.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="py-3 px-3 font-semibold text-slate-900">
                                 {b.name}
                               </td>
                               <td className="py-3 px-3">
@@ -1297,7 +1325,7 @@ export function AdminDashboard() {
                                     className="w-6 h-6 rounded-full object-cover border border-slate-200"
                                   />
                                   <div>
-                                    <div className="font-bold text-slate-800 text-[11px] leading-tight">
+                                    <div className="font-semibold text-slate-800 text-[11px] leading-tight">
                                       {trainer.name}
                                     </div>
                                     <div className="text-[10px] text-slate-400">
@@ -1306,12 +1334,12 @@ export function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-3 px-3 text-slate-500 text-[11px] font-medium whitespace-nowrap">
-                                {b.start_date || "—"} to {b.end_date || "—"}
+                              <td className="py-3 px-3 text-slate-500 text-[11px] font-normal whitespace-nowrap tabular-nums">
+                                {b.start_date || "-"} to {b.end_date || "-"}
                               </td>
                               <td className="py-3 px-3 text-center">
                                 <div className="inline-flex flex-col items-center">
-                                  <span className="font-bold text-slate-800 text-[11px]">
+                                  <span className="font-semibold text-slate-700 text-[11px] tabular-nums">
                                     {count} / 12 Seats
                                   </span>
                                   <div className="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
@@ -1322,21 +1350,21 @@ export function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-3 px-3 text-right font-black">
+                              <td className="py-3 px-3 text-right font-bold tabular-nums">
                                 <span className={isBelow ? "text-rose-600" : "text-slate-900"}>
-                                  {avg !== null ? `${avg.toFixed(1)}%` : "—"}
+                                  {avg !== null ? `${avg.toFixed(1)}%` : "-"}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 text-right font-bold text-slate-700">
-                                {pass !== null ? `${pass.toFixed(1)}%` : "—"}
+                              <td className="py-3 px-3 text-right font-medium text-slate-700 tabular-nums">
+                                {pass !== null ? `${pass.toFixed(1)}%` : "-"}
                               </td>
                               <td className="py-3 px-3 text-center">
                                 {isBelow ? (
-                                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold uppercase tracking-wider border border-rose-200">
+                                  <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-medium uppercase tracking-wider border border-rose-200">
                                     Remediation
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-200">
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium uppercase tracking-wider border border-emerald-200">
                                     On Track
                                   </span>
                                 )}
@@ -1347,7 +1375,7 @@ export function AdminDashboard() {
                                     type="button"
                                     onClick={(e) => handleOpenEditBatch(b, e)}
                                     title="Edit cohort"
-                                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
@@ -1358,7 +1386,7 @@ export function AdminDashboard() {
                                       setDeleteBatchTarget(b);
                                     }}
                                     title="Delete cohort"
-                                    className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -1386,7 +1414,7 @@ export function AdminDashboard() {
                       placeholder="Search accounts by email or linked trainee..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium"
+                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-normal text-slate-900"
                     />
                   </div>
 
@@ -1395,7 +1423,7 @@ export function AdminDashboard() {
                     <select
                       value={userRoleFilter}
                       onChange={(e) => setUserRoleFilter(e.target.value)}
-                      className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none cursor-pointer"
+                      className="px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md font-medium text-slate-700 focus:outline-none cursor-pointer"
                     >
                       <option value="">All Roles</option>
                       <option value="admin">Administrators</option>
@@ -1424,7 +1452,7 @@ export function AdminDashboard() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                           <th className="py-2.5 px-3">Account Email</th>
                           <th className="py-2.5 px-3">Assigned Role</th>
                           <th className="py-2.5 px-3">Linked Profile</th>
@@ -1438,17 +1466,17 @@ export function AdminDashboard() {
                           const isBusy = userActionLoadingId === u.id;
 
                           return (
-                            <tr key={u.id} className="hover:bg-slate-50/80 transition-colors group">
+                            <tr key={u.id} className="hover:bg-slate-50 transition-colors">
                               <td className="py-3 px-3">
-                                <div className="font-bold text-slate-900 flex items-center space-x-1.5">
+                                <div className="font-semibold text-slate-900 flex items-center space-x-1.5">
                                   <span>{u.email}</span>
                                   {isSelf && (
-                                    <span className="text-[9px] font-black uppercase text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
+                                    <span className="text-[9px] font-semibold uppercase text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
                                       You
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[10px] text-slate-400">User ID #{u.id}</div>
+                                <div className="text-[10px] text-slate-400 tabular-nums">User ID #{u.id}</div>
                               </td>
 
                               <td className="py-3 px-3">
@@ -1456,13 +1484,9 @@ export function AdminDashboard() {
                                   disabled={isSelf || isBusy}
                                   value={u.role}
                                   onChange={(e) => handleChangeUserRole(u, e.target.value)}
-                                  className={`text-[11px] font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
-                                    u.role === "admin"
-                                      ? "bg-slate-900 text-white border-slate-900"
-                                      : u.role === "trainer"
-                                      ? "bg-blue-50 text-blue-700 border-blue-200"
-                                      : "bg-slate-100 text-slate-700 border-slate-200"
-                                  } ${isSelf ? "cursor-not-allowed opacity-80" : ""}`}
+                                  className={`text-[11px] font-medium px-2 py-1 rounded-md border border-slate-200 bg-white transition-colors cursor-pointer text-slate-800 ${
+                                    isSelf ? "cursor-not-allowed opacity-80" : ""
+                                  }`}
                                 >
                                   <option value="admin">Admin</option>
                                   <option value="trainer">Trainer</option>
@@ -1470,11 +1494,11 @@ export function AdminDashboard() {
                                 </select>
                               </td>
 
-                              <td className="py-3 px-3 text-slate-600 font-medium">
+                              <td className="py-3 px-3 text-slate-600 font-normal">
                                 {u.trainee_name ? (
-                                  <span className="font-bold text-slate-800">
+                                  <span className="font-semibold text-slate-800">
                                     {u.trainee_name}{" "}
-                                    <span className="text-[10px] text-slate-400 font-normal">
+                                    <span className="text-[10px] text-slate-400 font-normal tabular-nums">
                                       (#{u.trainee_id})
                                     </span>
                                   </span>
@@ -1490,14 +1514,17 @@ export function AdminDashboard() {
                                   type="button"
                                   disabled={isSelf || isBusy}
                                   onClick={() => handleToggleUserActive(u)}
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all ${
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider border cursor-pointer transition-colors ${
                                     u.is_active
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
                                       : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
                                   } ${isSelf ? "cursor-not-allowed opacity-75" : ""}`}
                                   title={isSelf ? "Cannot deactivate yourself" : "Click to toggle active status"}
                                 >
-                                  {u.is_active ? "● Active" : "○ Inactive"}
+                                  <span className="inline-flex items-center space-x-1.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${u.is_active ? "bg-emerald-500" : "bg-slate-400"}`}></span>
+                                    <span>{u.is_active ? "Active" : "Inactive"}</span>
+                                  </span>
                                 </button>
                               </td>
 
@@ -1508,7 +1535,7 @@ export function AdminDashboard() {
                                     disabled={isBusy}
                                     onClick={() => handleResetPassword(u)}
                                     title="Generate temporary password"
-                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 font-bold text-[11px] border border-slate-200 transition-colors flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                                    className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-50 text-slate-700 font-medium text-[11px] border border-slate-200 transition-colors flex items-center space-x-1 cursor-pointer disabled:opacity-50"
                                   >
                                     <KeyRound className="w-3 h-3" />
                                     <span>Reset Password</span>
@@ -1533,18 +1560,18 @@ export function AdminDashboard() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* Widget 3: Compliance & Security Audit Stream */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-slate-700" />
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">Security Audit Stream</h3>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
                 Live Audit
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
               Real-time compliance activity log capturing user mutations, role assignments, and session events:
             </p>
 
@@ -1568,15 +1595,15 @@ export function AdminDashboard() {
                 {effectiveRecentActivity.map((log) => (
                   <div
                     key={log.id}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/70 transition-colors text-xs"
+                    className="p-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors text-xs"
                   >
                     <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-                      <span className="font-semibold truncate max-w-[140px] text-slate-700">
+                      <span className="font-medium truncate max-w-[140px] text-slate-700">
                         {log.user_email || `User #${log.user_id}`}
                       </span>
-                      <span className="font-mono text-slate-400">{formatTimeAgo(log.created_at)}</span>
+                      <span className="font-mono text-slate-400 tabular-nums">{formatTimeAgo(log.created_at)}</span>
                     </div>
-                    <div className="text-slate-900 font-bold tracking-tight text-[11px]">
+                    <div className="text-slate-900 font-semibold tracking-tight text-[11px]">
                       {formatActionTitle(log)}
                     </div>
                   </div>
@@ -1587,7 +1614,7 @@ export function AdminDashboard() {
             <div className="mt-4 pt-3 border-t border-slate-100 text-center">
               <Link
                 to="/admin/audit-logs"
-                className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                className="inline-flex items-center space-x-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <span>View Full Compliance Log</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -1596,100 +1623,100 @@ export function AdminDashboard() {
           </div>
 
           {/* Widget 4: Platform Engine & Infrastructure Status Matrix */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
               <div className="flex items-center space-x-2">
                 <Server className="w-4 h-4 text-slate-800" />
-                <h4 className="text-sm font-bold text-slate-900 tracking-tight">
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">
                   Platform Engine & Infrastructure
-                </h4>
+                </h3>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center space-x-1">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>Operational</span>
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
               Active subsystem telemetry, real-time micro-services, and platform health inspection:
             </p>
 
             <div className="space-y-2.5">
               {/* Service 1: SQLite Core DB */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
                     <Server className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-800">SQLite 3 Core Database</div>
-                    <div className="text-[10px] text-slate-400">WAL Mode · 50 Trainees · 142 Sessions</div>
+                    <div className="text-xs font-semibold text-slate-800">SQLite 3 Core Database</div>
+                    <div className="text-[10px] text-slate-500 tabular-nums">WAL Mode | 50 Trainees | 142 Sessions</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Healthy
                 </span>
               </div>
 
               {/* Service 2: ML Early-Warning */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
                     <Cpu className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-800">ML Early-Warning Engine</div>
-                    <div className="text-[10px] text-slate-400">Scikit-Learn · 92.4% Recall Model</div>
+                    <div className="text-xs font-semibold text-slate-800">ML Early-Warning Engine</div>
+                    <div className="text-[10px] text-slate-500 tabular-nums">Scikit-Learn | 92.4% Recall Model</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Active
                 </span>
               </div>
 
               {/* Service 3: WebSocket Live Stream */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
                     <Radio className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-800">WebSocket Live Gateway</div>
-                    <div className="text-[10px] text-slate-400">FastAPI /ws Broadcast · &lt; 20ms Latency</div>
+                    <div className="text-xs font-semibold text-slate-800">WebSocket Live Gateway</div>
+                    <div className="text-[10px] text-slate-500 tabular-nums">FastAPI /ws Broadcast | &lt; 20ms Latency</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Streaming
                 </span>
               </div>
 
               {/* Service 4: RBAC & Auth Guard */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
-                    <Shield className="w-3.5 h-3.5 text-slate-800" />
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                    <Shield className="w-3.5 h-3.5 text-slate-700" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-800">RBAC Security Guard</div>
-                    <div className="text-[10px] text-slate-400">JWT Bearer · Last-Admin Protected</div>
+                    <div className="text-xs font-semibold text-slate-800">RBAC Security Guard</div>
+                    <div className="text-[10px] text-slate-500">JWT Bearer | Last-Admin Protected</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                <span className="text-[10px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   Enforcing
                 </span>
               </div>
             </div>
 
             {/* Quick Navigation Strip */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold">
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium">
               <Link to="/modules" className="text-slate-600 hover:text-blue-600 transition-colors">
-                Modules Library →
+                Modules Library
               </Link>
               <Link to="/batches" className="text-slate-600 hover:text-blue-600 transition-colors">
-                Cohort Archive →
+                Cohort Archive
               </Link>
               <Link to="/admin/audit-logs" className="text-slate-600 hover:text-blue-600 transition-colors">
-                Audit Trail →
+                Audit Trail
               </Link>
             </div>
           </div>
@@ -1700,18 +1727,18 @@ export function AdminDashboard() {
       {/* =========================================================================
           MODEL EVALUATION & BASELINE BENCHMARK PANEL (Step 7)
           ========================================================================= */}
-      <section className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-2xs space-y-5">
+      <section className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
-              <Cpu className="w-5 h-5" />
+            <div className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-700">
+              <Cpu className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">
                   Model Evaluation & Baseline Benchmark
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                   Empirical Audit
                 </span>
               </div>
@@ -1722,13 +1749,13 @@ export function AdminDashboard() {
           </div>
 
           <div className="flex items-center space-x-2 self-start sm:self-auto text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold border border-slate-200">
-              Sample Size: {evaluationData?.sample_size ?? "—"} Trainees
+            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-medium border border-slate-200 tabular-nums">
+              Sample Size: {evaluationData?.sample_size ?? "-"} Trainees
             </span>
             <button
               type="button"
               onClick={() => fetchModelEvaluation(false)}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 cursor-pointer transition-colors"
+              className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 text-slate-600 cursor-pointer transition-colors"
               title="Refresh Evaluation"
             >
               <RotateCw className={`w-3.5 h-3.5 ${evaluationLoading ? "animate-spin" : ""}`} />
@@ -1756,9 +1783,9 @@ export function AdminDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT: Metrics Comparison Table (7 Cols) */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
+              <div className="rounded-lg border border-slate-200 overflow-hidden bg-white shadow-xs">
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
                     <tr>
                       <th className="py-2.5 px-3">Metric</th>
                       <th className="py-2.5 px-3 text-right">Baseline Rule (Avg &lt; 60%)</th>
@@ -1766,70 +1793,70 @@ export function AdminDashboard() {
                       <th className="py-2.5 px-3 text-center">Delta / Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                    <tr className="hover:bg-slate-50/50">
+                  <tbody className="divide-y divide-slate-100 font-normal text-slate-700">
+                    <tr className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-semibold text-slate-900">Precision</td>
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800 tabular-nums">
                         {(effectiveEvaluationData.baseline.precision * 100).toFixed(1)}%
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800 tabular-nums">
                         {(effectiveEvaluationData.model.precision * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 tabular-nums">
                           Baseline +{((effectiveEvaluationData.baseline.precision - effectiveEvaluationData.model.precision) * 100).toFixed(1)}%
                         </span>
                       </td>
                     </tr>
-                    <tr className="hover:bg-slate-50/50">
+                    <tr className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-semibold text-slate-900">Recall</td>
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800 tabular-nums">
                         {(effectiveEvaluationData.baseline.recall * 100).toFixed(1)}%
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800 tabular-nums">
                         {(effectiveEvaluationData.model.recall * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
                           Tied (100%)
                         </span>
                       </td>
                     </tr>
-                    <tr className="hover:bg-slate-50/50 bg-slate-50/40">
-                      <td className="py-2.5 px-3 font-black text-slate-900">F1-Score</td>
-                      <td className="py-2.5 px-3 text-right font-mono font-extrabold text-blue-700">
+                    <tr className="hover:bg-slate-50 bg-slate-50/50">
+                      <td className="py-2.5 px-3 font-bold text-slate-900">F1-Score</td>
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700 tabular-nums">
                         {effectiveEvaluationData.baseline.f1.toFixed(4)}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-extrabold text-slate-800">
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800 tabular-nums">
                         {effectiveEvaluationData.model.f1.toFixed(4)}
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Baseline Higher
                         </span>
                       </td>
                     </tr>
-                    <tr className="hover:bg-slate-50/50">
+                    <tr className="hover:bg-slate-50">
                       <td className="py-2 px-3 text-slate-500">True Positives / Negatives</td>
-                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
+                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600 tabular-nums">
                         {effectiveEvaluationData.baseline.true_positives} TP / {effectiveEvaluationData.baseline.true_negatives} TN
                       </td>
-                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
+                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600 tabular-nums">
                         {effectiveEvaluationData.model.true_positives} TP / {effectiveEvaluationData.model.true_negatives} TN
                       </td>
-                      <td className="py-2 px-3 text-center text-[10px] text-slate-400">
+                      <td className="py-2 px-3 text-center text-[10px] text-slate-500">
                         Confusion Matrix
                       </td>
                     </tr>
-                    <tr className="hover:bg-slate-50/50">
+                    <tr className="hover:bg-slate-50">
                       <td className="py-2 px-3 text-slate-500">False Positives (Type I)</td>
-                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600">
+                      <td className="py-2 px-3 text-right font-mono text-[11px] text-slate-600 tabular-nums">
                         {effectiveEvaluationData.baseline.false_positives}
                       </td>
-                      <td className="py-2 px-3 text-right font-mono text-[11px] text-rose-600 font-bold">
+                      <td className="py-2 px-3 text-right font-mono text-[11px] text-rose-600 font-semibold tabular-nums">
                         {effectiveEvaluationData.model.false_positives}
                       </td>
-                      <td className="py-2 px-3 text-center text-[10px] text-slate-400">
+                      <td className="py-2 px-3 text-center text-[10px] text-slate-500">
                         False alarms
                       </td>
                     </tr>
@@ -1838,11 +1865,11 @@ export function AdminDashboard() {
               </div>
 
               {/* Status Alert Banner */}
-              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
+              <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <div className="font-bold">Model does NOT beat the baseline rule</div>
-                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                  <div className="font-semibold">Model does NOT beat the baseline rule</div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed font-normal">
                     The simple heuristic threshold rule (average &lt; {effectiveEvaluationData.pass_threshold}%) achieves higher precision ({((effectiveEvaluationData.baseline.precision)*100).toFixed(1)}% vs {((effectiveEvaluationData.model.precision)*100).toFixed(1)}%) with fewer false alarms. In accordance with platform governance policy, the model is not artificially tuned.
                   </p>
                 </div>
@@ -1852,22 +1879,22 @@ export function AdminDashboard() {
             {/* RIGHT: Sample Size, Ground Truth, and Label Definitions (5 Cols) */}
             <div className="lg:col-span-5 space-y-3.5">
               {/* Card 1: Sample Size Breakdown */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-900 border-b border-slate-200/60 pb-2">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-900 border-b border-slate-200/80 pb-2">
                   <span>Evaluation Cohort Sample</span>
-                  <span className="font-mono text-blue-700">{effectiveEvaluationData.sample_size} Trainees</span>
+                  <span className="font-mono text-slate-800 tabular-nums">{effectiveEvaluationData.sample_size} Trainees</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200/60">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Positive Labels</span>
-                    <div className="text-base font-extrabold text-rose-600 mt-0.5">
+                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Positive Labels</span>
+                    <div className="text-base font-bold text-rose-600 mt-0.5 tabular-nums">
                       {effectiveEvaluationData.positive_labels} <span className="text-[10px] text-slate-400 font-normal">({((effectiveEvaluationData.positive_labels / effectiveEvaluationData.sample_size) * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5">At Risk in test set</div>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200/60">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Negative Labels</span>
-                    <div className="text-base font-extrabold text-emerald-600 mt-0.5">
+                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Negative Labels</span>
+                    <div className="text-base font-bold text-emerald-600 mt-0.5 tabular-nums">
                       {effectiveEvaluationData.negative_labels} <span className="text-[10px] text-slate-400 font-normal">({((effectiveEvaluationData.negative_labels / effectiveEvaluationData.sample_size) * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5">On Track in test set</div>
@@ -1876,25 +1903,25 @@ export function AdminDashboard() {
               </div>
 
               {/* Card 2: Label & Rule Definitions */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
-                <div className="font-bold text-slate-900 border-b border-slate-200/60 pb-2">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
+                <div className="font-semibold text-slate-900 border-b border-slate-200/80 pb-2">
                   Experimental Setup & Definitions
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ground Truth Label Definition</div>
-                  <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Ground Truth Label Definition</div>
+                  <p className="text-[11px] text-slate-700 mt-0.5 font-normal leading-relaxed">
                     {effectiveEvaluationData.label_definition}
                   </p>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Baseline Rule Formulation</div>
-                  <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Baseline Rule Formulation</div>
+                  <p className="text-[11px] text-slate-700 mt-0.5 font-normal leading-relaxed">
                     {effectiveEvaluationData.baseline_rule}
                   </p>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Test Methodology</div>
-                  <p className="text-[11px] text-slate-700 mt-0.5 font-medium leading-relaxed">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Test Methodology</div>
+                  <p className="text-[11px] text-slate-700 mt-0.5 font-normal leading-relaxed">
                     Chronological holdout: last {effectiveEvaluationData.held_out_sessions} sessions held out for testing; predictor trained/evaluated on earlier sessions only (min {effectiveEvaluationData.min_sessions_required} sessions required).
                   </p>
                 </div>
@@ -1911,10 +1938,10 @@ export function AdminDashboard() {
       {/* MODAL: Provision User Account */}
       {addUserModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-xs space-y-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-5 shadow-lg border border-slate-200 text-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   Account Management
                 </span>
                 <h3 className="text-sm font-bold text-slate-900 mt-1">Provision User Account</h3>
@@ -1929,14 +1956,14 @@ export function AdminDashboard() {
             </div>
 
             {userFormError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+              <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
                 {userFormError}
               </div>
             )}
 
             <form onSubmit={handleAddUserSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Email Address *
                 </label>
                 <input
@@ -1945,18 +1972,18 @@ export function AdminDashboard() {
                   value={userForm.email}
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                   placeholder="user@portal.com"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-normal text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Role Assignment *
                 </label>
                 <select
                   value={userForm.role}
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 cursor-pointer"
                 >
                   <option value="trainer">Trainer (Curriculum & Sessions)</option>
                   <option value="admin">Administrator (Full Governance)</option>
@@ -1966,14 +1993,14 @@ export function AdminDashboard() {
 
               {userForm.role === "trainee" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Link to Enrolled Trainee Record *
                   </label>
                   <select
                     required
                     value={userForm.trainee_id}
                     onChange={(e) => setUserForm({ ...userForm, trainee_id: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 cursor-pointer"
                   >
                     <option value="">Select enrolled trainee...</option>
                     {traineeOptions.map((t) => (
@@ -1986,7 +2013,7 @@ export function AdminDashboard() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Temporary Password (Optional)
                 </label>
                 <input
@@ -1994,7 +2021,7 @@ export function AdminDashboard() {
                   value={userForm.password}
                   onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                   placeholder="Leave blank to auto-generate secure password"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
@@ -2002,14 +2029,14 @@ export function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setAddUserModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={userSubmitting}
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60 flex items-center space-x-1"
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 flex items-center space-x-1"
                 >
                   {userSubmitting ? <Spinner size="sm" className="text-white" /> : <span>Create Account</span>}
                 </button>
@@ -2022,17 +2049,17 @@ export function AdminDashboard() {
       {/* MODAL: Temporary Credentials Reveal */}
       {revealModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center mb-3">
-              <Check className="w-6 h-6 stroke-[3]" />
+          <div className="bg-white rounded-lg max-w-sm w-full p-5 shadow-lg border border-slate-200 text-center">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 mx-auto flex items-center justify-center mb-3">
+              <Check className="w-5 h-5 stroke-[2.5]" />
             </div>
             <h3 className="text-sm font-bold text-slate-900">{revealModal.title}</h3>
             <p className="text-xs text-slate-500 mt-1 mb-4">
               Temporary credentials for <strong className="text-slate-800">{revealModal.email}</strong>.
             </p>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between mb-4">
-              <span className="font-mono text-sm font-bold text-slate-900 tracking-wider">
+            <div className="p-3 bg-slate-50 rounded-md border border-slate-200 flex items-center justify-between mb-4">
+              <span className="font-mono text-sm font-bold text-slate-900 tracking-wider tabular-nums">
                 {revealModal.tempPassword}
               </span>
               <button
@@ -2052,7 +2079,7 @@ export function AdminDashboard() {
             <button
               type="button"
               onClick={() => setRevealModal(null)}
-              className="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 cursor-pointer shadow-xs"
+              className="w-full py-2 bg-slate-900 text-white rounded-md text-xs font-medium hover:bg-slate-800 cursor-pointer shadow-xs"
             >
               Done
             </button>
@@ -2063,10 +2090,10 @@ export function AdminDashboard() {
       {/* MODAL: Add / Edit Batch */}
       {batchModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-xs space-y-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-5 shadow-lg border border-slate-200 text-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   Cohort Governance
                 </span>
                 <h3 className="text-sm font-bold text-slate-900 mt-1">
@@ -2083,14 +2110,14 @@ export function AdminDashboard() {
             </div>
 
             {batchFormError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+              <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
                 {batchFormError}
               </div>
             )}
 
             <form onSubmit={handleBatchFormSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Cohort Name *
                 </label>
                 <input
@@ -2099,31 +2126,31 @@ export function AdminDashboard() {
                   value={batchForm.name}
                   onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })}
                   placeholder="e.g. Batch D - Full Stack (Foundational)"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-normal text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={batchForm.start_date}
                     onChange={(e) => setBatchForm({ ...batchForm, start_date: e.target.value })}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-normal focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={batchForm.end_date}
                     onChange={(e) => setBatchForm({ ...batchForm, end_date: e.target.value })}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-normal focus:outline-none"
                   />
                 </div>
               </div>
@@ -2132,14 +2159,14 @@ export function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setBatchModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={batchSubmitting}
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60 flex items-center space-x-1"
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 flex items-center space-x-1"
                 >
                   {batchSubmitting ? <Spinner size="sm" className="text-white" /> : <span>{editingBatch ? "Update" : "Save Cohort"}</span>}
                 </button>
@@ -2152,18 +2179,18 @@ export function AdminDashboard() {
       {/* MODAL: Delete Batch Confirmation with 409 protection */}
       {deleteBatchTarget && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-xs">
+          <div className="bg-white rounded-lg max-w-sm w-full p-5 shadow-lg border border-slate-200 text-xs">
             <div className="flex items-center space-x-2 text-rose-600 mb-3">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <h3 className="text-sm font-bold text-slate-900">Delete Cohort Batch</h3>
             </div>
-            <p className="text-slate-600 mb-4 leading-relaxed">
+            <p className="text-slate-600 mb-4 leading-relaxed font-normal">
               Are you sure you want to delete cohort <strong className="text-slate-900">"{deleteBatchTarget.name}"</strong>?
               If trainees are currently enrolled in this batch, deletion will be rejected to protect data integrity.
             </p>
 
             {deleteBatchError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium leading-relaxed">
+              <div className="mb-4 p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium leading-relaxed">
                 {deleteBatchError}
               </div>
             )}
@@ -2172,7 +2199,7 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setDeleteBatchTarget(null)}
-                className="px-3.5 py-1.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
+                className="px-3.5 py-1.5 rounded-md text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 font-medium cursor-pointer"
               >
                 Cancel
               </button>
@@ -2180,7 +2207,7 @@ export function AdminDashboard() {
                 type="button"
                 disabled={deleteBatchSubmitting}
                 onClick={handleDeleteBatchConfirm}
-                className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60 flex items-center space-x-1"
+                className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 flex items-center space-x-1"
               >
                 {deleteBatchSubmitting ? <Spinner size="sm" className="text-white" /> : <span>Confirm Delete</span>}
               </button>
