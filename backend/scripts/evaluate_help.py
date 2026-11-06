@@ -6,7 +6,8 @@ Compares candidate relevance floors (4.0, 5.0, 6.0) and records results to backe
 import os
 import sys
 import json
-from typing import List, Dict, Any
+import argparse
+from typing import List, Dict, Any, Optional
 
 # Ensure backend root is on sys.path
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -128,14 +129,21 @@ def evaluate_single_floor(questions: List[Dict[str, Any]], db, floor_val: float)
         "detailed_results": detailed_results
     }
 
-def run_evaluation() -> Dict[str, Any]:
+def run_evaluation(questions_file: Optional[str] = None) -> Dict[str, Any]:
     """Runs retrieval evaluation across candidate floors and writes results."""
     db = SyncSessionLocal()
     try:
         # Guarantee fresh help index synchronization
         build_index(db)
 
-        questions_path = os.path.join(BACKEND_DIR, "app", "ml", "help_eval_questions.json")
+        if questions_file:
+            if not os.path.isabs(questions_file):
+                questions_path = os.path.abspath(os.path.join(BACKEND_DIR, questions_file)) if not os.path.exists(questions_file) else os.path.abspath(questions_file)
+            else:
+                questions_path = questions_file
+        else:
+            questions_path = os.path.join(BACKEND_DIR, "app", "ml", "help_eval_questions.json")
+
         with open(questions_path, "r", encoding="utf-8") as f:
             questions = json.load(f)
 
@@ -147,12 +155,16 @@ def run_evaluation() -> Dict[str, Any]:
 
         # Primary payload uses the configured RELEVANCE_FLOOR
         primary_eval = floor_evaluations[RELEVANCE_FLOOR]
+        primary_eval["source_file"] = os.path.basename(questions_path)
         primary_eval["floor_comparisons"] = {
             str(f_val): floor_evaluations[f_val]["summary"]
             for f_val in candidate_floors
         }
 
-        results_path = os.path.join(BACKEND_DIR, "app", "ml", "help_eval_results.json")
+        # Choose destination results filename based on input questions file
+        base_name = os.path.splitext(os.path.basename(questions_path))[0]
+        out_name = f"{base_name.replace('_questions', '')}_results.json"
+        results_path = os.path.join(BACKEND_DIR, "app", "ml", out_name)
         with open(results_path, "w", encoding="utf-8") as f:
             json.dump(primary_eval, f, indent=2)
 
@@ -161,14 +173,20 @@ def run_evaluation() -> Dict[str, Any]:
         db.close()
 
 def main():
-    payload = run_evaluation()
+    parser = argparse.ArgumentParser(description="Evaluate help assistant documentation retrieval")
+    parser.add_argument("--file", type=str, default=None, help="Relative or absolute path to questions JSON file")
+    args = parser.parse_args()
+
+    payload = run_evaluation(questions_file=args.file)
     s = payload["summary"]
     misses = payload["misses"]
     comparisons = payload.get("floor_comparisons", {})
+    src_file = payload.get("source_file", "help_eval_questions.json")
 
     print("\n========================================================")
     print("      HELP ASSISTANT RETRIEVAL EVALUATION REPORT        ")
     print("========================================================")
+    print(f"Evaluation File Source    : {src_file}")
     print(f"Total Questions Evaluated : {s['total_questions']}")
     print(f"In-Scope Questions        : {s['in_scope_questions']}")
     print(f"Out-of-Scope Questions    : {s['out_of_scope_questions']}")

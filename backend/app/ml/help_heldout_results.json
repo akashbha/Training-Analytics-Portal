@@ -1,0 +1,222 @@
+{
+  "summary": {
+    "floor": 5.0,
+    "total_questions": 10,
+    "in_scope_questions": 5,
+    "out_of_scope_questions": 5,
+    "hit_at_1_count": 0,
+    "hit_at_1_pct": 0.0,
+    "hit_at_3_count": 0,
+    "hit_at_3_pct": 0.0,
+    "role_violation_count": 0,
+    "refusal_correct_count": 5,
+    "refusal_accuracy_pct": 100.0
+  },
+  "misses": [
+    {
+      "question": "Where do I find comments left by my evaluator on completed assessments?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Can I talk with classmates in my own training group through the platform?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Private Messages and Cohort Communication",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How can instructors upload multiple student test records at once using spreadsheets?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+      "top_returned_heading": "1. Problem Statement",
+      "hit_at_3": false
+    },
+    {
+      "question": "Which dashboard visualizes student failure rates and defect frequencies by topic?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+      "top_returned_heading": "1. Problem Statement",
+      "hit_at_3": false
+    },
+    {
+      "question": "Where are default sign-in passwords for testing accounts documented?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+      "top_returned_heading": "Admin Guide: User Provisioning and Account Controls",
+      "hit_at_3": false
+    }
+  ],
+  "detailed_results": [
+    {
+      "question": "Where do I find comments left by my evaluator on completed assessments?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Can I talk with classmates in my own training group through the platform?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Private Messages and Cohort Communication",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How can instructors upload multiple student test records at once using spreadsheets?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": "1. Problem Statement",
+      "results": [
+        {
+          "source_path": "REPORT.md",
+          "heading": "1. Problem Statement",
+          "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
+          "role": "all",
+          "score": 10.4617
+        }
+      ]
+    },
+    {
+      "question": "Which dashboard visualizes student failure rates and defect frequencies by topic?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": "1. Problem Statement",
+      "results": [
+        {
+          "source_path": "REPORT.md",
+          "heading": "1. Problem Statement",
+          "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
+          "role": "all",
+          "score": 6.6269
+        }
+      ]
+    },
+    {
+      "question": "Where are default sign-in passwords for testing accounts documented?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": "Admin Guide: User Provisioning and Account Controls",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Admin Guide: User Provisioning and Account Controls",
+          "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.",
+          "role": "admin",
+          "score": 8.4824
+        },
+        {
+          "source_path": "README.md",
+          "heading": "3. Default Seeded Credentials",
+          "text": "The database seed provides pre-configured user accounts across all three platform roles:\n\n| Role | Email | Password | Scope |\n| :--- | :--- | :--- | :--- |\n| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |\n| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |\n| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |\n\n---",
+          "role": "admin",
+          "score": 6.0582
+        }
+      ]
+    },
+    {
+      "question": "How do I request an official course completion certificate for LinkedIn?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "Can I install VS Code extensions on the lab virtual machines?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "How do I submit Zoom webinar recordings to the shared Google Drive folder?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "What is the procedure for scheduling classroom guest speakers?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "How do I configure Slack webhook notifications for GitHub pull requests?",
+      "role": "admin",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    }
+  ],
+  "source_file": "help_heldout_questions.json",
+  "floor_comparisons": {
+    "4.0": {
+      "floor": 4.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 0,
+      "hit_at_1_pct": 0.0,
+      "hit_at_3_count": 0,
+      "hit_at_3_pct": 0.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 3,
+      "refusal_accuracy_pct": 60.0
+    },
+    "5.0": {
+      "floor": 5.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 0,
+      "hit_at_1_pct": 0.0,
+      "hit_at_3_count": 0,
+      "hit_at_3_pct": 0.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 100.0
+    },
+    "6.0": {
+      "floor": 6.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 0,
+      "hit_at_1_pct": 0.0,
+      "hit_at_3_count": 0,
+      "hit_at_3_pct": 0.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 100.0
+    }
+  }
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Where do I find comments left by my evaluator on completed assessments?",
+    "role": "trainee",
+    "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Can I talk with classmates in my own training group through the platform?",
+    "role": "trainee",
+    "expected_heading": "Trainee Guide: Private Messages and Cohort Communication",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "How can instructors upload multiple student test records at once using spreadsheets?",
+    "role": "trainer",
+    "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Which dashboard visualizes student failure rates and defect frequencies by topic?",
+    "role": "trainer",
+    "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Where are default sign-in passwords for testing accounts documented?",
+    "role": "admin",
+    "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+    "must_not_role": null
+  },
+  {
+    "question": "How do I request an official course completion certificate for LinkedIn?",
+    "role": "trainee",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Can I install VS Code extensions on the lab virtual machines?",
+    "role": "trainee",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "How do I submit Zoom webinar recordings to the shared Google Drive folder?",
+    "role": "trainer",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "What is the procedure for scheduling classroom guest speakers?",
+    "role": "trainer",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "How do I configure Slack webhook notifications for GitHub pull requests?",
+    "role": "admin",
+    "expected_heading": null,
+    "must_not_role": null
+  }
+]
