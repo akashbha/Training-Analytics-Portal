@@ -17,6 +17,9 @@ ROLE_SCOPES: Dict[str, List[str]] = {
     "admin": ["admin", "trainer", "trainee", "all"]
 }
 
+# Minimum BM25 score floor to filter out incidental keyword matches on out-of-scope queries
+RELEVANCE_FLOOR: float = 5.0
+
 # Standard English stopwords to remove conversational filler from natural language queries
 ENGLISH_STOPWORDS = {
     "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
@@ -37,8 +40,8 @@ ENGLISH_STOPWORDS = {
     "yourself", "yourselves"
 }
 
-def sanitize_query(raw_query: Optional[str]) -> str:
-    """Validates, caps length at 200 characters, removes FTS5 operators, strips stopwords, and joins with OR."""
+def extract_search_tokens(raw_query: Optional[str]) -> List[str]:
+    """Validates, caps length at 200 characters, removes FTS5 operators, and strips English stopwords."""
     if raw_query is None or not raw_query.strip():
         raise AppException(
             code="INVALID_QUERY",
@@ -67,14 +70,19 @@ def sanitize_query(raw_query: Optional[str]) -> str:
             status_code=422
         )
 
-    # Join remaining tokens with OR, each quoted, so FTS5 matches any term
+    return valid_tokens
+
+def sanitize_query(raw_query: Optional[str]) -> str:
+    """Formats valid search tokens into an OR-joined FTS5 expression."""
+    valid_tokens = extract_search_tokens(raw_query)
     return " OR ".join(f'"{t}"' for t in valid_tokens)
 
 def help_search(
     query: str,
     role: str,
     limit: int = 3,
-    db: Optional[Session] = None
+    db: Optional[Session] = None,
+    floor: Optional[float] = None
 ) -> List[Dict[str, Any]]:
     """Executes a role-filtered full-text search against the indexed documentation.
 
@@ -83,12 +91,19 @@ def help_search(
         role: Participant role ('trainee', 'trainer', 'admin').
         limit: Maximum number of documentation chunks to retrieve.
         db: Optional database session; creates managed session if None.
+        floor: Optional relevance threshold override; defaults to RELEVANCE_FLOOR.
 
     Returns:
-        List of matching documentation chunk dictionaries.
+        List of matching documentation chunk dictionaries meeting or exceeding the relevance floor.
     """
-    sanitized_match = sanitize_query(query)
+    tokens = extract_search_tokens(query)
+    sanitized_match = " OR ".join(f'"{t}"' for t in tokens)
     allowed_roles = ROLE_SCOPES.get(role.lower(), ["all"])
+
+    # For multi-word queries, enforce the full floor (5.0) to reject incidental single-word hits
+    # For single-term lookups, allow single-keyword matches meeting base threshold (2.0)
+    base_floor = floor if floor is not None else RELEVANCE_FLOOR
+    threshold_floor = base_floor if len(tokens) > 1 else min(base_floor, 2.0)
 
     close_session = False
     if db is None:
@@ -117,13 +132,19 @@ def help_search(
 
         results: List[Dict[str, Any]] = []
         for r in rows:
-            results.append({
-                "source_path": r.source_path,
-                "heading": r.heading,
-                "text": r.text,
-                "role": r.role,
-                "score": float(round(abs(r.bm25_score), 4))
-            })
+            bm25_val = float(round(abs(r.bm25_score), 4))
+            if bm25_val >= threshold_floor:
+                results.append({
+                    "source_path": r.source_path,
+                    "heading": r.heading,
+                    "text": r.text,
+                    "role": r.role,
+                    "score": bm25_val
+                })
+
+        # Return empty list when best match does not meet or exceed the relevance floor
+        if not results or results[0]["score"] < threshold_floor:
+            return []
 
         return results
     except Exception as e:

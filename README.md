@@ -120,8 +120,8 @@ Following each evaluation session, instructors record qualitative feedback notes
 
 ### Trainee Guide: Score Bands and Thresholds
 The portal measures evaluation results against standard score thresholds:
-- Pass Mark: 60.0% (PASS_THRESHOLD) is required to pass an individual assessment session. Scoring 60.0% or higher confirms basic competency in the module material.
-- Excellence Tier: 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain scores of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.
+- Pass Mark: To pass an evaluation session, trainees must achieve a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.
+- Excellence Tier: A percentage score of 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain percentage marks of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.
 
 ### Trainer Guide: Needs-Attention Queue and Alerts
 The Needs-Attention queue highlights candidates within active batches who require prompt pedagogical intervention. A trainee is placed in this queue for two explicit reasons:

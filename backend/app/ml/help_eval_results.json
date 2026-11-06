@@ -1,24 +1,18 @@
 {
   "summary": {
+    "floor": 5.0,
     "total_questions": 30,
     "in_scope_questions": 24,
     "out_of_scope_questions": 6,
-    "hit_at_1_count": 22,
-    "hit_at_1_pct": 91.7,
-    "hit_at_3_count": 23,
-    "hit_at_3_pct": 95.8,
+    "hit_at_1_count": 23,
+    "hit_at_1_pct": 95.8,
+    "hit_at_3_count": 24,
+    "hit_at_3_pct": 100.0,
     "role_violation_count": 0,
-    "refusal_correct_count": 1,
-    "refusal_accuracy_pct": 16.7
+    "refusal_correct_count": 6,
+    "refusal_accuracy_pct": 100.0
   },
   "misses": [
-    {
-      "question": "What percentage score do I need to pass an evaluation session?",
-      "role": "trainee",
-      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
-      "top_returned_heading": "Trainee Guide: Corrective Remediation Records",
-      "hit_at_3": false
-    },
     {
       "question": "How do I send a private message to my cohort instructor?",
       "role": "trainee",
@@ -32,31 +26,24 @@
       "question": "What percentage score do I need to pass an evaluation session?",
       "role": "trainee",
       "expected_heading": "Trainee Guide: Score Bands and Thresholds",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": "Trainee Guide: Corrective Remediation Records",
+      "top_returned_heading": "Trainee Guide: Score Bands and Thresholds",
       "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Score Bands and Thresholds",
+          "text": "The portal measures evaluation results against standard score thresholds:\n- Pass Mark: To pass an evaluation session, trainees must achieve a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.\n- Excellence Tier: A percentage score of 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain percentage marks of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.",
+          "role": "trainee",
+          "score": 6.6217
+        },
         {
           "source_path": "README.md",
           "heading": "Trainee Guide: Corrective Remediation Records",
           "text": "When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.",
           "role": "trainee",
-          "score": 5.4238
-        },
-        {
-          "source_path": "README.md",
-          "heading": "General Definitions: Score Bands and Thresholds",
-          "text": "The platform applies consistent system-wide grading thresholds:\n- PASS_THRESHOLD (60.0%): The minimum percentage score required to pass an individual assessment drill. Also serves as the cohort target benchmark.\n- EXCELLENT_THRESHOLD (75.0%): The boundary designating student mastery and high achievement.\n\n---",
-          "role": "all",
-          "score": 4.9117
-        },
-        {
-          "source_path": "README.md",
-          "heading": "General Definitions: What Is an Assessment Session",
-          "text": "An assessment session is a single recorded evaluation of a trainee on a curriculum module. Each session captures the trainee identifier, module identifier, raw score achieved, normalized score percentage, defect error count, completion time in seconds, and the evaluator who submitted the score. Sessions serve as the atomic unit of measurement for individual progress and cohort analytics.",
-          "role": "all",
-          "score": 4.6546
+          "score": 5.4332
         }
       ]
     },
@@ -74,21 +61,7 @@
           "heading": "Trainee Guide: Performance and Progress Tracking",
           "text": "Trainees can view their historical evaluation performance from the Trainee Dashboard. The progress chart plots percentage scores across consecutive evaluation sessions, illustrating your learning trajectory and mastery over time. Consistent scores above the passing cutoff demonstrate readiness for practical deployment.",
           "role": "trainee",
-          "score": 11.529
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Training Analytics Portal",
-          "text": "A web application for tracking trainee assessment sessions, cohort progress, evaluator scoring, and training performance metrics.\n\nThe system is built with a FastAPI backend (Python, SQLAlchemy, SQLite/PostgreSQL) and a React frontend (Vite, Tailwind CSS, Recharts).\n\n---",
-          "role": "all",
-          "score": 4.649
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Corrective Remediation Records",
-          "text": "When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.",
-          "role": "trainee",
-          "score": 3.0465
+          "score": 11.5439
         }
       ]
     },
@@ -106,21 +79,14 @@
           "heading": "Trainee Guide: Setting and Editing Module Learning Goals",
           "text": "Trainees can create and update personal learning goals for any curriculum module. From the module goals panel, enter a target percentage score that reflects your target proficiency. The portal compares your latest drill scores against these targets to show your progress. Setting ambitious but achievable goals helps structure daily practice routines.",
           "role": "trainee",
-          "score": 8.8453
+          "score": 8.9309
         },
         {
           "source_path": "README.md",
           "heading": "Trainee Guide: Module Goals and Milestones",
           "text": "Trainees can configure personalized target percentage scores for each curriculum module. Setting module goals allows you to focus study efforts on challenging topics and measure your achievement against your personal milestones. These personal goals provide motivation and self-assessment benchmarks as you complete practice drills.",
           "role": "trainee",
-          "score": 8.3795
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Performance and Progress Tracking",
-          "text": "Trainees can view their historical evaluation performance from the Trainee Dashboard. The progress chart plots percentage scores across consecutive evaluation sessions, illustrating your learning trajectory and mastery over time. Consistent scores above the passing cutoff demonstrate readiness for practical deployment.",
-          "role": "trainee",
-          "score": 4.73
+          "score": 8.4692
         }
       ]
     },
@@ -138,21 +104,14 @@
           "heading": "Trainee Guide: Corrective Remediation Records",
           "text": "When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.",
           "role": "trainee",
-          "score": 12.7652
+          "score": 12.783
         },
         {
           "source_path": "README.md",
           "heading": "Trainee Guide: Batch Messaging With Assigned Trainer",
           "text": "Trainees can communicate directly with the trainers assigned to their cohort using the private messaging interface. You can ask questions regarding curriculum concepts, request assistance on drills, or coordinate review sessions. All messages remain private within your batch, and messages with unauthorized parties outside your batch are prevented.",
           "role": "trainee",
-          "score": 7.9811
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Private Messages and Cohort Communication",
-          "text": "The private messaging screen provides a direct inbox for conversations with instructors and peers. Trainees can compose messages to ask for help on difficult topics, review session notes, or coordinate practice sessions. All messages are scoped to your cohort, ensuring that communication remains private and protected within your assigned batch.",
-          "role": "trainee",
-          "score": 4.7112
+          "score": 7.9933
         }
       ]
     },
@@ -170,21 +129,7 @@
           "heading": "Trainee Guide: Speed Versus Accuracy Analysis",
           "text": "The speed versus accuracy scatter chart displays the relationship between completion duration and percentage score across your recorded sessions. Trainees can analyze their speed accuracy balance to determine optimal pacing. Rushing through assessment drills often leads to avoidable defect errors, while excessive caution slows completion. Aim for steady speed paired with high accuracy above passing thresholds.",
           "role": "trainee",
-          "score": 21.2365
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Reviewing Session Feedback Notes",
-          "text": "Following each evaluation session, instructors record qualitative feedback notes outlining your technical strengths and specific error patterns. Trainees can inspect these notes directly from their session ledger to understand examiner recommendations and prepare effectively for subsequent drills.",
-          "role": "trainee",
-          "score": 2.6076
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Module Goals and Milestones",
-          "text": "Trainees can configure personalized target percentage scores for each curriculum module. Setting module goals allows you to focus study efforts on challenging topics and measure your achievement against your personal milestones. These personal goals provide motivation and self-assessment benchmarks as you complete practice drills.",
-          "role": "trainee",
-          "score": 2.45
+          "score": 21.262
         }
       ]
     },
@@ -202,21 +147,14 @@
           "heading": "Trainee Guide: Private Messages and Cohort Communication",
           "text": "The private messaging screen provides a direct inbox for conversations with instructors and peers. Trainees can compose messages to ask for help on difficult topics, review session notes, or coordinate practice sessions. All messages are scoped to your cohort, ensuring that communication remains private and protected within your assigned batch.",
           "role": "trainee",
-          "score": 6.9085
+          "score": 6.9154
         },
         {
           "source_path": "README.md",
           "heading": "Trainee Guide: Batch Messaging With Assigned Trainer",
           "text": "Trainees can communicate directly with the trainers assigned to their cohort using the private messaging interface. You can ask questions regarding curriculum concepts, request assistance on drills, or coordinate review sessions. All messages remain private within your batch, and messages with unauthorized parties outside your batch are prevented.",
           "role": "trainee",
-          "score": 5.8624
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Corrective Remediation Records",
-          "text": "When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.",
-          "role": "trainee",
-          "score": 4.1762
+          "score": 5.87
         }
       ]
     },
@@ -234,21 +172,7 @@
           "heading": "Trainee Guide: Reviewing Session Feedback Notes",
           "text": "Following each evaluation session, instructors record qualitative feedback notes outlining your technical strengths and specific error patterns. Trainees can inspect these notes directly from their session ledger to understand examiner recommendations and prepare effectively for subsequent drills.",
           "role": "trainee",
-          "score": 13.2436
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainee Guide: Private Messages and Cohort Communication",
-          "text": "The private messaging screen provides a direct inbox for conversations with instructors and peers. Trainees can compose messages to ask for help on difficult topics, review session notes, or coordinate practice sessions. All messages are scoped to your cohort, ensuring that communication remains private and protected within your assigned batch.",
-          "role": "trainee",
-          "score": 3.1143
-        },
-        {
-          "source_path": "backend/app/core/constants.py",
-          "heading": "System Constant: PASS_THRESHOLD",
-          "text": "PASS_THRESHOLD = 60.0. A session scoring 60% or higher counts as passing. Assessment sessions and cohort pass rates evaluate against this benchmark.",
-          "role": "all",
-          "score": 0.48
+          "score": 13.2575
         }
       ]
     },
@@ -264,23 +188,23 @@
         {
           "source_path": "README.md",
           "heading": "Trainee Guide: Score Bands and Thresholds",
-          "text": "The portal measures evaluation results against standard score thresholds:\n- Pass Mark: 60.0% (PASS_THRESHOLD) is required to pass an individual assessment session. Scoring 60.0% or higher confirms basic competency in the module material.\n- Excellence Tier: 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain scores of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.",
+          "text": "The portal measures evaluation results against standard score thresholds:\n- Pass Mark: To pass an evaluation session, trainees must achieve a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.\n- Excellence Tier: A percentage score of 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain percentage marks of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.",
           "role": "trainee",
-          "score": 11.7951
+          "score": 12.3717
         },
         {
           "source_path": "backend/app/core/constants.py",
           "heading": "System Constant: EXCELLENT_THRESHOLD",
           "text": "EXCELLENT_THRESHOLD = 75.0. A session scoring 75% or higher reaches the mastery excellence tier, reflecting superior task performance.",
           "role": "all",
-          "score": 11.4199
+          "score": 11.4308
         },
         {
           "source_path": "README.md",
           "heading": "General Definitions: Score Bands and Thresholds",
           "text": "The platform applies consistent system-wide grading thresholds:\n- PASS_THRESHOLD (60.0%): The minimum percentage score required to pass an individual assessment drill. Also serves as the cohort target benchmark.\n- EXCELLENT_THRESHOLD (75.0%): The boundary designating student mastery and high achievement.\n\n---",
           "role": "all",
-          "score": 6.2545
+          "score": 6.4321
         }
       ]
     },
@@ -298,21 +222,7 @@
           "heading": "Trainer Guide: Needs-Attention Queue and Alerts",
           "text": "The Needs-Attention queue highlights candidates within active batches who require prompt pedagogical intervention. A trainee is placed in this queue for two explicit reasons:\n1. Their historical average score across completed sessions falls below the 60.0% pass threshold.\n2. An early-warning alert is triggered during initial onboarding when early performance falls below acceptable marks.\nTrainers should review flagged candidates daily and assign corrective remediation drills where deficits are found.",
           "role": "trainer",
-          "score": 12.5517
-        },
-        {
-          "source_path": "backend/app/core/constants.py",
-          "heading": "System Constant: COLD_START_CUTOFF",
-          "text": "COLD_START_CUTOFF = 50.0. Trainees with fewer than 3 sessions scoring below an initial average of 50.0% are immediately flagged for attention.",
-          "role": "trainer",
-          "score": 2.9383
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Grading Policy",
-          "text": "The application enforces a centralized threshold policy across all database queries, backend analytical services, and frontend dashboard components:\n\n| Constant | Value | Definition and Enforcement |\n| :--- | :--- | :--- |\n| `PASS_THRESHOLD` | `60.0%` | Minimum percentage score required to pass an individual assessment drill. Also used for cohort-wide pass rate computations (`pass_rate_pct`) and identifying batches below target (`batches_below_target` flagged when cohort mean is below `60.0%`). |\n| `EXCELLENT_THRESHOLD` | `75.0%` | Threshold for trainee mastery tier classification across cohort score bands and milestone indicators. |\n| `COLD_START_SESSIONS` | `3` | Minimum number of completed assessment sessions required before applying the machine learning early-warning classifier. |\n| `COLD_START_CUTOFF` | `50.0%` | Rule-based heuristic fallback threshold. Trainees with fewer than 3 sessions and an initial average below `50.0%` are immediately flagged for attention. |\n\nBoth individual assessment qualification and batch aggregate pass rates evaluate strictly against the identical `60.0%` cutoff (`PASS_THRESHOLD`), ensuring consistent classification between personal trainee dossiers and cohort analytics.\n\n---",
-          "role": "all",
-          "score": 2.238
+          "score": 12.5702
         }
       ]
     },
@@ -330,21 +240,7 @@
           "heading": "Trainer Guide: Cold-Start Evaluation Rules",
           "text": "The system applies cold-start heuristic rules for new learners who lack sufficient evaluation history:\n- Trainees with fewer than 3 completed sessions (COLD_START_SESSIONS) are classified under the cold-start rule.\n- If a trainee with fewer than 3 sessions records an initial average percentage score below 50.0% (COLD_START_CUTOFF), they are immediately flagged for instructor attention.\n- Once a learner completes 3 or more sessions, evaluation transitions to longitudinal performance tracking.",
           "role": "trainer",
-          "score": 15.3499
-        },
-        {
-          "source_path": "REPORT.md",
-          "heading": "4.2 Two-Tier Early Risk Detection",
-          "text": "Machine learning classifiers require historical data to generate reliable predictions. To address cold starts, the system employs a two-tier strategy: trainees with fewer than 3 sessions are evaluated via a heuristic rule (`COLD_START_CUTOFF = 50.0%`), while trainees with 3 or more sessions are evaluated using the trained machine learning model.",
-          "role": "trainer",
-          "score": 4.4747
-        },
-        {
-          "source_path": "backend/app/core/constants.py",
-          "heading": "System Constant: COLD_START_SESSIONS",
-          "text": "COLD_START_SESSIONS = 3. A minimum of 3 completed assessment sessions is required before evaluating longitudinal risk trajectories.",
-          "role": "trainer",
-          "score": 4.1842
+          "score": 15.3749
         }
       ]
     },
@@ -362,21 +258,7 @@
           "heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
           "text": "The cohort heatmap displays a cross-tabulated matrix of trainees and curriculum modules. Each cell displays the trainee average percentage score, recorded error count, and session total. This allows instructors to identify both cohort-wide curriculum bottlenecks and individual learner struggle areas at a glance. Cells with lower averages or higher error counts indicate where review lectures or supplemental exercises are needed.",
           "role": "trainer",
-          "score": 8.0018
-        },
-        {
-          "source_path": "REPORT.md",
-          "heading": "1. Problem Statement",
-          "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
-          "role": "all",
-          "score": 3.5316
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Training Analytics Portal",
-          "text": "A web application for tracking trainee assessment sessions, cohort progress, evaluator scoring, and training performance metrics.\n\nThe system is built with a FastAPI backend (Python, SQLAlchemy, SQLite/PostgreSQL) and a React frontend (Vite, Tailwind CSS, Recharts).\n\n---",
-          "role": "all",
-          "score": 3.3157
+          "score": 8.0121
         }
       ]
     },
@@ -394,21 +276,21 @@
           "heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
           "text": "Trainers can record individual assessment sessions or bulk-import session records via CSV files. All imports enforce atomic validation:\n- Every CSV row must specify an existing trainee email, valid module name, valid date, non-negative duration, and non-negative defect count.\n- The raw score cannot exceed the module maximum score.\n- If any single row contains validation errors or invalid values, the entire import transaction is rejected, preventing partial or inconsistent data persistence.",
           "role": "trainer",
-          "score": 13.8078
+          "score": 13.8311
         },
         {
           "source_path": "REPORT.md",
           "heading": "4.1 Centralized Grading Threshold Policy",
           "text": "The threshold parameters (`PASS_THRESHOLD = 60.0%`, `EXCELLENT_THRESHOLD = 75.0%`) are defined in shared constants files (`app/core/constants.py` on backend, `frontend/src/constants/thresholds.js` on frontend). All aggregate queries, alert rules, and badge renderings evaluate against these exact numbers, preventing discrepancy between cohort summaries and individual reports.",
           "role": "all",
-          "score": 6.0896
+          "score": 6.1004
         },
         {
           "source_path": "REPORT.md",
           "heading": "4.3 Atomic Two-Phase Batch CSV Import",
           "text": "File uploads undergo a dry-run validation pass before database persistence. Rows are checked for trainee existence, module bounds, date validity, and duplicate entries. If any row contains an error, the commit action is disabled, preventing partial database corruption.",
           "role": "trainer",
-          "score": 5.9575
+          "score": 5.9669
         }
       ]
     },
@@ -426,21 +308,14 @@
           "heading": "Trainer Guide: Qualitative Session Feedback Notes",
           "text": "When recording or reviewing an assessment drill, trainers can write qualitative feedback notes. These notes document technical shortcomings, recommend remedial actions, and provide constructive guidance. Feedback notes are visible to the trainee in their dossier and persist in the evaluation record to track longitudinal improvement.",
           "role": "trainer",
-          "score": 17.5308
+          "score": 17.5484
         },
         {
           "source_path": "README.md",
           "heading": "Trainer Guide: Batch Trainer Assignments",
           "text": "Cohort oversight is governed by batch trainer assignments in the database. A trainer is linked to one or more batches, granting them access to view cohort analytics, record session results, import CSV data, and message assigned students. Instructors cannot inspect or modify batches to which they are not assigned.",
           "role": "trainer",
-          "score": 5.1608
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
-          "text": "The cohort heatmap displays a cross-tabulated matrix of trainees and curriculum modules. Each cell displays the trainee average percentage score, recorded error count, and session total. This allows instructors to identify both cohort-wide curriculum bottlenecks and individual learner struggle areas at a glance. Cells with lower averages or higher error counts indicate where review lectures or supplemental exercises are needed.",
-          "role": "trainer",
-          "score": 2.7713
+          "score": 5.1696
         }
       ]
     },
@@ -458,21 +333,14 @@
           "heading": "Trainer Guide: Cohort Messaging Rules",
           "text": "Trainers can exchange direct messages with trainees enrolled in batches assigned to them. Trainer messaging adheres to strict participant boundaries:\n- Trainers may message only trainees in batches to which they are assigned via batch trainer mappings.\n- Trainer-to-trainer messaging is prohibited to ensure communication remains focused on trainee instruction.\n- All communications are strictly contained within batch boundaries.",
           "role": "trainer",
-          "score": 9.4798
+          "score": 9.494
         },
         {
           "source_path": "backend/app/core/constants.py",
           "heading": "System Constant: MAX_SESSION_TIME_SECONDS",
           "text": "MAX_SESSION_TIME_SECONDS = 14400. The maximum allowed duration for an assessment session is 14400 seconds (4 hours).",
           "role": "all",
-          "score": 5.0861
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainer Guide: Qualitative Session Feedback Notes",
-          "text": "When recording or reviewing an assessment drill, trainers can write qualitative feedback notes. These notes document technical shortcomings, recommend remedial actions, and provide constructive guidance. Feedback notes are visible to the trainee in their dossier and persist in the evaluation record to track longitudinal improvement.",
-          "role": "trainer",
-          "score": 4.9
+          "score": 5.0911
         }
       ]
     },
@@ -490,21 +358,14 @@
           "heading": "Trainer Guide: Batch Trainer Assignments",
           "text": "Cohort oversight is governed by batch trainer assignments in the database. A trainer is linked to one or more batches, granting them access to view cohort analytics, record session results, import CSV data, and message assigned students. Instructors cannot inspect or modify batches to which they are not assigned.",
           "role": "trainer",
-          "score": 15.5043
+          "score": 15.5251
         },
         {
           "source_path": "REPORT.md",
           "heading": "1. Problem Statement",
           "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
           "role": "all",
-          "score": 5.5036
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainer Guide: Cohort Messaging Rules",
-          "text": "Trainers can exchange direct messages with trainees enrolled in batches assigned to them. Trainer messaging adheres to strict participant boundaries:\n- Trainers may message only trainees in batches to which they are assigned via batch trainer mappings.\n- Trainer-to-trainer messaging is prohibited to ensure communication remains focused on trainee instruction.\n- All communications are strictly contained within batch boundaries.",
-          "role": "trainer",
-          "score": 4.2472
+          "score": 5.5169
         }
       ]
     },
@@ -522,21 +383,21 @@
           "heading": "System Constant: COLD_START_CUTOFF",
           "text": "COLD_START_CUTOFF = 50.0. Trainees with fewer than 3 sessions scoring below an initial average of 50.0% are immediately flagged for attention.",
           "role": "trainer",
-          "score": 10.9707
+          "score": 10.98
         },
         {
           "source_path": "README.md",
           "heading": "Trainer Guide: Cold-Start Evaluation Rules",
           "text": "The system applies cold-start heuristic rules for new learners who lack sufficient evaluation history:\n- Trainees with fewer than 3 completed sessions (COLD_START_SESSIONS) are classified under the cold-start rule.\n- If a trainee with fewer than 3 sessions records an initial average percentage score below 50.0% (COLD_START_CUTOFF), they are immediately flagged for instructor attention.\n- Once a learner completes 3 or more sessions, evaluation transitions to longitudinal performance tracking.",
           "role": "trainer",
-          "score": 9.2291
+          "score": 9.2432
         },
         {
           "source_path": "README.md",
           "heading": "Trainer Guide: Needs-Attention Queue and Alerts",
           "text": "The Needs-Attention queue highlights candidates within active batches who require prompt pedagogical intervention. A trainee is placed in this queue for two explicit reasons:\n1. Their historical average score across completed sessions falls below the 60.0% pass threshold.\n2. An early-warning alert is triggered during initial onboarding when early performance falls below acceptable marks.\nTrainers should review flagged candidates daily and assign corrective remediation drills where deficits are found.",
           "role": "trainer",
-          "score": 7.8977
+          "score": 7.9116
         }
       ]
     },
@@ -554,21 +415,21 @@
           "heading": "Admin Guide: User Provisioning and Account Controls",
           "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.",
           "role": "admin",
-          "score": 19.5281
+          "score": 19.5511
         },
         {
           "source_path": "README.md",
           "heading": "3. Default Seeded Credentials",
           "text": "The database seed provides pre-configured user accounts across all three platform roles:\n\n| Role | Email | Password | Scope |\n| :--- | :--- | :--- | :--- |\n| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |\n| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |\n| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |\n\n---",
           "role": "admin",
-          "score": 8.1623
+          "score": 8.1778
         },
         {
           "source_path": "README.md",
           "heading": "Admin Guide: Seeded User Credentials and Access Tokens",
           "text": "For development and demonstration, the database seed initializes three role accounts:\n- Administrator: admin@example.com (Password: Admin123!)\n- Trainer: trainer@example.com (Password: Trainer@123)\n- Trainee: trainee@example.com (Password: Trainee@123)\nAuthentication uses JSON Web Tokens (JWT) signed with HS256, valid for 24 hours.",
           "role": "admin",
-          "score": 5.2391
+          "score": 5.2479
         }
       ]
     },
@@ -586,21 +447,21 @@
           "heading": "Admin Guide: Audit Log Compliance Tracking",
           "text": "The platform maintains an append-only audit log tracking sensitive administrative and evaluation modifications. Every log entry records the action performed, the entity type, the entity ID, the actor user ID, changes, and the exact timestamp. Audit logs cannot be modified or deleted through the interface, providing accountability and compliance traceability.",
           "role": "admin",
-          "score": 13.8466
+          "score": 13.8647
         },
         {
           "source_path": "backend/app/ml/evaluation.json",
           "heading": "Evaluation Metric: details",
           "text": "evaluation details: 41 evaluated trainee sessions recorded in evaluation.json.",
           "role": "admin",
-          "score": 9.3448
+          "score": 9.3489
         },
         {
           "source_path": "REPORT.md",
           "heading": "6.2 Application-Layer Audit Log Immutability",
           "text": "Immutability of the `audit_logs` table is enforced at the repository and service interface level. Database-level immutability triggers and hardware-enforced write-once storage are not implemented.",
           "role": "admin",
-          "score": 6.6374
+          "score": 6.6445
         }
       ]
     },
@@ -618,21 +479,21 @@
           "heading": "Admin Guide: Predictive Model Evaluation",
           "text": "The platform evaluates an early-warning predictive classifier against a baseline heuristic rule using a chronological holdout partition of 41 trainees with 5 or more recorded sessions:\n- Baseline Heuristic: Flags trainees whose historical score average is below 60.0% (F1: 0.8276, precision: 0.7059, recall: 1.0000).\n- Random Forest Classifier: Evaluates pacing, defect rates, and score trajectories (F1: 0.8000, precision: 0.6667, recall: 1.0000).\nThe machine learning model did not beat the baseline heuristic, and observed differences remain within statistical sampling noise on the 12 positive instances.",
           "role": "admin",
-          "score": 10.9958
+          "score": 11.015
         },
         {
           "source_path": "backend/app/ml/evaluation.json",
           "heading": "Evaluation Metric: model_name",
           "text": "model_name = Random Forest",
           "role": "admin",
-          "score": 10.1743
+          "score": 10.1777
         },
         {
           "source_path": "REPORT.md",
           "heading": "5.3 Analysis",
           "text": "The machine learning model did not beat the baseline heuristic rule. Both approaches identified all 12 at-risk trainees (100% recall). The difference between the two approaches amounts to a single additional false positive generated by the Random Forest model (6 false positives versus 5 for the baseline). On a sample size of 41 trainees, a difference of 1 classification shifts precision by approximately 0.04, indicating that performance differences remain within statistical sampling noise. In accordance with project requirements, no artificial hyperparameter tuning was applied.\n\n---",
           "role": "admin",
-          "score": 9.6552
+          "score": 9.6744
         }
       ]
     },
@@ -650,21 +511,14 @@
           "heading": "Admin Guide: Data Quality and Integrity Monitoring",
           "text": "Data quality controls protect the database against corrupted or invalid records:\n- Score Bounds: Assessment scores must fall between zero and the curriculum module maximum score.\n- Referential Integrity: Foreign keys link trainees to valid batches and users, and link sessions to valid trainees and modules.\n- Unique Constraints: Trainee goals enforce uniqueness per trainee and module pair.\n- Validation: CSV imports undergo atomic pre-validation to prevent orphan or corrupted records.",
           "role": "admin",
-          "score": 14.4411
+          "score": 14.4651
         },
         {
           "source_path": "README.md",
           "heading": "Admin Guide: Relational Database Schema and Architecture",
           "text": "The persistence layer is structured around eight core relational tables: users, batches, batch_trainers, trainees, modules, sessions, remediations, trainee_goals, and audit_logs. All tables feature strict primary and foreign key constraints, indexes on lookup keys, and automated timestamp tracking via SQLAlchemy 2.0 ORM.",
           "role": "admin",
-          "score": 5.4933
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
-          "text": "Trainers can record individual assessment sessions or bulk-import session records via CSV files. All imports enforce atomic validation:\n- Every CSV row must specify an existing trainee email, valid module name, valid date, non-negative duration, and non-negative defect count.\n- The raw score cannot exceed the module maximum score.\n- If any single row contains validation errors or invalid values, the entire import transaction is rejected, preventing partial or inconsistent data persistence.",
-          "role": "trainer",
-          "score": 4.7309
+          "score": 5.5026
         }
       ]
     },
@@ -682,21 +536,14 @@
           "heading": "Admin Guide: Batch and Curriculum Module Management",
           "text": "Administrators oversee the curriculum structure by creating, updating, and retiring batches and modules:\n- Batches: Define cohort name, start date, end date, and assigned lead instructor.\n- Modules: Define curriculum assessment topics, description, and maximum raw score allowable for scoring calculations.",
           "role": "admin",
-          "score": 11.3902
+          "score": 11.4032
         },
         {
           "source_path": "README.md",
           "heading": "Admin Guide: User Provisioning and Account Controls",
           "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.",
           "role": "admin",
-          "score": 8.9738
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Admin Guide: Data Quality and Integrity Monitoring",
-          "text": "Data quality controls protect the database against corrupted or invalid records:\n- Score Bounds: Assessment scores must fall between zero and the curriculum module maximum score.\n- Referential Integrity: Foreign keys link trainees to valid batches and users, and link sessions to valid trainees and modules.\n- Unique Constraints: Trainee goals enforce uniqueness per trainee and module pair.\n- Validation: CSV imports undergo atomic pre-validation to prevent orphan or corrupted records.",
-          "role": "admin",
-          "score": 4.5143
+          "score": 8.9856
         }
       ]
     },
@@ -714,21 +561,14 @@
           "heading": "Admin Guide: Seeded User Credentials and Access Tokens",
           "text": "For development and demonstration, the database seed initializes three role accounts:\n- Administrator: admin@example.com (Password: Admin123!)\n- Trainer: trainer@example.com (Password: Trainer@123)\n- Trainee: trainee@example.com (Password: Trainee@123)\nAuthentication uses JSON Web Tokens (JWT) signed with HS256, valid for 24 hours.",
           "role": "admin",
-          "score": 10.972
+          "score": 10.9904
         },
         {
           "source_path": "README.md",
           "heading": "3. Default Seeded Credentials",
           "text": "The database seed provides pre-configured user accounts across all three platform roles:\n\n| Role | Email | Password | Scope |\n| :--- | :--- | :--- | :--- |\n| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |\n| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |\n| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |\n\n---",
           "role": "admin",
-          "score": 9.2988
-        },
-        {
-          "source_path": "README.md",
-          "heading": "Admin Guide: User Provisioning and Account Controls",
-          "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.",
-          "role": "admin",
-          "score": 4.1426
+          "score": 9.3181
         }
       ]
     },
@@ -746,21 +586,21 @@
           "heading": "Admin Guide: Relational Database Schema and Architecture",
           "text": "The persistence layer is structured around eight core relational tables: users, batches, batch_trainers, trainees, modules, sessions, remediations, trainee_goals, and audit_logs. All tables feature strict primary and foreign key constraints, indexes on lookup keys, and automated timestamp tracking via SQLAlchemy 2.0 ORM.",
           "role": "admin",
-          "score": 20.0014
+          "score": 20.0304
         },
         {
           "source_path": "REPORT.md",
           "heading": "2. Database Schema (Part 1)",
           "text": "The database is structured as a normalized relational schema, implemented using SQLAlchemy 2.0 ORM with support for SQLite and PostgreSQL:",
           "role": "admin",
-          "score": 10.4496
+          "score": 10.4581
         },
         {
           "source_path": "REPORT.md",
           "heading": "6.3 Database Schema Migration Constraints",
           "text": "When using SQLite with SQLAlchemy, `Base.metadata.create_all()` creates missing tables but does not alter pre-existing tables. Introducing new columns (such as `audit_logs.actor_id`) requires a full reseed (`python scripts/seed.py --reset`) or manual DDL migration.",
           "role": "admin",
-          "score": 8.0271
+          "score": 8.0377
         }
       ]
     },
@@ -778,21 +618,21 @@
           "heading": "6.1 Small Dataset Volume for Machine Learning",
           "text": "The benchmark cohort consists of 41 qualified trainees and 12 positive instances. While adequate for operational tracking, this sample volume limits the machine learning model from learning non-linear interactions beyond simple moving averages.",
           "role": "admin",
-          "score": 15.9945
+          "score": 16.0115
         },
         {
           "source_path": "REPORT.md",
           "heading": "5. Evaluation Results",
           "text": "The machine learning early-warning predictor was evaluated using a rigorous chronological holdout methodology:",
           "role": "admin",
-          "score": 8.5684
+          "score": 8.5748
         },
         {
           "source_path": "REPORT.md",
           "heading": "4.2 Two-Tier Early Risk Detection",
           "text": "Machine learning classifiers require historical data to generate reliable predictions. To address cold starts, the system employs a two-tier strategy: trainees with fewer than 3 sessions are evaluated via a heuristic rule (`COLD_START_CUTOFF = 50.0%`), while trainees with 3 or more sessions are evaluated using the trained machine learning model.",
           "role": "trainer",
-          "score": 5.085
+          "score": 5.0915
         }
       ]
     },
@@ -809,46 +649,87 @@
       "question": "What is the tuition refund policy for students who drop out?",
       "role": "trainee",
       "expected_heading": null,
-      "results_returned": 3,
-      "refusal_correct": false,
+      "results_returned": 0,
+      "refusal_correct": true,
       "role_violation": false,
-      "top_returned_heading": "4.1 Centralized Grading Threshold Policy"
+      "top_returned_heading": null
     },
     {
       "question": "Where can trainers submit expense reports for travel reimbursements?",
       "role": "trainer",
       "expected_heading": null,
-      "results_returned": 3,
-      "refusal_correct": false,
+      "results_returned": 0,
+      "refusal_correct": true,
       "role_violation": false,
-      "top_returned_heading": "4.1 Centralized Grading Threshold Policy"
+      "top_returned_heading": null
     },
     {
       "question": "How do I order promotional company merchandise and coffee mugs?",
       "role": "trainer",
       "expected_heading": null,
-      "results_returned": 3,
-      "refusal_correct": false,
+      "results_returned": 0,
+      "refusal_correct": true,
       "role_violation": false,
-      "top_returned_heading": "3.4 Curriculum Defect Diagnostics Query"
+      "top_returned_heading": null
     },
     {
       "question": "What is the company holiday calendar and paid time off policy?",
       "role": "admin",
       "expected_heading": null,
-      "results_returned": 3,
-      "refusal_correct": false,
+      "results_returned": 0,
+      "refusal_correct": true,
       "role_violation": false,
-      "top_returned_heading": "System Constant: MAX_SESSION_TIME_SECONDS"
+      "top_returned_heading": null
     },
     {
       "question": "How do I set up Stripe credit card processing for subscription billing?",
       "role": "admin",
       "expected_heading": null,
-      "results_returned": 2,
-      "refusal_correct": false,
+      "results_returned": 0,
+      "refusal_correct": true,
       "role_violation": false,
-      "top_returned_heading": "4.4 Shared Dashboard State Components"
+      "top_returned_heading": null
     }
-  ]
+  ],
+  "floor_comparisons": {
+    "4.0": {
+      "floor": 4.0,
+      "total_questions": 30,
+      "in_scope_questions": 24,
+      "out_of_scope_questions": 6,
+      "hit_at_1_count": 23,
+      "hit_at_1_pct": 95.8,
+      "hit_at_3_count": 24,
+      "hit_at_3_pct": 100.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 83.3
+    },
+    "5.0": {
+      "floor": 5.0,
+      "total_questions": 30,
+      "in_scope_questions": 24,
+      "out_of_scope_questions": 6,
+      "hit_at_1_count": 23,
+      "hit_at_1_pct": 95.8,
+      "hit_at_3_count": 24,
+      "hit_at_3_pct": 100.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 6,
+      "refusal_accuracy_pct": 100.0
+    },
+    "6.0": {
+      "floor": 6.0,
+      "total_questions": 30,
+      "in_scope_questions": 24,
+      "out_of_scope_questions": 6,
+      "hit_at_1_count": 23,
+      "hit_at_1_pct": 95.8,
+      "hit_at_3_count": 23,
+      "hit_at_3_pct": 95.8,
+      "role_violation_count": 0,
+      "refusal_correct_count": 6,
+      "refusal_accuracy_pct": 100.0
+    }
+  }
 }
