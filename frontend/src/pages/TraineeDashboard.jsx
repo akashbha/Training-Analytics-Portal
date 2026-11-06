@@ -136,7 +136,7 @@ function getModuleCategory(moduleName = "") {
   return { label: "Module", bg: "bg-slate-100 text-slate-700 border-slate-200" };
 }
 
-function SessionNotesRow({ sessionId, isStaff }) {
+function SessionNotesRow({ sessionId, isStaff, isFormOpen, onCloseForm }) {
   const [notes, setNotes] = useState(null);
   const [loading, setLoading] = useState(false);
   const [newNote, setNewNote] = useState("");
@@ -168,6 +168,7 @@ function SessionNotesRow({ sessionId, isStaff }) {
     try {
       await apiClient.post(`/sessions/${sessionId}/notes`, { text: newNote.trim() });
       setNewNote("");
+      if (onCloseForm) onCloseForm();
       await loadNotes();
     } catch (err) {
       setErrorMsg(err.message || "Failed to record feedback note");
@@ -176,9 +177,15 @@ function SessionNotesRow({ sessionId, isStaff }) {
     }
   };
 
-  const latestNote = notes && notes.length > 0 ? notes[0] : null;
+  const hasNotes = notes && notes.length > 0;
 
-  if (!isStaff && !latestNote && !loading) {
+  // Trainee: if no notes, show nothing extra
+  if (!isStaff && !hasNotes && !loading) {
+    return null;
+  }
+
+  // Trainer: if no notes and form is not open, show nothing extra
+  if (isStaff && !hasNotes && !isFormOpen && !loading) {
     return null;
   }
 
@@ -194,48 +201,75 @@ function SessionNotesRow({ sessionId, isStaff }) {
 
   return (
     <tr className="bg-slate-50/70 border-b border-slate-100 text-xs">
-      <td colSpan={isStaff ? 6 : 5} className="py-2 px-3">
-        <div className="space-y-1.5">
-          {latestNote ? (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white/80 border border-slate-200/80 rounded px-2.5 py-1.5">
-              <div className="flex items-start gap-2">
-                <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shrink-0">
-                  Trainer Feedback
-                </span>
-                <span className="text-slate-800 text-xs">{latestNote.text}</span>
-              </div>
-              <div className="text-[11px] text-slate-500 whitespace-nowrap shrink-0">
-                by {latestNote.author_name || latestNote.author_email || "Trainer"} on {formattedDate(latestNote.created_at)}
-              </div>
+      <td colSpan={isStaff ? 6 : 5} className="py-2.5 px-3">
+        <div className="space-y-2">
+          {/* Existing notes list */}
+          {hasNotes && (
+            <div className="space-y-1.5">
+              {notes.map((n) => (
+                <div
+                  key={n.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white/90 border border-slate-200/80 rounded px-3 py-1.5"
+                >
+                  <div className="flex items-start gap-2 min-w-0">
+                    <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shrink-0">
+                      Trainer Feedback
+                    </span>
+                    <span className="text-slate-800 text-xs break-words">{n.text}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 whitespace-nowrap shrink-0">
+                    by {n.author_name || n.author_email || "Trainer"} on {formattedDate(n.created_at)}
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : (
-            !isStaff && (
-              <span className="text-[11px] text-slate-400 italic">No feedback note recorded.</span>
-            )
           )}
 
-          {isStaff && (
-            <form onSubmit={handleAddNote} className="flex items-center gap-2">
-              <input
-                type="text"
+          {/* Inline Add Note Form for Staff */}
+          {isStaff && isFormOpen && (
+            <form onSubmit={handleAddNote} className="p-3 bg-white border border-slate-200 rounded space-y-2 mt-1">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
+                <span>Add Trainer Note</span>
+                <span className={`text-[11px] font-mono tabular-nums ${newNote.length >= 280 ? "text-amber-600 font-bold" : "text-slate-400"}`}>
+                  {newNote.length}/300
+                </span>
+              </div>
+              <textarea
+                rows={2}
                 maxLength={300}
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Add feedback note (max 300 chars)..."
-                className="flex-1 bg-white border border-slate-200 rounded px-2.5 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-blue-600"
+                placeholder="Enter feedback note for this assessment session (max 300 characters)..."
+                className="w-full bg-slate-50 border border-slate-200 rounded p-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-blue-600 focus:bg-white resize-none"
               />
-              <button
-                type="submit"
-                disabled={submitting || !newNote.trim()}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-semibold px-3 py-1 rounded transition-colors shrink-0 cursor-pointer"
-              >
-                {submitting ? "Saving..." : "Add Note"}
-              </button>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-slate-400 font-mono">
+                  {300 - newNote.length} characters left
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewNote("");
+                      if (onCloseForm) onCloseForm();
+                    }}
+                    className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded border border-slate-200 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting || !newNote.trim()}
+                    className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 rounded transition-colors cursor-pointer"
+                  >
+                    {submitting ? "Saving..." : "Save note"}
+                  </button>
+                </div>
+              </div>
+              {errorMsg && (
+                <div className="text-[11px] text-rose-600 font-medium">{errorMsg}</div>
+              )}
             </form>
-          )}
-
-          {errorMsg && (
-            <div className="text-[11px] text-rose-600 font-medium">{errorMsg}</div>
           )}
         </div>
       </td>
@@ -281,6 +315,9 @@ export function TraineeDashboard({ traineeId: propId }) {
   const [deleteSessionTarget, setDeleteSessionTarget] = useState(null);
   const [deleteSessionLoading, setDeleteSessionLoading] = useState(false);
   const [deleteSessionError, setDeleteSessionError] = useState("");
+
+  // Feedback note inline form state
+  const [activeNoteSessionId, setActiveNoteSessionId] = useState(null);
 
   // Fetch trainee analytics
   const {
@@ -1888,18 +1925,32 @@ export function TraineeDashboard({ traineeId: propId }) {
                           {/* Staff Actions */}
                           {isStaff && (
                             <td className="py-3 px-3 text-right">
-                              <button
-                                type="button"
-                                onClick={() => setDeleteSessionTarget(s)}
-                                title="Delete session"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center justify-end space-x-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveNoteSessionId(activeNoteSessionId === s.id ? null : s.id)}
+                                  className="px-2.5 py-1 rounded text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 border border-blue-200 transition-colors cursor-pointer"
+                                >
+                                  {activeNoteSessionId === s.id ? "Cancel note" : "Add note"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteSessionTarget(s)}
+                                  title="Delete session"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           )}
                         </tr>
-                        <SessionNotesRow sessionId={s.id} isStaff={isStaff} />
+                        <SessionNotesRow
+                          sessionId={s.id}
+                          isStaff={isStaff}
+                          isFormOpen={activeNoteSessionId === s.id}
+                          onCloseForm={() => setActiveNoteSessionId(null)}
+                        />
                       </React.Fragment>
                     );
                   })}

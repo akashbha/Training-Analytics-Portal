@@ -112,7 +112,7 @@ function getSeverity(item) {
   if (isCritical) {
     return {
       rank: 1,
-      label: "Critical",
+      label: "Model risk: high",
       bg: "bg-rose-50 text-rose-700 border-rose-200",
       dot: "bg-rose-500",
     };
@@ -128,7 +128,7 @@ function getSeverity(item) {
   if (isHigh) {
     return {
       rank: 2,
-      label: "High",
+      label: "Model risk: moderate",
       bg: "bg-amber-50 text-amber-700 border-amber-200",
       dot: "bg-amber-500",
     };
@@ -136,7 +136,7 @@ function getSeverity(item) {
 
   return {
     rank: 3,
-    label: "Warning",
+    label: "Watch (cold start)",
     bg: "bg-slate-100 text-slate-700 border-slate-200",
     dot: "bg-slate-500",
   };
@@ -645,6 +645,7 @@ export function Dashboard() {
                       {/* Severity */}
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span
+                          title={t.attention_probability != null ? `Model confidence probability: ${t.attention_probability}%` : undefined}
                           className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${sev.bg}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${sev.dot}`} />
