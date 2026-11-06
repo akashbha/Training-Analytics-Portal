@@ -20,7 +20,7 @@ from app.core.exceptions import (
     rate_limit_handler,
     unhandled_exception_handler
 )
-from app.routers import auth, batches, trainees, modules, sessions, analytics, realtime, admin, remediations, messages
+from app.routers import auth, batches, trainees, modules, sessions, analytics, realtime, admin, remediations, messages, help
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -65,6 +65,7 @@ app.include_router(realtime.router)
 app.include_router(admin.router)
 app.include_router(remediations.router)
 app.include_router(messages.router)
+app.include_router(help.router)
 
 @app.get("/health", tags=["System"])
 def health_check():
