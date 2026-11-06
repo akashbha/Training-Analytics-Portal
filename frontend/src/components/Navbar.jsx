@@ -82,10 +82,12 @@ export function Navbar({ liveSlot = null }) {
         { label: "Batches", to: "/batches" },
         { label: "Trainees", to: "/trainees" },
         { label: "Add Session", to: "/sessions/new" },
+        { label: "Messages", to: "/messages" },
       ]
     : [
         { label: "Home", to: "/" },
         { label: "My Dossier", to: `/trainees/${user?.trainee_id || 1}` },
+        { label: "Messages", to: "/messages" },
       ];
 
   const handlePasswordSubmit = async (e) => {

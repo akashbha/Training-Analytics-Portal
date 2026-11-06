@@ -18,6 +18,7 @@ import { AddSession } from "./pages/AddSession.jsx";
 import { Modules } from "./pages/Modules.jsx";
 import { Users } from "./pages/Users.jsx";
 import { AuditLogs } from "./pages/AuditLogs.jsx";
+import { Messages } from "./pages/Messages.jsx";
 import { UnauthorizedPage } from "./pages/UnauthorizedPage.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 
@@ -235,6 +236,18 @@ export function App() {
                       <Modules />
                     </Layout>
                   </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Private Messaging Route (Trainee and Trainer only) */}
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Messages />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
