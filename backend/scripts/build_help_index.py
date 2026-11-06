@@ -23,7 +23,7 @@ from app.db.base import Base
 from app.db.session import sync_engine, SyncSessionLocal
 from app.models.help_chunk import HelpChunk
 
-def assign_role_from_context(heading: str, text_content: str) -> str:
+def assign_role_from_context(heading: str, text_content: str, source_path: str = "") -> str:
     """Infers participant role tag from heading or explicit tag annotations."""
     lower_heading = heading.lower()
     lower_text = text_content.lower()
@@ -36,12 +36,30 @@ def assign_role_from_context(heading: str, text_content: str) -> str:
     if "role: trainee" in lower_text or "role tag: trainee" in lower_text:
         return "trainee"
 
-    # Heading heuristics
-    if "admin" in lower_heading or "audit" in lower_heading or "provision" in lower_heading:
+    # Evaluation json is admin-only evaluation metrics
+    if "evaluation.json" in source_path:
         return "admin"
-    if "trainer" in lower_heading or "instructor" in lower_heading or "grading" in lower_heading or "remediation" in lower_heading:
+
+    # Admin sections (schema, setup, database, design decisions, audit, provisioning, limitations)
+    if any(k in lower_heading for k in [
+        "admin", "audit", "provision", "schema", "database", "setup",
+        "credential", "user management", "design decision", "limitation",
+        "protocol", "performance comparison", "analysis"
+    ]):
+        return "admin"
+
+    # Trainer sections (cohort analytics, KPIs, scoring rules, defects, remediations, attention)
+    if any(k in lower_heading for k in [
+        "trainer", "instructor", "grading", "remediation", "kpi",
+        "cohort", "attention", "at-risk", "defect", "session",
+        "delta", "diagnostic", "cold_start"
+    ]):
         return "trainer"
-    if "trainee" in lower_heading or "student" in lower_heading or "dossier" in lower_heading:
+
+    # Trainee sections (dossiers, personal progress, student views)
+    if any(k in lower_heading for k in [
+        "trainee", "student", "dossier", "goal", "learner", "personal"
+    ]):
         return "trainee"
 
     return "all"
@@ -93,7 +111,7 @@ def split_markdown_into_chunks(filepath: str, rel_path: str) -> List[Dict[str, A
     for s in sections:
         raw_text = s["text"]
         if len(raw_text) <= 1800:
-            role = assign_role_from_context(s["heading"], raw_text)
+            role = assign_role_from_context(s["heading"], raw_text, rel_path)
             chunked_results.append({
                 "source_path": s["source_path"],
                 "heading": s["heading"],
@@ -110,7 +128,7 @@ def split_markdown_into_chunks(filepath: str, rel_path: str) -> List[Dict[str, A
                     buffer = (buffer + "\n\n" + p).strip() if buffer else p.strip()
                 else:
                     if buffer:
-                        role = assign_role_from_context(s["heading"], buffer)
+                        role = assign_role_from_context(s["heading"], buffer, rel_path)
                         chunked_results.append({
                             "source_path": s["source_path"],
                             "heading": f"{s['heading']} (Part {part_index})",
@@ -120,7 +138,7 @@ def split_markdown_into_chunks(filepath: str, rel_path: str) -> List[Dict[str, A
                         part_index += 1
                     buffer = p.strip()
             if buffer:
-                role = assign_role_from_context(s["heading"], buffer)
+                role = assign_role_from_context(s["heading"], buffer, rel_path)
                 chunked_results.append({
                     "source_path": s["source_path"],
                     "heading": f"{s['heading']} (Part {part_index})" if part_index > 1 else s["heading"],
@@ -165,7 +183,7 @@ def parse_evaluation_json(filepath: str, rel_path: str) -> List[Dict[str, Any]]:
         chunks.append({
             "source_path": rel_path,
             "heading": f"Evaluation Metric: {k}",
-            "role": "admin" if k in ("baseline", "model", "model_beats_baseline") else "all",
+            "role": "admin",
             "text": text_str[:1900]
         })
 
