@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.trainee import Trainee
     from app.models.module import Module
     from app.models.user import User
+    from app.models.session_note import SessionNote
 
 class Session(Base):
     __tablename__ = "sessions"
@@ -47,6 +48,7 @@ class Session(Base):
     trainee: Mapped["Trainee"] = relationship("Trainee", back_populates="sessions")
     module: Mapped["Module"] = relationship("Module", back_populates="sessions")
     creator: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by])
+    notes: Mapped[list["SessionNote"]] = relationship("SessionNote", back_populates="session", cascade="all, delete-orphan", order_by="desc(SessionNote.created_at)")
 
     __table_args__ = (
         CheckConstraint("score >= 0", name="chk_session_score_non_negative"),

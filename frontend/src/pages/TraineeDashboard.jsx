@@ -136,6 +136,113 @@ function getModuleCategory(moduleName = "") {
   return { label: "Module", bg: "bg-slate-100 text-slate-700 border-slate-200" };
 }
 
+function SessionNotesRow({ sessionId, isStaff }) {
+  const [notes, setNotes] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const loadNotes = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/sessions/${sessionId}/notes`);
+      setNotes(res.data || []);
+    } catch {
+      setNotes([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
+
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    if (!newNote.trim() || submitting) return;
+    setSubmitting(true);
+    setErrorMsg("");
+    try {
+      await apiClient.post(`/sessions/${sessionId}/notes`, { text: newNote.trim() });
+      setNewNote("");
+      await loadNotes();
+    } catch (err) {
+      setErrorMsg(err.message || "Failed to record feedback note");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const latestNote = notes && notes.length > 0 ? notes[0] : null;
+
+  if (!isStaff && !latestNote && !loading) {
+    return null;
+  }
+
+  const formattedDate = (d) => {
+    if (!d) return "-";
+    const dateObj = new Date(d);
+    return dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <tr className="bg-slate-50/70 border-b border-slate-100 text-xs">
+      <td colSpan={isStaff ? 6 : 5} className="py-2 px-3">
+        <div className="space-y-1.5">
+          {latestNote ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white/80 border border-slate-200/80 rounded px-2.5 py-1.5">
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shrink-0">
+                  Trainer Feedback
+                </span>
+                <span className="text-slate-800 text-xs">{latestNote.text}</span>
+              </div>
+              <div className="text-[11px] text-slate-500 whitespace-nowrap shrink-0">
+                by {latestNote.author_name || latestNote.author_email || "Trainer"} on {formattedDate(latestNote.created_at)}
+              </div>
+            </div>
+          ) : (
+            !isStaff && (
+              <span className="text-[11px] text-slate-400 italic">No feedback note recorded.</span>
+            )
+          )}
+
+          {isStaff && (
+            <form onSubmit={handleAddNote} className="flex items-center gap-2">
+              <input
+                type="text"
+                maxLength={300}
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Add feedback note (max 300 chars)..."
+                className="flex-1 bg-white border border-slate-200 rounded px-2.5 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-blue-600"
+              />
+              <button
+                type="submit"
+                disabled={submitting || !newNote.trim()}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-semibold px-3 py-1 rounded transition-colors shrink-0 cursor-pointer"
+              >
+                {submitting ? "Saving..." : "Add Note"}
+              </button>
+            </form>
+          )}
+
+          {errorMsg && (
+            <div className="text-[11px] text-rose-600 font-medium">{errorMsg}</div>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export function TraineeDashboard({ traineeId: propId }) {
   const params = useParams();
   const { user, isTrainer, isAdmin } = useAuth();
@@ -1661,7 +1768,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                           day: "numeric",
                           year: "numeric",
                         })
-                      : "—";
+                      : "-";
                     const mins = Math.floor((s.time_seconds || 0) / 60);
                     const secs = (s.time_seconds || 0) % 60;
                     const cat = getModuleCategory(s.module_name);
@@ -1676,122 +1783,124 @@ export function TraineeDashboard({ traineeId: propId }) {
                     const isQual = scorePct != null && scorePct >= PASS_THRESHOLD && scorePct < EXCELLENT_THRESHOLD;
 
                     return (
-                      <tr
-                        key={s.id || idx}
-                        className="hover:bg-slate-50/80 transition-colors group"
-                      >
-                        {/* Session # & Date */}
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-                              #{String(effectiveFilteredSessions.length - idx).padStart(2, "0")}
-                            </span>
-                            <span className="font-semibold text-slate-700">{sessionDate}</span>
-                          </div>
-                        </td>
-
-                        {/* Module & Category Pill */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-bold text-slate-900 truncate max-w-xs block">
-                              {s.module_name}
-                            </span>
-                            <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${cat.bg}`}
-                            >
-                              {cat.label}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Score, Progress Micro-Bar & Outcome Chip */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center space-x-3">
-                            <span className="font-black text-slate-900 text-sm">
-                              {scorePct != null ? `${scorePct.toFixed(1)}%` : "—"}
-                            </span>
-
-                            {/* Micro progress bar */}
-                            <div className="w-10 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
-                              <div
-                                className={`h-full rounded-full ${
-                                  isPass
-                                    ? "bg-emerald-500"
-                                    : isQual
-                                    ? "bg-blue-500"
-                                    : "bg-rose-500"
-                                }`}
-                                style={{ width: `${Math.min(100, Math.max(5, scorePct || 0))}%` }}
-                              />
+                      <React.Fragment key={s.id || idx}>
+                        <tr
+                          className="hover:bg-slate-50/80 transition-colors group"
+                        >
+                          {/* Session # & Date */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                #{String(effectiveFilteredSessions.length - idx).padStart(2, "0")}
+                              </span>
+                              <span className="font-semibold text-slate-700">{sessionDate}</span>
                             </div>
-
-                            {/* Outcome badge */}
-                            <span
-                              className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                isPass
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : isQual
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-rose-50 text-rose-700 border-rose-200"
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  isPass
-                                    ? "bg-emerald-500"
-                                    : isQual
-                                    ? "bg-blue-500"
-                                    : "bg-rose-500"
-                                }`}
-                              />
-                              <span>{isPass ? "Mastery" : isQual ? "Competent" : "Remediation"}</span>
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Defects / Errors */}
-                        <td className="py-3 px-3">
-                          {s.errors === 0 ? (
-                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              0 defects
-                            </span>
-                          ) : s.errors <= 2 ? (
-                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700">
-                              {s.errors} {s.errors === 1 ? "err" : "errs"}
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-50 text-rose-700 border border-rose-200">
-                              {s.errors} errs
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Duration & Pace */}
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          <div className="flex items-center space-x-2 text-slate-600 font-medium">
-                            <span className="font-mono text-[11px] font-semibold text-slate-800">
-                              {mins}m {secs}s
-                            </span>
-                            <span className="text-[10px] text-slate-400">
-                              {mins < 20 ? "· Fast" : mins <= 25 ? "· Target" : "· Extended"}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Staff Actions */}
-                        {isStaff && (
-                          <td className="py-3 px-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => setDeleteSessionTarget(s)}
-                              title="Delete session"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
                           </td>
-                        )}
-                      </tr>
+
+                          {/* Module & Category Pill */}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-bold text-slate-900 truncate max-w-xs block">
+                                {s.module_name}
+                              </span>
+                              <span
+                                className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${cat.bg}`}
+                              >
+                                {cat.label}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Score, Progress Micro-Bar & Outcome Chip */}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center space-x-3">
+                              <span className="font-black text-slate-900 text-sm">
+                                {scorePct != null ? `${scorePct.toFixed(1)}%` : "-"}
+                              </span>
+
+                              {/* Micro progress bar */}
+                              <div className="w-10 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    isPass
+                                      ? "bg-emerald-500"
+                                      : isQual
+                                      ? "bg-blue-500"
+                                      : "bg-rose-500"
+                                  }`}
+                                  style={{ width: `${Math.min(100, Math.max(5, scorePct || 0))}%` }}
+                                />
+                              </div>
+
+                              {/* Outcome badge */}
+                              <span
+                                className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  isPass
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    : isQual
+                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                    : "bg-rose-50 text-rose-700 border-rose-200"
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    isPass
+                                      ? "bg-emerald-500"
+                                      : isQual
+                                      ? "bg-blue-500"
+                                      : "bg-rose-500"
+                                  }`}
+                                />
+                                <span>{isPass ? "Mastery" : isQual ? "Competent" : "Remediation"}</span>
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Defects / Errors */}
+                          <td className="py-3 px-3">
+                            {s.errors === 0 ? (
+                              <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                0 defects
+                              </span>
+                            ) : s.errors <= 2 ? (
+                              <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700">
+                                {s.errors} {s.errors === 1 ? "err" : "errs"}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-50 text-rose-700 border border-rose-200">
+                                {s.errors} errs
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Duration & Pace */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <div className="flex items-center space-x-2 text-slate-600 font-medium">
+                              <span className="font-mono text-[11px] font-semibold text-slate-800">
+                                {mins}m {secs}s
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                {mins < 20 ? "· Fast" : mins <= 25 ? "· Target" : "· Extended"}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Staff Actions */}
+                          {isStaff && (
+                            <td className="py-3 px-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => setDeleteSessionTarget(s)}
+                                title="Delete session"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                        <SessionNotesRow sessionId={s.id} isStaff={isStaff} />
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

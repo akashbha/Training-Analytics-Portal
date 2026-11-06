@@ -16,9 +16,13 @@ from app.schemas.session import (
     BulkSessionResponse,
     SessionImportResponse
 )
+from app.schemas.session_note import SessionNoteCreate, SessionNoteResponse
 from app.schemas.common import PaginatedResponse
 from app.services.session_service import SessionService
+from app.services.audit_service import record_audit_log
 from app.models.user import User
+from app.models.session import Session as SessionModel
+from app.models.session_note import SessionNote
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
@@ -207,6 +211,126 @@ async def import_sessions(
 
     if not dry_run and not result.success:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=result.model_dump())
+
+    return result
+
+
+@router.post("/{session_id}/notes", response_model=SessionNoteResponse, status_code=status.HTTP_201_CREATED)
+def create_session_note(
+    session_id: int,
+    payload: SessionNoteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Adds a feedback note to an assessment session (Trainer or Admin only)."""
+    if current_user.role not in ("trainer", "admin"):
+        raise AppException(
+            code="FORBIDDEN_ROLE",
+            message="Only trainers or administrators can create session feedback notes",
+            status_code=403
+        )
+
+    session_obj = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not session_obj:
+        raise AppException(
+            code="SESSION_NOT_FOUND",
+            message=f"Session with ID {session_id} not found",
+            status_code=404
+        )
+
+    note = SessionNote(
+        session_id=session_id,
+        author_id=current_user.id,
+        text=payload.text
+    )
+    db.add(note)
+    db.flush()
+
+    # Append-only compliance audit trail
+    record_audit_log(
+        db=db,
+        actor_id=current_user.id,
+        action="create_session_note",
+        entity_type="session_note",
+        entity_id=note.id,
+        details={
+            "session_id": session_id,
+            "trainee_id": session_obj.trainee_id,
+            "text_length": len(payload.text)
+        }
+    )
+    db.commit()
+    db.refresh(note)
+
+    author_name = None
+    if current_user.trainee and current_user.trainee.name:
+        author_name = current_user.trainee.name
+    elif current_user.email:
+        author_name = current_user.email.split("@")[0].replace(".", " ").title()
+
+    return SessionNoteResponse(
+        id=note.id,
+        session_id=note.session_id,
+        author_id=note.author_id,
+        author_email=current_user.email,
+        author_name=author_name,
+        author_role=current_user.role,
+        text=note.text,
+        created_at=note.created_at
+    )
+
+
+@router.get("/{session_id}/notes", response_model=list[SessionNoteResponse])
+def get_session_notes(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieves feedback notes for an assessment session. Trainees can view notes only for their own sessions."""
+    session_obj = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not session_obj:
+        raise AppException(
+            code="SESSION_NOT_FOUND",
+            message=f"Session with ID {session_id} not found",
+            status_code=404
+        )
+
+    # Scoped visibility: Trainees can inspect only their own sessions
+    if current_user.role == "trainee":
+        if session_obj.trainee_id != current_user.trainee_id:
+            raise AppException(
+                code="FORBIDDEN_RESOURCE_ACCESS",
+                message="Trainees can view notes only for their own assessment sessions",
+                status_code=403
+            )
+
+    notes = (
+        db.query(SessionNote)
+        .filter(SessionNote.session_id == session_id)
+        .order_by(SessionNote.created_at.desc())
+        .all()
+    )
+
+    result = []
+    for n in notes:
+        author_name = None
+        if n.author and n.author.trainee and n.author.trainee.name:
+            author_name = n.author.trainee.name
+        elif n.author and n.author.email:
+            author_name = n.author.email.split("@")[0].replace(".", " ").title()
+
+        result.append(
+            SessionNoteResponse(
+                id=n.id,
+                session_id=n.session_id,
+                author_id=n.author_id,
+                author_email=n.author.email if n.author else None,
+                author_name=author_name,
+                author_role=n.author.role if n.author else None,
+                text=n.text,
+                created_at=n.created_at
+            )
+        )
 
     return result
 
