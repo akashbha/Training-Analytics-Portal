@@ -92,17 +92,105 @@ Both individual assessment qualification and batch aggregate pass rates evaluate
 
 ---
 
-## Features and Operational Limits
+## Role-Based User Guides
 
-- **Role-Based Authentication**: Supports Admin, Trainer, and Trainee roles via JSON Web Tokens; tokens expire after 24 hours and self-service password reset is not supported.
-- **Trainer Dashboard**: Displays cohort statistics, batch cards, module performance heatmaps, and at-risk candidate alerts; it only computes metrics for active batches assigned to the logged-in trainer.
-- **Trainee Profile and Dossier**: Displays historical progress curves, module defect analysis, speed versus accuracy scatter plots, and personal learning targets; it restricts trainees to viewing only their own individual performance data.
-- **Admin Management and System Oversight**: Provides batch overviews, account management, system audit logs, and machine learning model evaluation metrics; system audit logs cannot be edited or deleted through the interface.
-- **Session Recording**: Trainers can manually record individual evaluation sessions with score, error count, and duration; sessions cannot exceed the module maximum score or contain negative defect counts.
-- **Batch CSV Import**: Allows trainers to bulk-import assessment sessions from CSV files with row-level validation; the entire batch import is rejected if any single row contains validation errors or module score overages.
-- **Remediation Assignment**: Trainers can assign targeted improvement drills to trainees scoring below pass threshold; remediations are read-only for trainees and cannot be marked completed directly by trainees.
-- **Module Learning Goals**: Trainees can configure target percentage scores per curriculum module and monitor progress; goals are advisory milestones and do not alter official pass or fail classifications.
-- **Early-Warning Risk Detection**: Flags trainees at risk of failing based on either a trained machine learning model or cold-start heuristic rules; the machine learning model evaluates only trainees with three or more recorded sessions.
+### Trainee Guide: Performance and Progress Tracking
+Trainees can view their historical evaluation performance from the Trainee Dashboard. The progress chart plots percentage scores across consecutive evaluation sessions, illustrating your learning trajectory and mastery over time. Consistent scores above the passing cutoff demonstrate readiness for practical deployment.
+
+### Trainee Guide: Module Goals and Milestones
+Trainees can configure personalized target percentage scores for each curriculum module. Setting module goals allows you to focus study efforts on challenging topics and measure your achievement against your personal milestones. These personal goals provide motivation and self-assessment benchmarks as you complete practice drills.
+
+### Trainee Guide: Corrective Remediation Records
+When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.
+
+### Trainee Guide: Speed Versus Accuracy Analysis
+The speed versus accuracy scatter chart displays the relationship between completion duration and percentage score across your recorded sessions. This analysis helps trainees identify whether rushing leads to unnecessary errors or whether taking measured time improves precision. Strive for balanced pacing where tasks are completed efficiently without compromising correctness.
+
+### Trainee Guide: Batch Messaging With Assigned Trainer
+Trainees can communicate directly with the trainers assigned to their cohort using the private messaging interface. You can ask questions regarding curriculum concepts, request assistance on drills, or coordinate review sessions. All messages remain private within your batch, and messages with unauthorized parties outside your batch are prevented.
+
+### Trainee Guide: Reviewing Session Feedback Notes
+Following each evaluation session, instructors record qualitative feedback notes outlining your technical strengths and specific error patterns. Trainees can inspect these notes directly from their session ledger to understand examiner recommendations and prepare effectively for subsequent drills.
+
+### Trainee Guide: Score Bands and Thresholds
+The portal measures evaluation results against standard score thresholds:
+- Pass Mark: 60.0% (PASS_THRESHOLD) is required to pass an individual assessment session. Scoring 60.0% or higher confirms basic competency in the module material.
+- Excellence Tier: 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain scores of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.
+
+### Trainer Guide: Needs-Attention Queue and Alerts
+The Needs-Attention queue highlights candidates within active batches who require prompt pedagogical intervention. A trainee is placed in this queue for two explicit reasons:
+1. Their historical average score across completed sessions falls below the 60.0% pass threshold.
+2. An early-warning alert is triggered during initial onboarding when early performance falls below acceptable marks.
+Trainers should review flagged candidates daily and assign corrective remediation drills where deficits are found.
+
+### Trainer Guide: Cold-Start Evaluation Rules
+The system applies cold-start heuristic rules for new learners who lack sufficient evaluation history:
+- Trainees with fewer than 3 completed sessions (COLD_START_SESSIONS) are classified under the cold-start rule.
+- If a trainee with fewer than 3 sessions records an initial average percentage score below 50.0% (COLD_START_CUTOFF), they are immediately flagged for instructor attention.
+- Once a learner completes 3 or more sessions, evaluation transitions to longitudinal performance tracking.
+
+### Trainer Guide: Curriculum Heatmap and Defect Matrix
+The cohort heatmap displays a cross-tabulated matrix of trainees and curriculum modules. Each cell displays the trainee average percentage score, recorded error count, and session total. This allows instructors to identify both cohort-wide curriculum bottlenecks and individual learner struggle areas at a glance. Cells with lower averages or higher error counts indicate where review lectures or supplemental exercises are needed.
+
+### Trainer Guide: Session Recording and Batch CSV Import Rules
+Trainers can record individual assessment sessions or bulk-import session records via CSV files. All imports enforce atomic validation:
+- Every CSV row must specify an existing trainee email, valid module name, valid date, non-negative duration, and non-negative defect count.
+- The raw score cannot exceed the module maximum score.
+- If any single row contains validation errors or invalid values, the entire import transaction is rejected, preventing partial or inconsistent data persistence.
+
+### Trainer Guide: Qualitative Session Feedback Notes
+When recording or reviewing an assessment drill, trainers can write qualitative feedback notes. These notes document technical shortcomings, recommend remedial actions, and provide constructive guidance. Feedback notes are visible to the trainee in their dossier and persist in the evaluation record to track longitudinal improvement.
+
+### Trainer Guide: Cohort Messaging Rules
+Trainers can exchange direct messages with trainees enrolled in batches assigned to them. Trainer messaging adheres to strict participant boundaries:
+- Trainers may message only trainees in batches to which they are assigned via batch trainer mappings.
+- Trainer-to-trainer messaging is prohibited to ensure communication remains focused on trainee instruction.
+- All communications are strictly contained within batch boundaries.
+
+### Trainer Guide: Batch Trainer Assignments
+Cohort oversight is governed by batch trainer assignments in the database. A trainer is linked to one or more batches, granting them access to view cohort analytics, record session results, import CSV data, and message assigned students. Instructors cannot inspect or modify batches to which they are not assigned.
+
+### Admin Guide: User Provisioning and Account Controls
+Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.
+
+### Admin Guide: Audit Log Compliance Tracking
+The platform maintains an append-only audit log tracking sensitive administrative and evaluation modifications. Every log entry records the action performed, the entity type, the entity ID, the actor user ID, changes, and the exact timestamp. Audit logs cannot be modified or deleted through the interface, providing accountability and compliance traceability.
+
+### Admin Guide: Predictive Model Evaluation
+The platform evaluates an early-warning predictive classifier against a baseline heuristic rule using a chronological holdout partition of 41 trainees with 5 or more recorded sessions:
+- Baseline Heuristic: Flags trainees whose historical score average is below 60.0% (F1: 0.8276, precision: 0.7059, recall: 1.0000).
+- Random Forest Classifier: Evaluates pacing, defect rates, and score trajectories (F1: 0.8000, precision: 0.6667, recall: 1.0000).
+The machine learning model did not beat the baseline heuristic, and observed differences remain within statistical sampling noise on the 12 positive instances.
+
+### Admin Guide: Data Quality and Integrity Monitoring
+Data quality controls protect the database against corrupted or invalid records:
+- Score Bounds: Assessment scores must fall between zero and the curriculum module maximum score.
+- Referential Integrity: Foreign keys link trainees to valid batches and users, and link sessions to valid trainees and modules.
+- Unique Constraints: Trainee goals enforce uniqueness per trainee and module pair.
+- Validation: CSV imports undergo atomic pre-validation to prevent orphan or corrupted records.
+
+### Admin Guide: Batch and Curriculum Module Management
+Administrators oversee the curriculum structure by creating, updating, and retiring batches and modules:
+- Batches: Define cohort name, start date, end date, and assigned lead instructor.
+- Modules: Define curriculum assessment topics, description, and maximum raw score allowable for scoring calculations.
+
+### Admin Guide: Seeded User Credentials and Access Tokens
+For development and demonstration, the database seed initializes three role accounts:
+- Administrator: admin@example.com (Password: Admin123!)
+- Trainer: trainer@example.com (Password: Trainer@123)
+- Trainee: trainee@example.com (Password: Trainee@123)
+Authentication uses JSON Web Tokens (JWT) signed with HS256, valid for 24 hours.
+
+### Admin Guide: Relational Database Schema and Architecture
+The persistence layer is structured around eight core relational tables: users, batches, batch_trainers, trainees, modules, sessions, remediations, trainee_goals, and audit_logs. All tables feature strict primary and foreign key constraints, indexes on lookup keys, and automated timestamp tracking via SQLAlchemy 2.0 ORM.
+
+### General Definitions: What Is an Assessment Session
+An assessment session is a single recorded evaluation of a trainee on a curriculum module. Each session captures the trainee identifier, module identifier, raw score achieved, normalized score percentage, defect error count, completion time in seconds, and the evaluator who submitted the score. Sessions serve as the atomic unit of measurement for individual progress and cohort analytics.
+
+### General Definitions: Score Bands and Thresholds
+The platform applies consistent system-wide grading thresholds:
+- PASS_THRESHOLD (60.0%): The minimum percentage score required to pass an individual assessment drill. Also serves as the cohort target benchmark.
+- EXCELLENT_THRESHOLD (75.0%): The boundary designating student mastery and high achievement.
 
 ---
 

@@ -144,11 +144,20 @@ ORDER BY avg_errors DESC, m.name ASC;
 
 ## 4. Design Decisions
 
-- **Centralized Grading Threshold Policy**: The threshold parameters (`PASS_THRESHOLD = 60.0%`, `EXCELLENT_THRESHOLD = 75.0%`) are defined in shared constants files (`app/core/constants.py` on backend, `frontend/src/constants/thresholds.js` on frontend). All aggregate queries, alert rules, and badge renderings evaluate against these exact numbers, preventing discrepancy between cohort summaries and individual reports.
-- **Two-Tier Early Risk Detection**: Machine learning classifiers require historical data to generate reliable predictions. To address cold starts, the system employs a two-tier strategy: trainees with fewer than 3 sessions are evaluated via a heuristic rule (`COLD_START_CUTOFF = 50.0%`), while trainees with 3 or more sessions are evaluated using the trained machine learning model.
-- **Atomic Two-Phase Batch CSV Import**: File uploads undergo a dry-run validation pass before database persistence. Rows are checked for trainee existence, module bounds, date validity, and duplicate entries. If any row contains an error, the commit action is disabled, preventing partial database corruption.
-- **Shared Dashboard State Components**: The user interface replaces ad-hoc loading spinners and empty placeholders with a unified set of three state components (`LoadingState`, `EmptyState`, `ErrorState`). These components are applied consistently across Admin, Trainer, and Trainee dashboards, preserving layout structure during network operations.
-- **Role-Gated Data Access**: Trainees can inspect only their own individual dossier, session ledger, and learning goals. Trainees are prevented from creating evaluation sessions or assigning remediations through backend route guards and frontend interface hiding.
+### 4.1 Centralized Grading Threshold Policy
+The threshold parameters (`PASS_THRESHOLD = 60.0%`, `EXCELLENT_THRESHOLD = 75.0%`) are defined in shared constants files (`app/core/constants.py` on backend, `frontend/src/constants/thresholds.js` on frontend). All aggregate queries, alert rules, and badge renderings evaluate against these exact numbers, preventing discrepancy between cohort summaries and individual reports.
+
+### 4.2 Two-Tier Early Risk Detection
+Machine learning classifiers require historical data to generate reliable predictions. To address cold starts, the system employs a two-tier strategy: trainees with fewer than 3 sessions are evaluated via a heuristic rule (`COLD_START_CUTOFF = 50.0%`), while trainees with 3 or more sessions are evaluated using the trained machine learning model.
+
+### 4.3 Atomic Two-Phase Batch CSV Import
+File uploads undergo a dry-run validation pass before database persistence. Rows are checked for trainee existence, module bounds, date validity, and duplicate entries. If any row contains an error, the commit action is disabled, preventing partial database corruption.
+
+### 4.4 Shared Dashboard State Components
+The user interface replaces ad-hoc loading spinners and empty placeholders with a unified set of three state components (`LoadingState`, `EmptyState`, `ErrorState`). These components are applied consistently across Admin, Trainer, and Trainee dashboards, preserving layout structure during network operations.
+
+### 4.5 Role-Gated Data Access
+Trainees can inspect only their own individual dossier, session ledger, and learning goals. Trainees are prevented from creating evaluation sessions or assigning remediations through backend route guards and frontend interface hiding.
 
 ---
 
@@ -184,7 +193,14 @@ The machine learning model did not beat the baseline heuristic rule. Both approa
 
 ## 6. Limitations
 
-- **Small Dataset Volume for Machine Learning**: The benchmark cohort consists of 41 qualified trainees and 12 positive instances. While adequate for operational tracking, this sample volume limits the machine learning model from learning non-linear interactions beyond simple moving averages.
-- **Application-Layer Audit Log Immutability**: Immutability of the `audit_logs` table is enforced at the repository and service interface level. Database-level immutability triggers and hardware-enforced write-once storage are not implemented.
-- **Database Schema Migration Constraints**: When using SQLite with SQLAlchemy, `Base.metadata.create_all()` creates missing tables but does not alter pre-existing tables. Introducing new columns (such as `audit_logs.actor_id`) requires a full reseed (`python scripts/seed.py --reset`) or manual DDL migration.
-- **Simulated Real-Time Communication**: Dashboard state synchronization utilizes local component updates and polling intervals rather than dedicated WebSocket servers or Server-Sent Events in production environments.
+### 6.1 Small Dataset Volume for Machine Learning
+The benchmark cohort consists of 41 qualified trainees and 12 positive instances. While adequate for operational tracking, this sample volume limits the machine learning model from learning non-linear interactions beyond simple moving averages.
+
+### 6.2 Application-Layer Audit Log Immutability
+Immutability of the `audit_logs` table is enforced at the repository and service interface level. Database-level immutability triggers and hardware-enforced write-once storage are not implemented.
+
+### 6.3 Database Schema Migration Constraints
+When using SQLite with SQLAlchemy, `Base.metadata.create_all()` creates missing tables but does not alter pre-existing tables. Introducing new columns (such as `audit_logs.actor_id`) requires a full reseed (`python scripts/seed.py --reset`) or manual DDL migration.
+
+### 6.4 Simulated Real-Time Communication
+Dashboard state synchronization utilizes local component updates and polling intervals rather than dedicated WebSocket servers or Server-Sent Events in production environments.

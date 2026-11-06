@@ -69,3 +69,58 @@ def test_chunk_text_length_and_non_empty(db_session):
     for c in chunks:
         assert c.text and c.text.strip(), f"Chunk {c.id} text is empty"
         assert len(c.text) <= 2000, f"Chunk {c.id} text exceeds 2000 characters (len={len(c.text)})"
+
+def test_no_trainee_chunk_contains_forbidden_admin_terms(db_session):
+    """Negative assertion: no trainee-tagged chunk contains admin, audit, credentials, or data quality."""
+    trainee_chunks = (
+        db_session.query(HelpChunk)
+        .filter(HelpChunk.role == "trainee")
+        .all()
+    )
+    assert len(trainee_chunks) > 0, "Expected at least one trainee-tagged chunk"
+
+    forbidden_terms = ["admin", "audit", "credentials", "data quality"]
+    for chunk in trainee_chunks:
+        lower_text = chunk.text.lower()
+        lower_heading = chunk.heading.lower()
+        for term in forbidden_terms:
+            assert term not in lower_text, (
+                f"Trainee chunk {chunk.id} ('{chunk.heading}') contains forbidden term '{term}':\n{chunk.text}"
+            )
+            assert term not in lower_heading, (
+                f"Trainee chunk {chunk.id} heading ('{chunk.heading}') contains forbidden term '{term}'"
+            )
+
+def test_no_credentials_or_model_internals_in_trainee_or_trainer_chunks(db_session):
+    """Credentials and model evaluation internals must not appear under trainee or trainer."""
+    non_admin_chunks = (
+        db_session.query(HelpChunk)
+        .filter(HelpChunk.role.in_(["trainee", "trainer"]))
+        .all()
+    )
+    assert len(non_admin_chunks) > 0
+
+    sensitive_snippets = [
+        "Admin123!", "Trainer@123", "Trainee@123",
+        "0.8276", "0.8000", "Random Forest"
+    ]
+    for c in non_admin_chunks:
+        for snippet in sensitive_snippets:
+            assert snippet.lower() not in c.text.lower(), (
+                f"Role '{c.role}' chunk {c.id} ('{c.heading}') contains restricted snippet '{snippet}'"
+            )
+            assert snippet.lower() not in c.heading.lower(), (
+                f"Role '{c.role}' chunk {c.id} heading ('{c.heading}') contains restricted snippet '{snippet}'"
+            )
+
+def test_audience_role_distribution(db_session):
+    """Verifies all four audiences have meaningful representation."""
+    chunks = db_session.query(HelpChunk).all()
+    counts = {}
+    for c in chunks:
+        counts[c.role] = counts.get(c.role, 0) + 1
+
+    assert counts.get("trainee", 0) >= 5, f"Too few trainee chunks: {counts.get('trainee', 0)}"
+    assert counts.get("trainer", 0) >= 10, f"Too few trainer chunks: {counts.get('trainer', 0)}"
+    assert counts.get("admin", 0) >= 20, f"Too few admin chunks: {counts.get('admin', 0)}"
+    assert counts.get("all", 0) >= 5, f"Too few all-audience chunks: {counts.get('all', 0)}"

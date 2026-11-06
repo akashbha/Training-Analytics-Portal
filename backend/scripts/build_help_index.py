@@ -8,60 +8,83 @@ import sys
 import json
 import re
 from typing import List, Dict, Any
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
-# Ensure backend root is on sys.path
+# Ensure backend root is on sys.path and load .env
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 PROJECT_ROOT = os.path.abspath(os.path.join(BACKEND_DIR, ".."))
 
+env_file = os.path.join(BACKEND_DIR, ".env")
+if os.path.exists(env_file):
+    load_dotenv(env_file)
+
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 from app.db.base import Base
 from app.db.session import sync_engine, SyncSessionLocal
 from app.models.help_chunk import HelpChunk
 
 def assign_role_from_context(heading: str, text_content: str, source_path: str = "") -> str:
-    """Infers participant role tag from heading or explicit tag annotations."""
+    """Infers participant role tag (trainee, trainer, admin, or all) from heading and context."""
     lower_heading = heading.lower()
     lower_text = text_content.lower()
 
-    # Explicit role tag line
+    # Explicit role tag line overrides
     if "role: admin" in lower_text or "role tag: admin" in lower_text:
         return "admin"
     if "role: trainer" in lower_text or "role tag: trainer" in lower_text:
         return "trainer"
     if "role: trainee" in lower_text or "role tag: trainee" in lower_text:
         return "trainee"
+    if "role: all" in lower_text or "role tag: all" in lower_text:
+        return "all"
 
-    # Evaluation json is admin-only evaluation metrics
+    # Evaluation json is strictly admin-only model evaluation metrics
     if "evaluation.json" in source_path:
         return "admin"
 
-    # Admin sections (schema, setup, database, design decisions, audit, provisioning, limitations)
-    if any(k in lower_heading for k in [
-        "admin", "audit", "provision", "schema", "database", "setup",
-        "credential", "user management", "design decision", "limitation",
-        "protocol", "performance comparison", "analysis"
-    ]):
-        return "admin"
+    # Constants mapping
+    if "constants.py" in source_path:
+        if "cold_start" in lower_heading:
+            return "trainer"
+        return "all"
 
-    # Trainer sections (cohort analytics, KPIs, scoring rules, defects, remediations, attention)
+    # 1. Trainee Audience Guide
+    # How to read progress, goals, remediation records, speed-vs-accuracy chart,
+    # messages with batch trainer, feedback notes, pass and excellence thresholds
+    if "trainee guide" in lower_heading:
+        return "trainee"
+
+    # 2. Trainer Audience Guide & Topics
+    # Needs-attention queue, cold-start rules, heatmap, CSV import & validation,
+    # feedback notes, messaging rules for batch, batch trainer assignments, SQL queries
+    if "trainer guide" in lower_heading:
+        return "trainer"
     if any(k in lower_heading for k in [
-        "trainer", "instructor", "grading", "remediation", "kpi",
-        "cohort", "attention", "at-risk", "defect", "session",
-        "delta", "diagnostic", "cold_start"
+        "needs-attention", "cold start", "cold-start", "heatmap", "cohort aggregate",
+        "csv import", "feedback note", "batch trainer", "sql queries",
+        "at-risk heuristic", "defect diagnostic", "two-tier"
     ]):
         return "trainer"
 
-    # Trainee sections (dossiers, personal progress, student views)
+    # 3. Admin Audience Guide & Topics
+    # User provisioning, audit log, model evaluation, data quality checks,
+    # batch and module CRUD, seeded credentials, database and schema, system limitations
+    if "admin guide" in lower_heading:
+        return "admin"
     if any(k in lower_heading for k in [
-        "trainee", "student", "dossier", "goal", "learner", "personal"
+        "backend setup", "frontend setup", "seeded credentials", "credential",
+        "database schema", "evaluation results", "protocol",
+        "performance comparison", "analysis", "limitation", "role-gated",
+        "audit", "provision", "data quality", "small dataset", "real-time communication"
     ]):
-        return "trainee"
+        return "admin"
 
+    # 4. General definitions default to 'all'
     return "all"
 
 def split_markdown_into_chunks(filepath: str, rel_path: str) -> List[Dict[str, Any]]:
@@ -213,7 +236,7 @@ def parse_constants_py(filepath: str, rel_path: str) -> List[Dict[str, Any]]:
         text_str = f"{name} = {val_expr}"
         text_str = text_str.replace("\u2014", "-")
 
-        role = "trainer" if "THRESHOLD" in name or "COLD_START" in name else "all"
+        role = "trainer" if "COLD_START" in name else "all"
         chunks.append({
             "source_path": rel_path,
             "heading": f"System Constant: {name}",
