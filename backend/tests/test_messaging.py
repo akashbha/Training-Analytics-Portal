@@ -186,6 +186,16 @@ def test_trainee_can_message_own_batch_trainer(client, trainee_headers, messagin
     assert data["sender_id"] == 11
     assert data["recipient_id"] == messaging_context["trainer1_id"]
 
+def test_trainee_cannot_message_unassigned_trainer(client, trainee_headers, messaging_context):
+    """Trainee cannot message a trainer not assigned to their batch (403 FORBIDDEN_RESOURCE_ACCESS)."""
+    resp = client.post(
+        "/messages",
+        json={"recipient_id": messaging_context["trainer2_id"], "body": "Outreach to unassigned trainer."},
+        headers=trainee_headers
+    )
+    assert resp.status_code == 403
+    assert resp.json()["error"]["code"] == "FORBIDDEN_RESOURCE_ACCESS"
+
 def test_trainee_cannot_message_trainee_in_another_batch(client, trainee_headers, messaging_context):
     """Trainee cannot message a trainee in another batch (403 FORBIDDEN_RESOURCE_ACCESS)."""
     resp = client.post(
@@ -204,6 +214,16 @@ def test_trainer_can_message_trainee_in_assigned_batch(client, trainer_headers, 
         headers=trainer_headers
     )
     assert resp.status_code == 201
+
+def test_trainer_cannot_message_trainee_in_unassigned_batch(client, trainer2_headers, messaging_context):
+    """Trainer cannot message a trainee in an unassigned batch (403 FORBIDDEN_RESOURCE_ACCESS)."""
+    resp = client.post(
+        "/messages",
+        json={"recipient_id": messaging_context["trainee1_user_id"], "body": "Unauthorized outreach from unassigned trainer."},
+        headers=trainer2_headers
+    )
+    assert resp.status_code == 403
+    assert resp.json()["error"]["code"] == "FORBIDDEN_RESOURCE_ACCESS"
 
 def test_trainer_cannot_message_another_trainer(client, trainer_headers, messaging_context):
     """Trainer-to-trainer messaging is forbidden (403 FORBIDDEN_ROLE)."""
