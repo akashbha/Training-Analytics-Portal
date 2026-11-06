@@ -14,3 +14,4 @@ class HelpSearchResponse(BaseModel):
     answer_found: bool
     message: str
     results: List[HelpSearchResult]
+

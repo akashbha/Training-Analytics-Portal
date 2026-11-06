@@ -109,3 +109,4 @@ def help_search(
     finally:
         if close_session and db is not None:
             db.close()
+

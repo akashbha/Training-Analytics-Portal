@@ -100,14 +100,20 @@ Trainees can view their historical evaluation performance from the Trainee Dashb
 ### Trainee Guide: Module Goals and Milestones
 Trainees can configure personalized target percentage scores for each curriculum module. Setting module goals allows you to focus study efforts on challenging topics and measure your achievement against your personal milestones. These personal goals provide motivation and self-assessment benchmarks as you complete practice drills.
 
+### Trainee Guide: Setting and Editing Module Learning Goals
+Trainees can create and update personal learning goals for any curriculum module. From the module goals panel, enter a target percentage score that reflects your target proficiency. The portal compares your latest drill scores against these targets to show your progress. Setting ambitious but achievable goals helps structure daily practice routines.
+
 ### Trainee Guide: Corrective Remediation Records
 When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.
 
 ### Trainee Guide: Speed Versus Accuracy Analysis
-The speed versus accuracy scatter chart displays the relationship between completion duration and percentage score across your recorded sessions. This analysis helps trainees identify whether rushing leads to unnecessary errors or whether taking measured time improves precision. Strive for balanced pacing where tasks are completed efficiently without compromising correctness.
+The speed versus accuracy scatter chart displays the relationship between completion duration and percentage score across your recorded sessions. Trainees can analyze their speed accuracy balance to determine optimal pacing. Rushing through assessment drills often leads to avoidable defect errors, while excessive caution slows completion. Aim for steady speed paired with high accuracy above passing thresholds.
 
 ### Trainee Guide: Batch Messaging With Assigned Trainer
 Trainees can communicate directly with the trainers assigned to their cohort using the private messaging interface. You can ask questions regarding curriculum concepts, request assistance on drills, or coordinate review sessions. All messages remain private within your batch, and messages with unauthorized parties outside your batch are prevented.
+
+### Trainee Guide: Private Messages and Cohort Communication
+The private messaging screen provides a direct inbox for conversations with instructors and peers. Trainees can compose messages to ask for help on difficult topics, review session notes, or coordinate practice sessions. All messages are scoped to your cohort, ensuring that communication remains private and protected within your assigned batch.
 
 ### Trainee Guide: Reviewing Session Feedback Notes
 Following each evaluation session, instructors record qualitative feedback notes outlining your technical strengths and specific error patterns. Trainees can inspect these notes directly from their session ledger to understand examiner recommendations and prepare effectively for subsequent drills.

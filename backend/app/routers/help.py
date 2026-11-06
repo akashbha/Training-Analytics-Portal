@@ -35,3 +35,4 @@ def search_help_documentation(
         message="Matches from project documentation.",
         results=results
     )
+

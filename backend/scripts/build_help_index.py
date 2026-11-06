@@ -222,6 +222,14 @@ def parse_constants_py(filepath: str, rel_path: str) -> List[Dict[str, Any]]:
 
     chunks: List[Dict[str, Any]] = []
 
+    PLAIN_CONSTANT_DESCRIPTIONS = {
+        "PASS_THRESHOLD": "A session scoring 60% or higher counts as passing. Assessment sessions and cohort pass rates evaluate against this benchmark.",
+        "EXCELLENT_THRESHOLD": "A session scoring 75% or higher reaches the mastery excellence tier, reflecting superior task performance.",
+        "COLD_START_SESSIONS": "A minimum of 3 completed assessment sessions is required before evaluating longitudinal risk trajectories.",
+        "COLD_START_CUTOFF": "Trainees with fewer than 3 sessions scoring below an initial average of 50.0% are immediately flagged for attention.",
+        "MAX_SESSION_TIME_SECONDS": "The maximum allowed duration for an assessment session is 14400 seconds (4 hours)."
+    }
+
     # Match assignments like PASS_THRESHOLD: float = 60.0 or PASS_THRESHOLD = 60.0
     pattern = re.compile(r"^([A-Z0-9_]+)(?:\s*:\s*[a-zA-Z0-9_]+)?\s*=\s*(.+)$", re.MULTILINE)
     for match in pattern.finditer(content):
@@ -232,8 +240,9 @@ def parse_constants_py(filepath: str, rel_path: str) -> List[Dict[str, Any]]:
         if "#" in val_expr:
             val_expr = val_expr.split("#")[0].strip()
 
-        # Format exact statement
-        text_str = f"{name} = {val_expr}"
+        # Format exact statement followed by plain-text explanation
+        plain_desc = PLAIN_CONSTANT_DESCRIPTIONS.get(name, "")
+        text_str = f"{name} = {val_expr}. {plain_desc}".strip()
         text_str = text_str.replace("\u2014", "-")
 
         role = "trainer" if "COLD_START" in name else "all"

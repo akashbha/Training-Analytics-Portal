@@ -1,0 +1,480 @@
+{
+  "summary": {
+    "total_questions": 30,
+    "in_scope_questions": 24,
+    "out_of_scope_questions": 6,
+    "hit_at_1_count": 0,
+    "hit_at_1_pct": 0.0,
+    "hit_at_3_count": 0,
+    "hit_at_3_pct": 0.0,
+    "role_violation_count": 0,
+    "refusal_correct_count": 6,
+    "refusal_accuracy_pct": 100.0
+  },
+  "misses": [
+    {
+      "question": "What percentage score do I need to pass an evaluation session?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do I view my historical performance and progress curve?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Performance and Progress Tracking",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Where can I set my target percentage scores for each module?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Setting and Editing Module Learning Goals",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do I review corrective remediation drills assigned to me?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Corrective Remediation Records",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How can I analyze my speed versus accuracy on completed drills?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do I send a private message to my cohort instructor?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Batch Messaging With Assigned Trainer",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Where do I read qualitative feedback notes written on my sessions?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What score is required to achieve the excellence mastery tier?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Why does a trainee get flagged in the needs-attention queue?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Needs-Attention Queue and Alerts",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What are the cold-start heuristic rules for new learners?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cold-Start Evaluation Rules",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do I interpret the cohort curriculum performance heatmap?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What validation rules apply when importing session CSV files?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do instructors record qualitative feedback notes for trainees?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Qualitative Session Feedback Notes",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Are trainers allowed to message other trainers directly?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cohort Messaging Rules",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How are instructors linked to cohorts through batch trainer assignments?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Batch Trainer Assignments",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What is the initial cutoff score for cold-start candidates?",
+      "role": "trainer",
+      "expected_heading": "System Constant: COLD_START_CUTOFF",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do administrators provision new user accounts and assign roles?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: User Provisioning and Account Controls",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What changes and actor details are recorded in the audit log?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Audit Log Compliance Tracking",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How did the Random Forest model perform against the baseline heuristic?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Predictive Model Evaluation",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What automated checks protect database integrity and valid score ranges?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Data Quality and Integrity Monitoring",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "How do administrators create and manage curriculum modules and batches?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Batch and Curriculum Module Management",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "What are the default seeded account credentials for demonstration?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Which relational tables comprise the core database schema architecture?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Relational Database Schema and Architecture",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    },
+    {
+      "question": "Why does the machine learning early-warning dataset have limited volume?",
+      "role": "admin",
+      "expected_heading": "6.1 Small Dataset Volume for Machine Learning",
+      "top_returned_heading": null,
+      "hit_at_3": false
+    }
+  ],
+  "detailed_results": [
+    {
+      "question": "What percentage score do I need to pass an evaluation session?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do I view my historical performance and progress curve?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Performance and Progress Tracking",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Where can I set my target percentage scores for each module?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Setting and Editing Module Learning Goals",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do I review corrective remediation drills assigned to me?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Corrective Remediation Records",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How can I analyze my speed versus accuracy on completed drills?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do I send a private message to my cohort instructor?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Batch Messaging With Assigned Trainer",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Where do I read qualitative feedback notes written on my sessions?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What score is required to achieve the excellence mastery tier?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Why does a trainee get flagged in the needs-attention queue?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Needs-Attention Queue and Alerts",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What are the cold-start heuristic rules for new learners?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cold-Start Evaluation Rules",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do I interpret the cohort curriculum performance heatmap?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What validation rules apply when importing session CSV files?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do instructors record qualitative feedback notes for trainees?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Qualitative Session Feedback Notes",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Are trainers allowed to message other trainers directly?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cohort Messaging Rules",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How are instructors linked to cohorts through batch trainer assignments?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Batch Trainer Assignments",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What is the initial cutoff score for cold-start candidates?",
+      "role": "trainer",
+      "expected_heading": "System Constant: COLD_START_CUTOFF",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do administrators provision new user accounts and assign roles?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: User Provisioning and Account Controls",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What changes and actor details are recorded in the audit log?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Audit Log Compliance Tracking",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How did the Random Forest model perform against the baseline heuristic?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Predictive Model Evaluation",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What automated checks protect database integrity and valid score ranges?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Data Quality and Integrity Monitoring",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do administrators create and manage curriculum modules and batches?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Batch and Curriculum Module Management",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "What are the default seeded account credentials for demonstration?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Which relational tables comprise the core database schema architecture?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Relational Database Schema and Architecture",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "Why does the machine learning early-warning dataset have limited volume?",
+      "role": "admin",
+      "expected_heading": "6.1 Small Dataset Volume for Machine Learning",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": null,
+      "results": []
+    },
+    {
+      "question": "How do I deploy a Kubernetes cluster on AWS EKS?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "What is the tuition refund policy for students who drop out?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "Where can trainers submit expense reports for travel reimbursements?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "How do I order promotional company merchandise and coffee mugs?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "What is the company holiday calendar and paid time off policy?",
+      "role": "admin",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "How do I set up Stripe credit card processing for subscription billing?",
+      "role": "admin",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    }
+  ]
+}
