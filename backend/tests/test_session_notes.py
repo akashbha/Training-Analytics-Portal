@@ -122,3 +122,14 @@ def test_session_note_text_over_300_chars_rejected(client, trainer_headers, sess
         headers=trainer_headers
     )
     assert resp.status_code == 422
+
+def test_admin_cannot_create_session_note(client, admin_headers, session_for_trainee1):
+    """Admin cannot create a feedback note (403 Forbidden with FORBIDDEN_ROLE)."""
+    payload = {"text": "Administrative note attempt."}
+    resp = client.post(
+        f"/sessions/{session_for_trainee1.id}/notes",
+        json=payload,
+        headers=admin_headers
+    )
+    assert resp.status_code == 403
+    assert resp.json()["error"]["code"] == "FORBIDDEN_ROLE"

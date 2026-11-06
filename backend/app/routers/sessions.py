@@ -222,11 +222,11 @@ def create_session_note(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Adds a feedback note to an assessment session (Trainer or Admin only)."""
-    if current_user.role not in ("trainer", "admin"):
+    """Adds a feedback note to an assessment session (Trainer only)."""
+    if current_user.role != "trainer":
         raise AppException(
             code="FORBIDDEN_ROLE",
-            message="Only trainers or administrators can create session feedback notes",
+            message="Only trainers can create session feedback notes",
             status_code=403
         )
 

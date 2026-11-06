@@ -31,6 +31,8 @@ from app.models.module import Module
 from app.models.session import Session
 from app.models.user import User
 from app.models.remediation import Remediation
+from app.models.session_note import SessionNote
+from app.models.batch_trainer import BatchTrainer
 
 # Password hashing context using standard bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -44,7 +46,9 @@ def hash_password(password: str) -> str:
 def clear_tables(db) -> None:
     """Truncates all tables in strict foreign-key dependency order."""
     print("Clearing existing data in cascade-safe order...")
-    # Dependency order: remediations -> sessions -> users -> trainees -> modules -> batches
+    # Dependency order: batch_trainers -> session_notes -> remediations -> sessions -> users -> trainees -> modules -> batches
+    db.query(BatchTrainer).delete()
+    db.query(SessionNote).delete()
     db.query(Remediation).delete()
     db.query(Session).delete()
     db.query(User).delete()
@@ -327,6 +331,11 @@ def seed_database(reset: bool = False) -> None:
             trainee_id=trainees[0].id,
         )
         db.add_all([admin_user, trainer_user, trainee_user])
+        db.commit()
+
+        # Assign each seeded batch to the seeded trainer account
+        for batch in batches:
+            db.add(BatchTrainer(batch_id=batch.id, trainer_id=trainer_user.id))
         db.commit()
 
         # -------------------------------------------------------------

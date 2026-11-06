@@ -12,5 +12,6 @@ from app.models.audit_log import AuditLog
 from app.models.remediation import Remediation
 from app.models.trainee_goal import TraineeGoal
 from app.models.session_note import SessionNote
+from app.models.batch_trainer import BatchTrainer
 
-__all__ = ["Base", "Batch", "Trainee", "Module", "Session", "User", "AuditLog", "Remediation", "TraineeGoal", "SessionNote"]
+__all__ = ["Base", "Batch", "Trainee", "Module", "Session", "User", "AuditLog", "Remediation", "TraineeGoal", "SessionNote", "BatchTrainer"]

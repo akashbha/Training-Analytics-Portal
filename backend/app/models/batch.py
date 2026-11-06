@@ -10,6 +10,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.trainee import Trainee
+    from app.models.batch_trainer import BatchTrainer
 
 class Batch(Base):
     __tablename__ = "batches"
@@ -21,6 +22,11 @@ class Batch(Base):
 
     trainees: Mapped[List["Trainee"]] = relationship(
         "Trainee",
+        back_populates="batch",
+        cascade="all, delete-orphan"
+    )
+    trainer_assignments: Mapped[List["BatchTrainer"]] = relationship(
+        "BatchTrainer",
         back_populates="batch",
         cascade="all, delete-orphan"
     )

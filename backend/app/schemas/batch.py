@@ -2,7 +2,7 @@
 Validates cohort date ranges and enforces non-blank unique cohort names.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
@@ -37,5 +37,18 @@ class BatchResponse(BaseModel):
     start_date: date
     end_date: date
     trainee_count: Optional[int] = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+class BatchTrainerAssign(BaseModel):
+    trainer_id: int
+
+class BatchTrainerResponse(BaseModel):
+    id: int
+    batch_id: int
+    trainer_id: int
+    assigned_at: datetime
+    trainer_email: Optional[str] = None
+    trainer_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
