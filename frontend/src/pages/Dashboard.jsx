@@ -77,6 +77,71 @@ function getTraineeAvatar(trainee, idx = 0) {
   return DEFAULT_AVATARS_LIST[charCode % DEFAULT_AVATARS_LIST.length];
 }
 
+function getPlainReason(item) {
+  if (item.flag_reason) {
+    return item.flag_reason.replace(/\(Cold start\)/i, "- Cold start");
+  }
+  if (item.top_risk_factors && item.top_risk_factors.length > 0) {
+    return item.top_risk_factors[0];
+  }
+  if (item.trend === "critical_low") {
+    return `Score below ${PASS_THRESHOLD}% passing benchmark`;
+  }
+  if (item.trend === "falling") {
+    return "Declining score trend over last 3 sessions";
+  }
+  if (item.trend === "struggling") {
+    return `Average score below ${PASS_THRESHOLD}% benchmark`;
+  }
+  if (item.is_cold_start) {
+    return (item.session_count || 0) === 0
+      ? "No assessments completed yet"
+      : `Cold start: initial average below ${COLD_START_CUTOFF}%`;
+  }
+  return "Performance requires trainer review";
+}
+
+function getSeverity(item) {
+  const avg = item.metrics?.recent_avg_score ?? item.metrics?.overall_avg_score ?? item.avg_score_pct;
+  const isCritical =
+    item.risk_level === "High" ||
+    item.trend === "critical_low" ||
+    (item.attention_probability && item.attention_probability >= 70) ||
+    (avg != null && avg < 50 && (item.session_count || 0) > 0);
+
+  if (isCritical) {
+    return {
+      rank: 1,
+      label: "Critical",
+      bg: "bg-rose-50 text-rose-700 border-rose-200",
+      dot: "bg-rose-500",
+    };
+  }
+
+  const isHigh =
+    item.risk_level === "Moderate" ||
+    item.trend === "falling" ||
+    item.trend === "struggling" ||
+    (item.attention_probability && item.attention_probability >= 40) ||
+    (avg != null && avg < PASS_THRESHOLD);
+
+  if (isHigh) {
+    return {
+      rank: 2,
+      label: "High",
+      bg: "bg-amber-50 text-amber-700 border-amber-200",
+      dot: "bg-amber-500",
+    };
+  }
+
+  return {
+    rank: 3,
+    label: "Warning",
+    bg: "bg-slate-100 text-slate-700 border-slate-200",
+    dot: "bg-slate-500",
+  };
+}
+
 export function Dashboard() {
   const { isTrainer } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -255,10 +320,26 @@ export function Dashboard() {
 
   // Computed summary values
   const enrolledCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.trainee_count ?? 24);
-  const avgScore = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "—" : summary?.avg_score_pct ? summary.avg_score_pct.toFixed(1) : "78.4";
-  const passRate = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "—" : summary?.pass_rate_pct ? summary.pass_rate_pct.toFixed(1) : "87.5";
+  const avgScore = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "-" : summary?.avg_score_pct ? summary.avg_score_pct.toFixed(1) : "78.4";
+  const passRate = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "-" : summary?.pass_rate_pct ? summary.pass_rate_pct.toFixed(1) : "87.5";
   const sessionCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.session_count ?? 142);
   const scoreChange = summary?.avg_score_change_pct ?? 5.2;
+
+  // Ranked attention queue sorted by severity (critical first)
+  const sortedAttentionQueue = useMemo(() => {
+    if (!effectiveAttention || effectiveAttention.length === 0) return [];
+    return [...effectiveAttention].sort((a, b) => {
+      const sevA = getSeverity(a).rank;
+      const sevB = getSeverity(b).rank;
+      if (sevA !== sevB) return sevA - sevB;
+      const probA = a.attention_probability ?? 0;
+      const probB = b.attention_probability ?? 0;
+      if (probB !== probA) return probB - probA;
+      const scoreA = a.metrics?.recent_avg_score ?? a.metrics?.overall_avg_score ?? a.avg_score_pct ?? 100;
+      const scoreB = b.metrics?.recent_avg_score ?? b.metrics?.overall_avg_score ?? b.avg_score_pct ?? 100;
+      return scoreA - scoreB;
+    });
+  }, [effectiveAttention]);
 
   // Active batch object
   const activeBatch = useMemo(
@@ -487,6 +568,145 @@ export function Dashboard() {
       </section>
 
       {/* =========================================================================
+          3. NEEDS ATTENTION QUEUE (Trainer Home Priority Workflow)
+          ========================================================================= */}
+      <section className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+          <div>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight uppercase">
+                Needs Attention Queue
+              </h2>
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                {sortedAttentionQueue.length} Flagged
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Trainees requiring trainer intervention, ranked by severity.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={handleExportAtRiskCsv}
+              disabled={exportingCsv || !selectedBatchId}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Export CSV of at-risk cohort trainees"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-600" />
+              <span>{exportingCsv ? "Exporting..." : "Export CSV"}</span>
+            </button>
+          </div>
+        </div>
+
+        {effectiveAttentionLoading ? (
+          <LoadingState message="Loading needs-attention queue..." className="py-12" />
+        ) : effectiveAttentionError ? (
+          <ErrorState
+            title="Unable to load attention queue"
+            message={effectiveAttentionError}
+            onRetry={() => refetchAttention()}
+            className="py-12"
+          />
+        ) : sortedAttentionQueue.length === 0 ? (
+          <EmptyState
+            title="No trainees need attention this week."
+            description="All cohort trainees are currently meeting or exceeding performance standards."
+            className="py-12"
+          />
+        ) : (
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-3">Severity</th>
+                  <th className="py-2.5 px-3">Trainee</th>
+                  <th className="py-2.5 px-3 text-right">Batch Avg</th>
+                  <th className="py-2.5 px-3 text-right">Sessions</th>
+                  <th className="py-2.5 px-4">Intervention Reason</th>
+                  <th className="py-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sortedAttentionQueue.map((t, idx) => {
+                  const sev = getSeverity(t);
+                  const reason = getPlainReason(t);
+                  const traineeId = t.trainee_id || t.id;
+                  const traineeName = t.trainee_name || t.name;
+                  const sessionCountVal = t.session_count ?? t.metrics?.session_count ?? 0;
+                  const batchAvgDisplay = summary?.avg_score_pct != null ? `${Number(summary.avg_score_pct).toFixed(1)}%` : "-";
+
+                  return (
+                    <tr
+                      key={traineeId || idx}
+                      className="hover:bg-slate-50/80 transition-colors"
+                    >
+                      {/* Severity */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${sev.bg}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${sev.dot}`} />
+                          {sev.label}
+                        </span>
+                      </td>
+
+                      {/* Trainee Name */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <Link
+                          to={`/trainees/${traineeId}`}
+                          className="font-bold text-slate-900 hover:text-blue-600 transition-colors block text-xs"
+                        >
+                          {traineeName}
+                        </Link>
+                      </td>
+
+                      {/* Batch Average */}
+                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono tabular-nums text-slate-700">
+                        {batchAvgDisplay}
+                      </td>
+
+                      {/* Session Count */}
+                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono tabular-nums text-slate-700">
+                        {sessionCountVal}
+                      </td>
+
+                      {/* Reason Line */}
+                      <td className="py-3 px-4 text-slate-600">
+                        <span className="block truncate max-w-md" title={reason}>
+                          {reason}
+                        </span>
+                      </td>
+
+                      {/* Action */}
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setRemediationTarget(t)}
+                            className="px-2.5 py-1 rounded text-white bg-blue-600 hover:bg-blue-700 text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            Assign Drill
+                          </button>
+                          <Link
+                            to={`/trainees/${traineeId}`}
+                            className="px-2.5 py-1 rounded text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-medium transition-colors"
+                          >
+                            View Dossier
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* =========================================================================
           3. MAIN CONTENT GRID (8 Columns Left, 4 Columns Right)
           ========================================================================= */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -629,7 +849,7 @@ export function Dashboard() {
                                   </div>
                                   <div className="flex items-baseline space-x-1.5 pt-0.5">
                                     <span className="text-xl font-black text-white">
-                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "-"}
                                     </span>
                                     <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
                                   </div>
@@ -743,7 +963,7 @@ export function Dashboard() {
                                   </div>
                                   <div className="flex items-baseline space-x-1.5 pt-0.5">
                                     <span className="text-xl font-black text-white">
-                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "—"}
+                                      {item.avg_score_pct ? `${item.avg_score_pct.toFixed(1)}%` : "-"}
                                     </span>
                                     <span className="text-[10px] text-slate-400 font-medium">cohort mean</span>
                                   </div>
@@ -1182,102 +1402,6 @@ export function Dashboard() {
               </div>
             )}
           </div>
-
-          {/* Widget 5: ML Early-Warning Intervention Roster (With REAL Photo Avatars) */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center space-x-2">
-                <BrainCircuit className="w-4 h-4 text-rose-500" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                  ML Intervention Alerts
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={handleExportAtRiskCsv}
-                  disabled={exportingCsv || !selectedBatchId}
-                  className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-200 cursor-pointer transition-colors disabled:opacity-50"
-                  title="Export CSV of at-risk cohort trainees with flag reason text"
-                >
-                  <Download className="w-3 h-3 text-slate-600" />
-                  <span>{exportingCsv ? "Exporting..." : "Export CSV"}</span>
-                </button>
-                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
-                  {(effectiveAttention || []).length} Trainees Flagged
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-500 mt-2">
-              Random Forest model with rule fallback identifying learners with declining score trajectories:
-            </p>
-
-            {/* Step 9 Shared State Conditional ML Intervention Alerts Rendering */}
-            {effectiveAttentionLoading ? (
-              <LoadingState message="Analyzing early-warning risk patterns..." className="py-8" />
-            ) : effectiveAttentionError ? (
-              <ErrorState
-                title="Intervention Feed Unavailable"
-                message={effectiveAttentionError}
-                onRetry={() => refetchAttention()}
-                className="py-8"
-              />
-            ) : (effectiveAttention || []).length === 0 ? (
-              <EmptyState
-                title="Zero Trainees at Risk"
-                description="All cohort trainees are currently performing above risk thresholds."
-                className="py-8"
-              />
-            ) : (
-              <div className="space-y-3 mt-3">
-                {(effectiveAttention || []).map((t, aIdx) => {
-                  const avatarUrl = getTraineeAvatar(t, aIdx);
-                  return (
-                    <div
-                      key={t.trainee_id || aIdx}
-                      className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between hover:bg-slate-100/70 transition-colors"
-                    >
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <img
-                          src={avatarUrl}
-                          alt={t.name || "Trainee"}
-                          className="w-8 h-8 rounded-full object-cover ring-2 ring-rose-200 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <Link
-                            to={`/trainees/${t.trainee_id}`}
-                            className="font-bold text-slate-900 hover:text-blue-600 block text-xs truncate"
-                          >
-                            {t.name || t.trainee_name}
-                          </Link>
-                          <div className="flex items-center space-x-1.5 mt-0.5">
-                            <span className="text-[10px] font-semibold text-slate-400">
-                              Avg: {t.avg_score_pct ? `${t.avg_score_pct.toFixed(1)}%` : "55.0%"}
-                            </span>
-                            <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1 py-0.2 rounded">
-                              {t.trend?.replace("_", " ") || "At Risk"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0 ml-2">
-                        <button
-                          type="button"
-                          onClick={() => setRemediationTarget(t)}
-                          className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] transition-colors shadow-2xs cursor-pointer"
-                        >
-                          Assign Drill
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
         </div>
       </section>
 
@@ -1305,13 +1429,13 @@ export function Dashboard() {
               Excellent (≥{EXCELLENT_THRESHOLD}%)
             </span>
             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
-              Passing ({PASS_THRESHOLD}–{EXCELLENT_THRESHOLD - 0.1}%)
+              Passing ({PASS_THRESHOLD}-{EXCELLENT_THRESHOLD - 0.1}%)
             </span>
             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200">
               Struggling (&lt;{PASS_THRESHOLD}%)
             </span>
             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
-              No Data (—)
+              No Data (-)
             </span>
           </div>
         </div>
@@ -1393,7 +1517,7 @@ export function Dashboard() {
                                   : `${cell.module_name}: No sessions completed (blank)`
                               }
                             >
-                              {hasScore ? `${cell.score_pct.toFixed(1)}%` : "—"}
+                              {hasScore ? `${cell.score_pct.toFixed(1)}%` : "-"}
                             </div>
                           </td>
                         );
