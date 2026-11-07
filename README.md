@@ -208,6 +208,7 @@ The state switcher pills and simulated query parameters (`?state=loading`, `?sta
 
 ## Known Limitations
 
+- **Frontend Risk Component Test Coverage**: The flagged trainee risk display component (`FlaggedTraineeRiskCard.jsx`) is verified via clean Vite production build compilation, static string audits (checking for forbidden buzzwords and typography rules), and live backend API integration, rather than a dedicated frontend component or browser test suite.
 - **Machine Learning Evaluation Outcome**: The machine learning early-warning model (Random Forest) did not beat the baseline heuristic rule ("flag if historical average < 60.0%") on 41 trainees and 12 positives (baseline F1: 0.8276 vs ML F1: 0.8000), with differences remaining within statistical sampling noise.
 - **Audit Log Append-Only Scope**: Audit logging is append-only at the application layer only via repository interfaces; database-level immutability triggers or external database administrator access restrictions are not implemented.
 - **Database Schema and Migrations**: The `audit_logs.actor_id` column requires a database reseed (`python scripts/seed.py --reset`) on old databases because automatic table creation (`Base.metadata.create_all`) does not alter pre-existing tables.
