@@ -163,10 +163,10 @@ Administrators manage user accounts across all platform roles (admin, trainer, a
 The platform maintains an append-only audit log tracking sensitive administrative and evaluation modifications. Every log entry records the action performed, the entity type, the entity ID, the actor user ID, changes, and the exact timestamp. Audit logs cannot be modified or deleted through the interface, providing accountability and compliance traceability.
 
 ### Admin Guide: Predictive Model Evaluation
-The platform evaluates an early-warning predictive classifier against a baseline heuristic rule using a chronological holdout partition of 41 trainees with 5 or more recorded sessions:
-- Baseline Heuristic: Flags trainees whose historical score average is below 60.0% (F1: 0.8276, precision: 0.7059, recall: 1.0000).
-- Random Forest Classifier: Evaluates pacing, defect rates, and score trajectories (F1: 0.8000, precision: 0.6667, recall: 1.0000).
-The machine learning model did not beat the baseline heuristic, and observed differences remain within statistical sampling noise on the 12 positive instances.
+The platform evaluates early-warning risk models using a grouped holdout partition of trainees:
+- Baseline Heuristic: Flags trainees whose last 3 session average is below 60.0% (F1: 0.9275, precision: 0.8649, recall: 1.0000, 5 false positives).
+- Random Forest Classifier: Predicts using historical session features with threshold 0.67 (F1: 0.9697, precision: 0.9412, recall: 1.0000, 2 false positives).
+The difference between the heuristic baseline and the machine learning model is 3 rows on the 8-trainee test set, which is within statistical sampling noise. Complete results are tabulated in the Machine Learning Early-Warning Prediction section below and documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md).
 
 ### Admin Guide: Data Quality and Integrity Monitoring
 Data quality controls protect the database against corrupted or invalid records:
@@ -200,6 +200,64 @@ The platform applies consistent system-wide grading thresholds:
 
 ---
 
+## Machine Learning Prediction Service and Endpoint
+
+The backend provides a dedicated endpoint for evaluating trainee performance risk (`GET /analytics/trainees/{id}/risk`):
+- Evaluation Method: Returns `method: "ml"` when the trainee has completed at least 5 assessment sessions and the prediction microservice is reachable; otherwise returns `method: "rule"`.
+- Rule Fallback: Applies automatically when a trainee has fewer than 5 completed sessions, has no session history, or when the external prediction microservice is unreachable or times out (2.0-second network limit).
+- Threshold Units: For `method: "ml"`, returns decision threshold 0.67 with unit `"probability"`. For `method: "rule"`, returns pass cutoff 60.0 with unit `"score_percentage"`.
+- Probability Display Guard: The probability value is provided only when method is `"ml"` (labeled "Model probability of at-risk outcome"). Probabilities are strictly never returned or rendered for `"rule"` rows.
+- Global Feature Importance: Feature importances in the response represent global feature importance across the entire trained model artifact, not an individualized causal explanation for that specific trainee.
+
+---
+
+## Held-Out Machine Learning Evaluation Results
+
+The machine learning models and baselines were evaluated on an isolated test partition grouped by trainee identifier using `GroupShuffleSplit` (test size 0.20, fixed random state 42). The test metrics copied directly from `backend/app/ml/model_results.json` are:
+
+| Model | Test Rows | Test Trainees | Threshold | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Confusion Matrix (TN, FP, FN, TP) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Majority Baseline | 155 | 8 | - | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.2065 | [[123, 0], [32, 0]] |
+| Rule Baseline | 155 | 8 | 60.0% | 0.8649 | 1.0000 | 0.9275 | 0.9797 | 0.8649 | [[118, 5], [0, 32]] |
+| Logistic Regression | 155 | 8 | 0.53 | 0.9412 | 1.0000 | 0.9697 | 0.9995 | 0.9982 | [[121, 2], [0, 32]] |
+| Random Forest | 155 | 8 | 0.67 | 0.9412 | 1.0000 | 0.9697 | 1.0000 | 1.0000 | [[121, 2], [0, 32]] |
+
+### Evaluation Findings
+- The held-out test partition comprises 8 trainees, 155 rows, and 32 positive cases (20.6% positive rate).
+- Both the rule baseline and machine learning models achieved 1.0000 recall (identifying all 32 positive cases).
+- The difference between the rule baseline (5 false positives) and the models (2 false positives) is 3 rows out of 155, which is within statistical sampling noise.
+- Test set metrics were computed three times during development iteration (during threshold candidate inspection, pipeline execution, and JSON formatting checks), with candidate model settings and decision thresholds fixed on training cross-validation.
+
+---
+
+## Model Card Limitations Reference
+
+Detailed architectural specifications, feature derivations, and permutation checks are documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md). The model card establishes seven explicit operational limitations:
+1. Synthetic Data: Assessment data originates from simulation scripts and does not reflect real human learning behaviors.
+2. Small Test Set: Evaluated on 8 trainees and 32 positive instances; the 3-row difference between the rule baseline and models is within statistical noise.
+3. Shared Cutoff: The target label uses the identical 60.0% cutoff as the rule baseline, training models to mirror future adherence to that threshold.
+4. Proxy Target: The ground truth target is a short-term proxy (mean score on the next 2 sessions) rather than an observed career outcome.
+5. High AUC Caveat: Test ROC-AUC scores (0.9995 for Logistic Regression, 1.0000 for Random Forest) reflect simplicity and consistency in the synthetic generator and must not be assumed to generalize to real cohorts.
+6. No Real Student Data: The models have not been validated on real student or trainee cohorts.
+7. Development Test Exposures: Test set metrics were computed three times during development iteration.
+
+---
+
+## Help Assistant Documentation Search
+
+The platform includes an in-app documentation search assistant (`GET /help/search`, `GET /help/assistant`):
+- Architecture: Implemented as an inverted index keyword search engine using token frequency (TF-IDF) scoring over structured markdown documentation sections.
+- Natural Language Limitation: The Help Assistant is strictly a documentation keyword search tool, not a large language model or generative AI system. It cannot write new text, infer unstated rules, or answer questions outside the indexed documentation.
+- Retrieval Limits: Keyword search is sensitive to vocabulary choice; phrasing questions with terms not present in the guide may yield no results.
+- Unseen Benchmark Evaluation: Evaluated on a fresh unseen benchmark evaluation set, the assistant achieved:
+  - Hit@1: 3/5 (60.0%)
+  - Hit@3: 4/5 (80.0%)
+  - Role Violations: 0/5 (0.0% unauthorized disclosures)
+  - Adversarial Refusal: 5/5 (100.0% correct rejection of unauthorized requests)
+  Earlier benchmark figures showing 100% retrieval precision came from development and tuning sets used during initial index construction. The fresh unseen benchmark provides a realistic measure of retrieval on novel queries.
+
+---
+
 ## Development Demo States Note
 
 The state switcher pills and simulated query parameters (`?state=loading`, `?state=empty`, `?state=error`) on the Admin, Trainer, and Trainee dashboards are development-only verification tools gated by `import.meta.env.DEV`. In production builds, the UI pill switcher is excluded from the bundle and the `?state=` query parameter is ignored, ensuring live production telemetry is always rendered.
@@ -209,7 +267,7 @@ The state switcher pills and simulated query parameters (`?state=loading`, `?sta
 ## Known Limitations
 
 - **Frontend Risk Component Test Coverage**: The flagged trainee risk display component (`FlaggedTraineeRiskCard.jsx`) is verified via clean Vite production build compilation, static string audits (checking for forbidden buzzwords and typography rules), and live backend API integration, rather than a dedicated frontend component or browser test suite.
-- **Machine Learning Evaluation Outcome**: The machine learning early-warning model (Random Forest) did not beat the baseline heuristic rule ("flag if historical average < 60.0%") on 41 trainees and 12 positives (baseline F1: 0.8276 vs ML F1: 0.8000), with differences remaining within statistical sampling noise.
+- **Machine Learning Generalization and Evaluation**: As documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md), models were evaluated on 8 synthetic test trainees where the 3-row difference between models (2 false positives) and the baseline rule (5 false positives) is within statistical sampling noise.
 - **Audit Log Append-Only Scope**: Audit logging is append-only at the application layer only via repository interfaces; database-level immutability triggers or external database administrator access restrictions are not implemented.
 - **Database Schema and Migrations**: The `audit_logs.actor_id` column requires a database reseed (`python scripts/seed.py --reset`) on old databases because automatic table creation (`Base.metadata.create_all`) does not alter pre-existing tables.
 - **SQLite DateTime Parameter Warnings**: Deprecation warnings during SQLite test execution occur because raw Python datetime objects are bound directly in specific text SQL queries; these will be migrated to SQLAlchemy typed expressions or explicit ISO strings in future maintenance.
