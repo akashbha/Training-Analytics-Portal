@@ -6,6 +6,7 @@ import React, { useState, useMemo, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
 import { HelpAssistantPanel } from "../components/HelpAssistantPanel.jsx";
+import { FlaggedTraineeRiskCard } from "../components/FlaggedTraineeRiskCard.jsx";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -620,93 +621,23 @@ export function Dashboard() {
             className="py-12"
           />
         ) : (
-          <div className="overflow-x-auto mt-4">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  <th className="py-2.5 px-3">Severity</th>
-                  <th className="py-2.5 px-3">Trainee</th>
-                  <th className="py-2.5 px-3 text-right">Batch Avg</th>
-                  <th className="py-2.5 px-3 text-right">Sessions</th>
-                  <th className="py-2.5 px-4">Intervention Reason</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {sortedAttentionQueue.map((t, idx) => {
-                  const sev = getSeverity(t);
-                  const reason = getPlainReason(t);
-                  const traineeId = t.trainee_id || t.id;
-                  const traineeName = t.trainee_name || t.name;
-                  const sessionCountVal = t.session_count ?? t.metrics?.session_count ?? 0;
-                  const batchAvgDisplay = summary?.avg_score_pct != null ? `${Number(summary.avg_score_pct).toFixed(1)}%` : "-";
+          <div className="mt-4 space-y-3.5">
+            {sortedAttentionQueue.map((t, idx) => {
+              const traineeId = t.trainee_id || t.id || idx;
+              const batchAvgDisplay =
+                summary?.avg_score_pct != null
+                  ? `${Number(summary.avg_score_pct).toFixed(1)}%`
+                  : "-";
 
-                  return (
-                    <tr
-                      key={traineeId || idx}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      {/* Severity */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <span
-                          title={t.attention_probability != null ? `Model confidence probability: ${t.attention_probability}%` : undefined}
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${sev.bg}`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${sev.dot}`} />
-                          {sev.label}
-                        </span>
-                      </td>
-
-                      {/* Trainee Name */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <Link
-                          to={`/trainees/${traineeId}`}
-                          className="font-bold text-slate-900 hover:text-blue-600 transition-colors block text-xs"
-                        >
-                          {traineeName}
-                        </Link>
-                      </td>
-
-                      {/* Batch Average */}
-                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono tabular-nums text-slate-700">
-                        {batchAvgDisplay}
-                      </td>
-
-                      {/* Session Count */}
-                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono tabular-nums text-slate-700">
-                        {sessionCountVal}
-                      </td>
-
-                      {/* Reason Line */}
-                      <td className="py-3 px-4 text-slate-600">
-                        <span className="block truncate max-w-md" title={reason}>
-                          {reason}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-3 px-3 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => setRemediationTarget(t)}
-                            className="px-2.5 py-1 rounded text-white bg-blue-600 hover:bg-blue-700 text-xs font-semibold transition-colors cursor-pointer"
-                          >
-                            Assign Drill
-                          </button>
-                          <Link
-                            to={`/trainees/${traineeId}`}
-                            className="px-2.5 py-1 rounded text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-medium transition-colors"
-                          >
-                            View Dossier
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+              return (
+                <FlaggedTraineeRiskCard
+                  key={traineeId}
+                  trainee={t}
+                  batchAvgDisplay={batchAvgDisplay}
+                  onAssignDrill={() => setRemediationTarget(t)}
+                />
+              );
+            })}
           </div>
         )}
       </section>
