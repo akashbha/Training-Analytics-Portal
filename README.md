@@ -120,7 +120,7 @@ Following each evaluation session, instructors record qualitative feedback notes
 
 ### Trainee Guide: Score Bands and Thresholds
 The portal measures evaluation results against standard score thresholds:
-- Pass Mark: To pass an evaluation session, trainees must achieve a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.
+- Pass Mark: The pass threshold required to pass an evaluation session is a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.
 - Excellence Tier: A percentage score of 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain percentage marks of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.
 
 ### Trainer Guide: Needs-Attention Queue and Alerts
@@ -201,21 +201,23 @@ The platform applies consistent system-wide grading thresholds:
 ---
 
 ## Machine Learning Prediction Service and Endpoint
+Role tag: all
 
 The backend provides a dedicated endpoint for evaluating trainee performance risk (`GET /analytics/trainees/{id}/risk`):
 - Evaluation Method: Returns `method: "ml"` when the trainee has completed at least 5 assessment sessions and the prediction microservice is reachable; otherwise returns `method: "rule"`.
 - Rule Fallback: Applies automatically when a trainee has fewer than 5 completed sessions, has no session history, or when the external prediction microservice is unreachable or times out (2.0-second network limit).
-- Threshold Units: For `method: "ml"`, returns decision threshold 0.67 with unit `"probability"`. For `method: "rule"`, returns pass cutoff 60.0 with unit `"score_percentage"`.
+- Cutoff Units: For `method: "ml"`, returns decision cutoff 0.67 with unit `"probability"`. For `method: "rule"`, returns pass cutoff 60.0 with unit `"score_percentage"`.
 - Probability Display Guard: The probability value is provided only when method is `"ml"` (labeled "Model probability of at-risk outcome"). Probabilities are strictly never returned or rendered for `"rule"` rows.
 - Global Feature Importance: Feature importances in the response represent global feature importance across the entire trained model artifact, not an individualized causal explanation for that specific trainee.
 
 ---
 
 ## Held-Out Machine Learning Evaluation Results
+Role tag: all
 
 The machine learning models and baselines were evaluated on an isolated test partition grouped by trainee identifier using `GroupShuffleSplit` (test size 0.20, fixed random state 42). The test metrics copied directly from `backend/app/ml/model_results.json` are:
 
-| Model | Test Rows | Test Trainees | Threshold | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Confusion Matrix (TN, FP, FN, TP) |
+| Model | Test Rows | Test Trainees | Cutoff | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Confusion Matrix (TN, FP, FN, TP) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Majority Baseline | 155 | 8 | - | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.2065 | [[123, 0], [32, 0]] |
 | Rule Baseline | 155 | 8 | 60.0% | 0.8649 | 1.0000 | 0.9275 | 0.9797 | 0.8649 | [[118, 5], [0, 32]] |
@@ -226,16 +228,17 @@ The machine learning models and baselines were evaluated on an isolated test par
 - The held-out test partition comprises 8 trainees, 155 rows, and 32 positive cases (20.6% positive rate).
 - Both the rule baseline and machine learning models achieved 1.0000 recall (identifying all 32 positive cases).
 - The difference between the rule baseline (5 false positives) and the models (2 false positives) is 3 rows out of 155, which is within statistical sampling noise.
-- Test set metrics were computed three times during development iteration (during threshold candidate inspection, pipeline execution, and JSON formatting checks), with candidate model settings and decision thresholds fixed on training cross-validation.
+- Test set metrics were computed three times during development iteration (during threshold candidate inspection, pipeline execution, and JSON formatting checks), with candidate model settings and decision boundaries fixed on training cross-validation.
 
 ---
 
 ## Model Card Limitations Reference
+Role tag: all
 
 Detailed architectural specifications, feature derivations, and permutation checks are documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md). The model card establishes seven explicit operational limitations:
 1. Synthetic Data: Assessment data originates from simulation scripts and does not reflect real human learning behaviors.
 2. Small Test Set: Evaluated on 8 trainees and 32 positive instances; the 3-row difference between the rule baseline and models is within statistical noise.
-3. Shared Cutoff: The target label uses the identical 60.0% cutoff as the rule baseline, training models to mirror future adherence to that threshold.
+3. Shared Cutoff: The target label uses the identical 60.0% cutoff as the rule baseline, training models to mirror future adherence to that cutoff.
 4. Proxy Target: The ground truth target is a short-term proxy (mean score on the next 2 sessions) rather than an observed career outcome.
 5. High AUC Caveat: Test ROC-AUC scores (0.9995 for Logistic Regression, 1.0000 for Random Forest) reflect simplicity and consistency in the synthetic generator and must not be assumed to generalize to real cohorts.
 6. No Real Student Data: The models have not been validated on real student or trainee cohorts.
@@ -244,6 +247,7 @@ Detailed architectural specifications, feature derivations, and permutation chec
 ---
 
 ## Help Assistant Documentation Search
+Role tag: all
 
 The platform includes an in-app documentation search assistant (`GET /help/search`, `GET /help/assistant`):
 - Architecture: Implemented as an inverted index keyword search engine using token frequency (TF-IDF) scoring over structured markdown documentation sections.

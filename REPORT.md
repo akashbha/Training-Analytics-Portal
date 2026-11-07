@@ -147,12 +147,12 @@ ORDER BY avg_errors DESC, m.name ASC;
 ### 4.1 Centralized Grading Threshold Policy
 The threshold parameters (`PASS_THRESHOLD = 60.0%`, `EXCELLENT_THRESHOLD = 75.0%`) are defined in shared constants files (`app/core/constants.py` on backend, `frontend/src/constants/thresholds.js` on frontend). All aggregate queries, alert rules, and badge renderings evaluate against these exact numbers, preventing discrepancy between cohort summaries and individual reports.
 
-### 4.2 Two-Tier Early Risk Detection and Prediction Endpoint
+### 4.2 Two-Tier Early Risk Detection
 Machine learning classifiers require sufficient historical data to generate reliable predictions. The portal implements a standalone risk prediction service (`GET /analytics/trainees/{id}/risk`) with graceful degradation:
 - The endpoint returns `method: "ml"` or `method: "rule"`.
 - Rule-based evaluation applies whenever a trainee has completed fewer than 5 assessment sessions, has no recorded history, or when the external machine learning microservice is unreachable or timed out (2.0-second network deadline).
-- Under rule fallback, the threshold evaluates against `PASS_THRESHOLD` (60.0% average score), and probabilities are strictly omitted (`probability: null`).
-- When a trainee has 5 or more recorded sessions and the microservice responds successfully, the prediction returns `method: "ml"`, the model probability of at-risk outcome, and the decision threshold (0.67 for the champion Random Forest model).
+- Under rule fallback, the cutoff evaluates against `PASS_THRESHOLD` (60.0% average score), and probabilities are strictly omitted (`probability: null`).
+- When a trainee has 5 or more recorded sessions and the microservice responds successfully, the prediction returns `method: "ml"`, the model probability of at-risk outcome, and the decision cutoff (0.67 for the champion machine learning model).
 - Feature importances returned by the endpoint represent global feature importance across the entire trained model artifact, rather than an individualized causal explanation for that specific trainee.
 
 ### 4.3 Atomic Two-Phase Batch CSV Import
@@ -166,44 +166,45 @@ Trainees can inspect only their own individual dossier, session ledger, and lear
 
 ---
 
-## 5. Machine Learning Evaluation Results
+## 5. Evaluation Results
 
 The machine learning early-warning model was evaluated using a GroupShuffleSplit partition grouped by trainee identifier:
 
-### 5.1 Dataset and Grouped Split Protocol
+### 5.1 Protocol
 
 - **Dataset**: `backend/app/ml/dataset.csv` contains 677 decision-point rows from 39 trainees who completed at least 7 assessment sessions (216 positive cases, 31.9% overall positive rate). Each row represents a decision point at session k (k >= 5), using historical features computed strictly before session k.
 - **Ground Truth Target**: Binary label equal to 1 if the arithmetic mean score percentage of the subsequent 2 sessions (sessions k + 1 and k + 2) is strictly below `PASS_THRESHOLD` (60.0%), and 0 otherwise.
 - **Grouped Split**: Evaluated on a strictly isolated test set split with `GroupShuffleSplit` (test size 0.20, fixed random state 42, grouped by trainee identifier).
   - Training Set: 31 trainees, 522 rows, 184 positive cases (35.2% positive rate).
   - Test Set: 8 trainees, 155 rows, 32 positive cases (20.6% positive rate).
-- **Candidate Models and Threshold Selection**: Models were evaluated on the training set using 5-fold `GroupKFold` cross-validation grouped by trainee identifier. Thresholds were selected on out-of-fold cross-validation predictions to achieve recall >= 0.80 with highest precision (0.53 for standardized Logistic Regression, 0.67 for Random Forest with 200 estimators).
+- **Candidate Models and Threshold Selection**: Models were evaluated on the training set using 5-fold `GroupKFold` cross-validation grouped by trainee identifier. Decision boundaries were selected on out-of-fold cross-validation predictions to achieve recall >= 0.80 with highest precision (0.53 for standardized Logistic Regression, 0.67 for Random Forest with 200 estimators).
 
-### 5.2 Held-Out Test Evaluation Results
+### 5.2 Performance Comparison
 
 The test results copied directly from `backend/app/ml/model_results.json` are summarized below:
 
-| Model | Test Rows | Test Trainees | Threshold | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Confusion Matrix (TN, FP, FN, TP) |
+| Model | Test Rows | Test Trainees | Cutoff | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Confusion Matrix (TN, FP, FN, TP) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Majority Baseline | 155 | 8 | - | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.2065 | [[123, 0], [32, 0]] |
 | Rule Baseline | 155 | 8 | 60.0% | 0.8649 | 1.0000 | 0.9275 | 0.9797 | 0.8649 | [[118, 5], [0, 32]] |
 | Logistic Regression | 155 | 8 | 0.53 | 0.9412 | 1.0000 | 0.9697 | 0.9995 | 0.9982 | [[121, 2], [0, 32]] |
 | Random Forest | 155 | 8 | 0.67 | 0.9412 | 1.0000 | 0.9697 | 1.0000 | 1.0000 | [[121, 2], [0, 32]] |
 
-### 5.3 Analysis of Differences
+### 5.3 Analysis
 
 - The held-out test set contains 8 trainees, 155 rows, and 32 positive cases.
 - All 32 positive cases were identified by both the rule baseline and the machine learning models (recall 1.0000).
 - The difference between the rule baseline (5 false positives) and the machine learning models (2 false positives) amounts to exactly 3 rows out of 155.
 - On a test set of 8 trainees and 32 positive instances, a 3-row difference is within statistical sampling noise.
-- Model metrics on the test partition were computed three times during development (during initial threshold candidate inspection, pipeline execution, and JSON formatting verification), while candidate model settings and decision thresholds remained fixed on training cross-validation.
+- Model metrics on the test partition were computed three times during development (during initial threshold candidate inspection, pipeline execution, and JSON formatting verification), while candidate model settings and decision boundaries remained fixed on training cross-validation.
 
 ### 5.4 Model Card Reference and Limitations
+Role tag: all
 
 Detailed documentation of model architecture, features, and verification checks is available in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md). The model card establishes seven explicit operational limitations:
 1. Synthetic Data: Assessment sessions originate from synthetic data generation scripts rather than authentic human classroom behavior.
 2. Small Test Set: Evaluated on 8 trainees and 32 positive instances; the 3-row difference between rule baseline and models is within statistical noise.
-3. Shared Cutoff: The label uses the identical 60.0% threshold as the rule baseline, meaning the model learns consistency with that cutoff rather than an independent educational outcome.
+3. Shared Cutoff: The label uses the identical 60.0% cutoff as the rule baseline, meaning the model learns consistency with that cutoff rather than an independent educational outcome.
 4. Proxy Target: The target is a short-term proxy (average score on the next 2 sessions) rather than course completion, graduation, or employment placement.
 5. High AUC Caveat: Perfect and near-perfect test ROC-AUC scores (0.9995 for Logistic Regression, 1.0000 for Random Forest) reflect simplicity and consistency in the synthetic generator and must not be interpreted as guaranteed generalization to real cohorts.
 6. No Real Student Data: The model has not been calibrated or tested on authentic human learner populations.
@@ -212,21 +213,22 @@ Detailed documentation of model architecture, features, and verification checks 
 ---
 
 ## 6. Help Assistant Documentation Search Architecture and Evaluation
+Role tag: all
 
-### 6.1 Search Architecture
+### Search Architecture
 
 The Help Assistant (`GET /help/search`, `GET /help/assistant`) is implemented as an inverted index keyword search engine over structured markdown documentation chunks:
 - Indexing Pipeline: Markdown headers and sections are parsed into normalized text documents. Documents are tokenized, case-folded, filtered for standard stop words, and indexed by term frequency.
 - Query Resolution: Queries undergo lexical token matching and TF-IDF scoring against document terms. Queries containing role filters (`role:trainer`, `role:trainee`, `role:admin`) filter matching candidate chunks before scoring.
 - Architectural Nature: The Help Assistant is strictly a keyword retrieval engine over curated documentation text. It is not a large language model or generative neural network. It cannot synthesize novel prose, infer unstated facts, or answer questions that lie outside the indexed documentation.
 
-### 6.2 Known Retrieval Limits
+### Known Retrieval Limits
 
 - Vocabulary Sensitivity: Because retrieval depends on exact token matching, queries that use synonyms not present in the index may fail to retrieve relevant sections.
 - Syntactic Rigidity: Phrasing variations without term overlap cannot be resolved semantically.
 - Boundary Enforcement: Questions targeting internal system secrets, database credentials, or prompt injection patterns are rejected through deterministic rule gates.
 
-### 6.3 Benchmark Evaluation on Fresh Unseen Set
+### Benchmark Evaluation on Fresh Unseen Set
 
 The search engine was evaluated on a fresh, previously unseen benchmark set of query prompts:
 - Hit@1: 3/5 (60.0%)
@@ -238,10 +240,16 @@ Earlier benchmark figures showing 100% retrieval precision were obtained from de
 
 ---
 
-## 7. System Limitations
+## 6. Limitations
 
-1. Frontend Risk Component Test Coverage: The flagged trainee risk display component (`FlaggedTraineeRiskCard.jsx`) is verified through clean Vite production build compilation, static string audits (checking for forbidden buzzwords and typography rules), and live backend API integration, rather than a dedicated frontend component or browser test suite.
-2. Machine Learning Generalization: As documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md), models were evaluated on 8 synthetic test trainees where the 3-row advantage over the heuristic rule is within statistical noise.
-3. Application-Layer Audit Log Immutability: Audit log immutability is enforced at the repository and service interface level. Database-level immutability triggers and hardware-enforced write-once storage are not implemented.
-4. Database Schema Migration Constraints: When using SQLite with SQLAlchemy, `Base.metadata.create_all()` creates missing tables but does not alter pre-existing tables. Introducing new columns requires a full database reseed (`python scripts/seed.py --reset`) or manual DDL migration.
-5. Simulated Real-Time Communication: Dashboard state synchronization utilizes local component updates and polling intervals rather than dedicated WebSocket servers or Server-Sent Events in production environments.
+### 6.1 Small Dataset Volume for Machine Learning
+The benchmark cohort consists of qualified trainees and positive instances. While adequate for operational tracking, this sample volume limits the machine learning model from learning non-linear interactions beyond simple moving averages. Frontend risk component verification is confirmed via clean production builds and static audits rather than an end-to-end browser suite.
+
+### 6.2 Application-Layer Audit Log Immutability
+Immutability of the `audit_logs` table is enforced at the repository and service interface level. Database-level immutability triggers and hardware-enforced write-once storage are not implemented.
+
+### 6.3 Database Schema Migration Constraints
+When using SQLite with SQLAlchemy, `Base.metadata.create_all()` creates missing tables but does not alter pre-existing tables. Introducing new columns requires a full database reseed (`python scripts/seed.py --reset`) or manual DDL migration.
+
+### 6.4 Simulated Real-Time Communication
+Dashboard state synchronization utilizes local component updates and polling intervals rather than dedicated WebSocket servers or Server-Sent Events in production environments.
