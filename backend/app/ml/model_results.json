@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "dataset": "C:\\Users\\anmol\\minor_project_shi\\Training-Analytics-Portal\\backend\\app\\ml\\dataset.csv",
+    "total_rows": 677,
+    "total_trainees": 39,
+    "train_rows": 522,
+    "train_trainees": 31,
+    "test_rows": 155,
+    "test_trainees": 8,
+    "features": [
+      "last_1_score",
+      "last_3_mean_score",
+      "overall_mean_score",
+      "slope_last_5",
+      "error_rate",
+      "mean_time",
+      "session_count",
+      "score_std"
+    ],
+    "pass_threshold": 60.0
+  },
+  "cv_results": {
+    "majority_baseline": {
+      "cv_precision_mean": 0.0,
+      "cv_precision_std": 0.0,
+      "cv_recall_mean": 0.0,
+      "cv_recall_std": 0.0
+    },
+    "rule_baseline": {
+      "cv_precision_mean": 0.8574,
+      "cv_precision_std": 0.0731,
+      "cv_recall_mean": 1.0,
+      "cv_recall_std": 0.0
+    },
+    "logistic_regression": {
+      "chosen_threshold": 0.53,
+      "target_recall_reached": true,
+      "threshold_selection_oof_recall": 0.8043,
+      "threshold_selection_oof_precision": 0.9487,
+      "cv_precision_mean": 0.9234,
+      "cv_precision_std": 0.059,
+      "cv_recall_mean": 0.8746,
+      "cv_recall_std": 0.1307
+    },
+    "random_forest": {
+      "chosen_threshold": 0.67,
+      "target_recall_reached": true,
+      "threshold_selection_oof_recall": 0.8098,
+      "threshold_selection_oof_precision": 0.9675,
+      "cv_precision_mean": 0.9522,
+      "cv_precision_std": 0.0399,
+      "cv_recall_mean": 0.8857,
+      "cv_recall_std": 0.1337
+    }
+  },
+  "test_results": {
+    "majority_baseline": {
+      "test_rows": 155,
+      "test_trainees": 8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.5,
+      "pr_auc": 0.2065,
+      "confusion_matrix": [
+        [
+          123,
+          0
+        ],
+        [
+          32,
+          0
+        ]
+      ]
+    },
+    "rule_baseline": {
+      "test_rows": 155,
+      "test_trainees": 8,
+      "precision": 0.8649,
+      "recall": 1.0,
+      "f1": 0.9275,
+      "roc_auc": 0.9797,
+      "pr_auc": 0.8649,
+      "confusion_matrix": [
+        [
+          118,
+          5
+        ],
+        [
+          0,
+          32
+        ]
+      ]
+    },
+    "logistic_regression": {
+      "test_rows": 155,
+      "test_trainees": 8,
+      "threshold": 0.53,
+      "precision": 0.9412,
+      "recall": 1.0,
+      "f1": 0.9697,
+      "roc_auc": 0.9995,
+      "pr_auc": 0.9982,
+      "confusion_matrix": [
+        [
+          121,
+          2
+        ],
+        [
+          0,
+          32
+        ]
+      ]
+    },
+    "random_forest": {
+      "test_rows": 155,
+      "test_trainees": 8,
+      "threshold": 0.67,
+      "precision": 0.9412,
+      "recall": 1.0,
+      "f1": 0.9697,
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "confusion_matrix": [
+        [
+          121,
+          2
+        ],
+        [
+          0,
+          32
+        ]
+      ]
+    }
+  }
+}
