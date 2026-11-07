@@ -1,6 +1,5 @@
 // src/pages/TraineeDashboard.jsx
 // Trainee performance dashboard with chronological progress curve and curriculum error breakdowns.
-// Restored to the authentic portal layout structure with full profile editing and photo upload capabilities.
 
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
@@ -34,11 +33,8 @@ import {
 import { apiClient } from "../api/client.js";
 import { PASS_THRESHOLD, EXCELLENT_THRESHOLD, COLD_START_SESSIONS, COLD_START_CUTOFF } from "../constants/thresholds.js";
 import {
-  Award,
-  TrendingUp,
   Target,
   ArrowLeft,
-  Clock,
   Filter,
   Trash2,
   Edit3,
@@ -295,7 +291,6 @@ export function TraineeDashboard({ traineeId: propId }) {
   const [selectedModule, setSelectedModule] = useState("ALL");
   const [sessionFilter, setSessionFilter] = useState("ALL");
   const [syncRequested, setSyncRequested] = useState(false);
-  const [showDrillBrief, setShowDrillBrief] = useState(false);
 
   // Profile Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -497,11 +492,11 @@ export function TraineeDashboard({ traineeId: propId }) {
   useEffect(() => {
     if (profile) {
       setEditForm({
-        name: localProfile?.name || profile.name || "Danielle Johnson",
-        phone: localProfile?.phone || profile.phone || "+1 (555) 234-8901",
-        specialization: localProfile?.specialization || profile.specialization || "Full-Stack Web & Distributed Systems",
-        bio: localProfile?.bio || profile.bio || "Dedicated cohort learner mastering relational modeling, API protocols, and clean web architecture.",
-        github_url: localProfile?.github_url || profile.github_url || "https://github.com/danielle-dev",
+        name: localProfile?.name || profile.name || "",
+        phone: localProfile?.phone || profile.phone || "",
+        specialization: localProfile?.specialization || profile.specialization || "",
+        bio: localProfile?.bio || profile.bio || "",
+        github_url: localProfile?.github_url || profile.github_url || "",
         avatar_url: localProfile?.avatar_url || profile.avatar_url || "",
       });
     }
@@ -635,6 +630,44 @@ export function TraineeDashboard({ traineeId: propId }) {
     ...profile,
     ...(localProfile || {}),
   };
+
+  const priorityModuleData = useMemo(() => {
+    if (!progress || progress.length === 0) return null;
+    const byModule = {};
+    for (const p of progress) {
+      if (!p.module_name) continue;
+      const score = p.score_pct ?? p.score_percentage;
+      if (score == null) continue;
+      if (!byModule[p.module_name]) {
+        byModule[p.module_name] = { total: 0, count: 0 };
+      }
+      byModule[p.module_name].total += score;
+      byModule[p.module_name].count += 1;
+    }
+
+    const modules = Object.entries(byModule).map(([name, { total, count }]) => ({
+      name,
+      avg: total / count,
+      count,
+    }));
+
+    if (modules.length === 0) return null;
+    modules.sort((a, b) => a.avg - b.avg);
+    const lowest = modules[0];
+    const isBelow = lowest.avg < PASS_THRESHOLD;
+    const gap = (PASS_THRESHOLD - lowest.avg).toFixed(1);
+    const gapText = isBelow
+      ? `${gap}% below the ${PASS_THRESHOLD.toFixed(1)}% pass cutoff`
+      : `Meets the ${PASS_THRESHOLD.toFixed(1)}% pass cutoff`;
+
+    return {
+      moduleName: lowest.name,
+      avgScore: lowest.avg.toFixed(1),
+      count: lowest.count,
+      isBelow,
+      gapText,
+    };
+  }, [progress]);
 
   const moduleOptions = useMemo(() => {
     if (!progress || progress.length === 0) return [];
@@ -827,38 +860,8 @@ export function TraineeDashboard({ traineeId: propId }) {
             </div>
           </div>
 
-          {/* Action buttons & Dev-only switcher */}
+          {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
-            {import.meta.env.DEV && (
-              <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60 shadow-2xs">
-                {["live", "loading", "empty", "error"].map((st) => {
-                  const isActive = (demoState === null && st === "live") || demoState === st;
-                  return (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => {
-                        const next = new URLSearchParams(searchParams);
-                        if (st === "live") {
-                          next.delete("state");
-                        } else {
-                          next.set("state", st);
-                        }
-                        setSearchParams(next);
-                      }}
-                      className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
-                        isActive
-                          ? "bg-white text-slate-900 shadow-2xs font-extrabold"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             <button
               type="button"
               onClick={() => setEditModalOpen(true)}
@@ -886,7 +889,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Email</span>
               <span className="font-semibold text-slate-800 truncate block">
-                {isDemoEmpty || isDemoError ? "—" : activeProfile?.email || user?.email || "trainee@portal.com"}
+                {isDemoEmpty || isDemoError ? "Not provided" : activeProfile?.email || user?.email || "Not provided"}
               </span>
             </div>
           </div>
@@ -896,7 +899,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Phone</span>
               <span className="font-semibold text-slate-800 truncate block">
-                {isDemoEmpty || isDemoError ? "—" : activeProfile?.phone || "+1 (555) 234-8901"}
+                {isDemoEmpty || isDemoError || !activeProfile?.phone ? "Not provided" : activeProfile.phone}
               </span>
             </div>
           </div>
@@ -916,7 +919,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               ) : (
-                <span className="text-slate-400 font-medium">Not linked</span>
+                <span className="text-slate-400 font-medium">Not provided</span>
               )}
             </div>
           </div>
@@ -1283,56 +1286,62 @@ export function TraineeDashboard({ traineeId: propId }) {
             </div>
           </Card>
 
-          {/* Next Scheduled Assessment Drill */}
+          {/* Priority Focus Module */}
           <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Next Scheduled Drill</h3>
+                <span className={`w-2 h-2 rounded-full ${priorityModuleData?.isBelow ? "bg-rose-500" : "bg-emerald-500"}`}></span>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Priority focus module</h3>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                {isDemoEmpty || isDemoError ? "None" : "In 3 Days"}
-              </span>
+              {priorityModuleData && (
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md border tabular-nums ${
+                    priorityModuleData.isBelow
+                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  }`}
+                >
+                  {priorityModuleData.avgScore}% avg
+                </span>
+              )}
             </div>
 
-            {isDemoEmpty || isDemoError ? (
-              <div className="text-xs text-slate-400 text-center py-4">
-                No upcoming assessment drills scheduled.
-              </div>
+            {isDemoEmpty || isDemoError || !priorityModuleData ? (
+              <EmptyState title="No sessions recorded yet." compact />
             ) : (
               <div className="space-y-3 text-xs">
                 <div>
                   <div className="text-xs font-bold text-slate-900 leading-snug">
-                    PostgreSQL Schema & Query Optimization
+                    {priorityModuleData.moduleName}
                   </div>
                   <div className="text-[11px] text-slate-500 mt-0.5">
-                    Remediation evaluation drill targeting foreign keys and indexes
+                    Evaluated across {priorityModuleData.count} assessment session{priorityModuleData.count !== 1 ? "s" : ""}.
                   </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400 font-medium">Session Date:</span>
-                    <span className="font-bold text-slate-800">Nov 4, 2026 · 10:00 AM</span>
+                    <span className="text-slate-400 font-medium">Module average:</span>
+                    <span className="font-bold text-slate-900 tabular-nums">
+                      {priorityModuleData.avgScore}%
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400 font-medium">Duration:</span>
-                    <span className="font-bold text-slate-800">45 Minutes (Live Sandbox)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400 font-medium">Instructor:</span>
-                    <span className="font-bold text-slate-800">Marcus Vance</span>
+                    <span className="text-slate-400 font-medium">Pass cutoff:</span>
+                    <span className="font-bold text-slate-700 tabular-nums">
+                      {PASS_THRESHOLD.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
 
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowDrillBrief(true)}
-                    className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer text-center block"
-                  >
-                    View Drill Requirements & Setup
-                  </button>
+                <div
+                  className={`p-2.5 rounded-lg border text-xs font-medium ${
+                    priorityModuleData.isBelow
+                      ? "bg-rose-50 border-rose-200 text-rose-800"
+                      : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  {priorityModuleData.gapText}
                 </div>
               </div>
             )}
@@ -2063,7 +2072,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  placeholder="+1 (555) 234-8901"
+                  placeholder="Phone number"
                   className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -2176,52 +2185,7 @@ export function TraineeDashboard({ traineeId: propId }) {
         </div>
       )}
 
-      {/* 7. DRILL BRIEF MODAL */}
-      {showDrillBrief && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  Assessment Brief
-                </span>
-                <h3 className="text-sm font-bold text-slate-900 mt-1">
-                  PostgreSQL Schema & Optimization Drill
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDrillBrief(false)}
-                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="space-y-3 text-slate-600">
-              <p className="leading-relaxed">
-                This 45-minute timed technical evaluation targets query plan optimization, composite foreign keys, and index strategy under concurrent load.
-              </p>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5 font-medium">
-                <div className="font-bold text-slate-900 text-[11px]">Prerequisite Checklist:</div>
-                <div>• Docker engine running locally or access to staging sandbox</div>
-                <div>• Review SQL index scans vs sequential scans</div>
-                <div>• PostgreSQL schema migration scripts in repository</div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowDrillBrief(false)}
-                className="px-4 py-1.5 rounded-lg bg-slate-900 text-white font-bold cursor-pointer hover:bg-slate-800 transition-colors"
-              >
-                Got It
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 8. ASSIGN REMEDIATION MODAL (Staff Only) */}
       {showRemediationModal && (
