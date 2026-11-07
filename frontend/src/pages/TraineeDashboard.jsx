@@ -1059,9 +1059,9 @@ export function TraineeDashboard({ traineeId: propId }) {
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
               <div>
-                <h2 className="text-base font-bold text-slate-900 tracking-tight">My Score Over Time</h2>
+                <h2 className="text-sm font-semibold text-slate-900">My score over time</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Normalized percentage progression timeline across assessment modules
+                  Normalized score progression across modules based on {sessions?.length || 0} recorded sessions.
                 </p>
               </div>
               {moduleOptions.length > 0 && !isDemoEmpty && !isDemoError && (
@@ -1156,9 +1156,9 @@ export function TraineeDashboard({ traineeId: propId }) {
           {/* Curriculum Defect Diagnostics (Stephen Few Bullet Matrix & Radar) */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
             <div className="pb-3 border-b border-slate-100 mb-4">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">Curriculum Defect Diagnostics</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Curriculum defect diagnostics</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Module error tolerance analysis with session progression history
+                Module error counts against target tolerance based on {sessions?.length || 0} recorded sessions.
               </p>
             </div>
 
@@ -1192,14 +1192,16 @@ export function TraineeDashboard({ traineeId: propId }) {
         {/* Right Column: Focus Areas & Next Goal */}
         <div className="lg:col-span-1 space-y-6">
           <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Focus Areas</h3>
+            <div className="pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Focus areas</h3>
+                <span className="text-[10px] font-semibold text-slate-400">
+                  Practice Needs
+                </span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Practice Needs
-              </span>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Modules with defect rates exceeding target based on {sessions?.length || 0} recorded sessions.
+              </p>
             </div>
 
             <p className="text-xs text-slate-500 mb-4 leading-relaxed">
@@ -1288,22 +1290,21 @@ export function TraineeDashboard({ traineeId: propId }) {
 
           {/* Priority Focus Module */}
           <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div className="flex items-center space-x-2">
-                <span className={`w-2 h-2 rounded-full ${priorityModuleData?.isBelow ? "bg-rose-500" : "bg-emerald-500"}`}></span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Priority focus module</h3>
+            <div className="pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Priority focus module</h3>
+                {priorityModuleData && (
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border tabular-nums ${
+                      priorityModuleData.isBelow
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    }`}
+                  >
+                    {priorityModuleData.avgScore}% avg
+                  </span>
+                )}
               </div>
-              {priorityModuleData && (
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md border tabular-nums ${
-                    priorityModuleData.isBelow
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  }`}
-                >
-                  {priorityModuleData.avgScore}% avg
-                </span>
-              )}
             </div>
 
             {isDemoEmpty || isDemoError || !priorityModuleData ? (
@@ -1349,15 +1350,17 @@ export function TraineeDashboard({ traineeId: propId }) {
 
           {/* Remediation Records (Intervention History) */}
           <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Remediation Records</h3>
-              </div>
-              <div className="flex items-center space-x-2">
+            <div className="pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Remediation records</h3>
                 <span className="text-[10px] font-semibold text-slate-400">
                   {effectiveRemediations.length} Record{effectiveRemediations.length !== 1 ? "s" : ""}
                 </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Academic intervention assignments based on {effectiveRemediations.length} records.
+              </p>
+              <div className="flex items-center space-x-2 mt-2">
                 {isStaff && (
                   <button
                     type="button"
@@ -1446,13 +1449,13 @@ export function TraineeDashboard({ traineeId: propId }) {
         </div>
       </div>
 
-      {/* 4. SPEED VERSUS ACCURACY SCATTER ANALYSIS (Step 7) */}
+      {/* 4. SPEED VERSUS ACCURACY SCATTER ANALYSIS */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">Speed versus Accuracy Analysis</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Speed versus accuracy analysis</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Distribution of duration in minutes against evaluation score percentage across all recorded sessions
+              Session duration plotted against score percentage based on {sessions?.length || 0} recorded sessions.
             </p>
           </div>
           <div className="flex items-center space-x-2 text-[11px] text-slate-500 font-medium">
@@ -1529,18 +1532,15 @@ export function TraineeDashboard({ traineeId: propId }) {
         )}
       </div>
 
-      {/* 5. MODULE LEARNING GOALS & TARGET PROGRESS (Step 8) */}
+      {/* 5. MODULE LEARNING GOALS & TARGET PROGRESS */}
       <Card variant="white" className="p-6 border border-slate-200/90 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-100 gap-3">
           <div>
-            <div className="flex items-center space-x-2">
-              <Target className="w-4 h-4 text-brand" />
-              <h2 className="text-sm font-bold text-slate-900 tracking-tight uppercase">
-                Module Learning Goals & Target Progress
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Set target score thresholds per curriculum module and monitor verified best assessment scores toward your goal.
+            <h2 className="text-sm font-semibold text-slate-900">
+              Module learning goals
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Target benchmarks and verified scores based on {effectiveGoals.length} configured goals.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-slate-400 self-start md:self-auto">
@@ -1724,9 +1724,9 @@ export function TraineeDashboard({ traineeId: propId }) {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">Assessment Evaluation Ledger</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Assessment evaluation ledger</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Chronological record of verified test drills, scoring accuracy, and defect counts
+              Chronological record of verified test drills based on {sessions?.length || 0} recorded sessions.
             </p>
           </div>
           {sessionStats && !isDemoEmpty && !isDemoError && (
@@ -1759,49 +1759,48 @@ export function TraineeDashboard({ traineeId: propId }) {
           />
         ) : (
           <div className="space-y-3 pt-1">
-            {/* Quick Module Filter Bar */}
-            {sessionFilterOptions.length > 1 && (
-              <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
-                  Filter Module:
+            {/* Module Filter Buttons */}
+            {sessionFilterOptions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-slate-100">
+                <span className="text-xs font-medium text-slate-500 mr-1">
+                  Filter by module:
                 </span>
                 <button
                   type="button"
                   onClick={() => setSessionFilter("ALL")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                     sessionFilter === "ALL"
-                      ? "bg-slate-900 text-white shadow-2xs"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
                   }`}
                 >
-                  All Drills ({sessions?.length || 0})
+                  All ({sessions?.length || 0})
                 </button>
                 {sessionFilterOptions.map((opt) => {
                   const count = (sessions || []).filter((s) => s.module_name === opt).length;
-                  const shortName = opt.replace(" Engineering", "").replace(" Architecture", "");
                   return (
                     <button
                       key={opt}
                       type="button"
                       onClick={() => setSessionFilter(opt)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                         sessionFilter === opt
-                          ? "bg-slate-900 text-white shadow-2xs"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          ? "bg-blue-600 text-white shadow-xs"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
                       }`}
                     >
-                      {shortName} ({count})
+                      {opt} ({count})
                     </button>
                   );
                 })}
               </div>
             )}
 
-            {/* Ledger Table */}
-            <div className="overflow-x-auto w-full -mx-2 sm:mx-0">
+            {/* Ledger Table Container */}
+            <div className="overflow-x-auto overflow-y-auto max-h-96 w-full rounded-lg border border-slate-200 -mx-2 sm:mx-0">
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+                  <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                     <th className="py-2.5 px-3">Session & Date</th>
                     <th className="py-2.5 px-3">Module & Topic</th>
                     <th className="py-2.5 px-3">Score & Outcome</th>
