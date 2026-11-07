@@ -108,17 +108,17 @@ export function FlaggedTraineeRiskCard({
 
   if (loading) {
     return (
-      <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-xs">
+      <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center space-x-2">
             <Link
               to={`/trainees/${traineeId}`}
-              className="font-bold text-slate-900 text-xs hover:text-blue-600 transition-colors"
+              className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors"
             >
               {traineeName}
             </Link>
           </div>
-          <span className="text-xs text-slate-500 font-mono tabular-nums">
+          <span className="text-xs text-slate-500 font-mono">
             Sessions: {sessionCountVal}
           </span>
         </div>
@@ -129,12 +129,12 @@ export function FlaggedTraineeRiskCard({
 
   if (error) {
     return (
-      <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-xs">
+      <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center space-x-2">
             <Link
               to={`/trainees/${traineeId}`}
-              className="font-bold text-slate-900 text-xs hover:text-blue-600 transition-colors"
+              className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors"
             >
               {traineeName}
             </Link>
@@ -171,14 +171,14 @@ export function FlaggedTraineeRiskCard({
       : "Evaluated using rule fallback.");
 
   return (
-    <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-xs transition-colors hover:border-slate-300">
-      {/* Header Row */}
+    <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-2xs transition-all hover:border-slate-300">
+      {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/trainees/${traineeId}`}
-              className="font-bold text-slate-900 hover:text-blue-600 transition-colors text-xs"
+              className="font-bold text-slate-900 hover:text-blue-600 transition-colors text-sm"
             >
               {traineeName}
             </Link>
@@ -190,10 +190,8 @@ export function FlaggedTraineeRiskCard({
             </span>
           </div>
           <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3 font-mono">
-            <span>Sessions: <strong className="text-slate-700 tabular-nums">{sessionCountVal}</strong></span>
-            {batchAvgDisplay !== "-" && (
-              <span>Batch Avg: <strong className="text-slate-700 tabular-nums">{batchAvgDisplay}</strong></span>
-            )}
+            <span>Sessions: {sessionCountVal}</span>
+            {batchAvgDisplay !== "-" && <span>Batch Avg: {batchAvgDisplay}</span>}
           </div>
         </div>
 
@@ -216,53 +214,55 @@ export function FlaggedTraineeRiskCard({
         </div>
       </div>
 
-      {/* Method Badge and Reason Sentence Aligned on One Line */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        {isMl ? (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
-            ML model
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
-            Rule fallback
-          </span>
-        )}
-        <span className="text-xs text-slate-600 leading-normal">
+      {/* Method Badge and Reason Sentence */}
+      <div className="mt-3">
+        <div className="flex items-center space-x-2">
+          {isMl ? (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              ML model
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+              Rule fallback
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
           {plainReason}
-        </span>
+        </p>
       </div>
 
       {/* Metrics Row: Probability and Threshold with Units */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-        {/* Probability is shown strictly for ML rows */}
+        {/* Probability is shown strictly for ML model only */}
         {isMl && riskData?.probability != null && (
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
             <div className="text-[11px] font-medium text-slate-500">
               Model probability of at-risk outcome
             </div>
-            <div className="text-lg font-bold text-slate-900 mt-0.5 tabular-nums">
+            <div className="text-base font-bold text-slate-900 mt-0.5 tabular-nums">
               {Math.round(riskData.probability * 100)}%
             </div>
           </div>
         )}
 
         {/* Threshold with explicit units */}
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
           <div className="text-[11px] font-medium text-slate-500">
             {isMl ? "Decision Criterion" : "Evaluation Cutoff"}
           </div>
-          <div className="text-xs font-semibold text-slate-900 mt-0.5 tabular-nums">
+          <div className="text-xs font-semibold text-slate-900 mt-0.5">
             {formatThresholdWithUnit(riskData)}
           </div>
         </div>
 
-        {/* Rule fallback secondary context */}
+        {/* For rule fallback: secondary context without probability */}
         {!isMl && (
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
             <div className="text-[11px] font-medium text-slate-500">
               Evaluation Context
             </div>
-            <div className="text-xs font-semibold text-slate-900 mt-0.5 font-mono tabular-nums">
+            <div className="text-xs font-semibold text-slate-900 mt-0.5 font-mono">
               {sessionCountVal} session(s) logged
             </div>
           </div>
@@ -271,8 +271,8 @@ export function FlaggedTraineeRiskCard({
 
       {/* Top Features (for ML model) */}
       {isMl && riskData?.top_features && riskData.top_features.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+        <div className="mt-3.5 pt-3 border-t border-slate-100">
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
             Top Model Features
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -282,7 +282,7 @@ export function FlaggedTraineeRiskCard({
               return (
                 <div
                   key={feat.feature || idx}
-                  className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-col justify-between"
+                  className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex flex-col justify-between"
                 >
                   <div>
                     <span className="text-xs font-medium text-slate-800 capitalize">
@@ -299,7 +299,7 @@ export function FlaggedTraineeRiskCard({
                   </div>
                   <div className="mt-2 flex items-center justify-between text-[11px] font-mono text-slate-600">
                     <span>Importance</span>
-                    <span className="font-semibold text-slate-900 tabular-nums">{importancePct}%</span>
+                    <span className="font-semibold text-slate-900">{importancePct}%</span>
                   </div>
                 </div>
               );

@@ -63,8 +63,6 @@ The system is built with a FastAPI backend (Python, SQLAlchemy, SQLite/PostgreSQ
    ```
    *The web application will be accessible at `http://localhost:5173`.*
 
-   *Note: The landing page background chart texture is rendered in SVG from static seeded batch score averages (`frontend/src/assets/landing-heatmap.json`), containing no credentials or email addresses.*
-
 ---
 
 ### 3. Default Seeded Credentials
