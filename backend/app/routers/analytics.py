@@ -221,6 +221,25 @@ def get_trainee_ml_prediction_endpoint(
     from app.ml.predictor import predict_trainee_attention
     return predict_trainee_attention(db, trainee_id=trainee_id)
 
+@router.get("/trainees/{id}/risk")
+def get_trainee_risk_endpoint(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns ML performance risk prediction with rule-based fallback and access control."""
+    verify_trainee_access(id, current_user)
+    trainee = TraineeRepository(db).get_by_id(id)
+    if not trainee:
+        raise AppException(
+            code="TRAINEE_NOT_FOUND",
+            message=f"Trainee with ID {id} not found",
+            status_code=404,
+        )
+    from app.services.ml_client import predict_trainee_risk
+    return predict_trainee_risk(db, id)
+
+
 @router.get("/ml/model-info")
 def get_ml_model_info(staff: User = Depends(require_staff)):
     """Returns candidate comparison, evaluation metrics (Recall, F1, Confusion Matrix), and feature importances."""

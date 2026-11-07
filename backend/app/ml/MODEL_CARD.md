@@ -55,7 +55,7 @@ The precision drops directly to the baseline positive frequency (35.2 percent on
 2. Small Test Set: The test set consists of only 8 trainees (155 rows, 32 positive cases). The observed difference between the rule baseline (5 false positives) and the machine learning models (2 false positives) corresponds to only 3 rows and is within noise.
 3. Shared Cutoff: The label uses the same 60% cutoff as the rule baseline. As a result, the models primarily learn to predict future adherence to this predefined cutoff rather than an independent external criterion.
 4. Proxy Target: The target is a synthetic proxy (average score on next 2 sessions) rather than an observed educational outcome such as course completion, certification pass, or job placement.
-5. High AUC Caveat: Test ROC-AUC values of 0.9995 and 1.0000 reflect the simplicity and consistency of the synthetic generator across these 8 test trainees and will not generalize to real classroom data.
+5. High AUC Caveat: Test ROC-AUC values of 0.9995 and 1.0000 require caution. The cause is not established; the synthetic generator may make the task easier than real data, and the high AUC on a small test set may not generalize.
 6. No Real Student Data: The model has not been validated on real student or trainee data and must not be used for high-stakes decisions without clinical validation on authentic cohorts.
 7. Development Test Exposures: The test set was computed three times during development. While thresholds were fixed on training cross-validation, the test metrics were visible during iteration.
 

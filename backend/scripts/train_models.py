@@ -41,7 +41,7 @@ ML_DIR = BACKEND_DIR / "app" / "ml"
 DATASET_PATH = ML_DIR / "dataset.csv"
 SPLIT_PATH = ML_DIR / "split.json"
 RESULTS_PATH = ML_DIR / "model_results.json"
-MODEL_PATH = ML_DIR / "model.joblib"
+MODEL_PATH = ML_DIR / "risk_model.joblib"
 
 FEATURE_COLUMNS = [
     "last_1_score",
@@ -291,6 +291,24 @@ def run_pipeline() -> Dict[str, Any]:
             "confusion_matrix": confusion_matrix(y_test, test_preds).tolist(),
         }
 
+    # Persist champion model artifact for ML prediction service
+    champion_payload = {
+        "model_name": "Random Forest",
+        "version": "1.0.0",
+        "model": fitted_models["random_forest"],
+        "threshold": model_thresholds["random_forest"],
+        "features": FEATURE_COLUMNS,
+        "pass_threshold": PASS_THRESHOLD,
+        "training_date": "2026-11-07",
+        "feature_importances": dict(
+            zip(
+                FEATURE_COLUMNS,
+                fitted_models["random_forest"].feature_importances_.tolist(),
+            )
+        ),
+    }
+    joblib.dump(champion_payload, MODEL_PATH)
+
     # Persist Results to model_results.json
     final_output = {
         "metadata": {
@@ -303,6 +321,7 @@ def run_pipeline() -> Dict[str, Any]:
             "test_trainees": len(test_trainees),
             "features": FEATURE_COLUMNS,
             "pass_threshold": PASS_THRESHOLD,
+            "training_date": "2026-11-07",
         },
         "cv_results": cv_results,
         "test_results": test_results,
