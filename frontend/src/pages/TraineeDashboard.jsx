@@ -5,6 +5,7 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
+import { HelpAssistantPanel } from "../components/HelpAssistantPanel.jsx";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -963,6 +964,9 @@ export function TraineeDashboard({ traineeId: propId }) {
           </div>
         </div>
       </div>
+
+      {/* Help Assistant Panel */}
+      <HelpAssistantPanel />
 
       {/* 2. CORE STAT CARDS (Latest, Best, Improvement, Sessions) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

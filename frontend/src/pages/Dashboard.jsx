@@ -5,6 +5,7 @@
 import React, { useState, useMemo, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
+import { HelpAssistantPanel } from "../components/HelpAssistantPanel.jsx";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -475,6 +476,9 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Help Assistant Panel */}
+      <HelpAssistantPanel />
 
       {/* =========================================================================
           2. CORE METRICS STRIP (Clean Typographic Tiles)
