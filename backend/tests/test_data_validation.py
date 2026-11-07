@@ -248,13 +248,14 @@ def test_admin_data_quality_detects_flagged_records(client, db_session):
     )
 
     # 2. Inject duplicate session anomaly: 2 sessions on the exact same date for trainee 1 & module mod
+    dup_date = (now_utc - timedelta(days=3)).replace(hour=12, minute=0, second=0)
     s_dup1 = Session(
         trainee_id=1,
         module_id=mod.id,
         score=40.0,
         errors=2,
         time_seconds=1200,
-        created_at=now_utc - timedelta(days=3, hours=2),
+        created_at=dup_date,
     )
     s_dup2 = Session(
         trainee_id=1,
@@ -262,7 +263,7 @@ def test_admin_data_quality_detects_flagged_records(client, db_session):
         score=42.0,
         errors=1,
         time_seconds=1100,
-        created_at=now_utc - timedelta(days=3, hours=4),
+        created_at=dup_date.replace(hour=14),
     )
 
     db_session.add_all([s_score_anom, s_dup1, s_dup2])

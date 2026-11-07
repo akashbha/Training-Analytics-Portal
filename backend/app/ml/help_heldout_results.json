@@ -4,87 +4,88 @@
     "total_questions": 10,
     "in_scope_questions": 5,
     "out_of_scope_questions": 5,
-    "hit_at_1_count": 0,
-    "hit_at_1_pct": 0.0,
-    "hit_at_3_count": 0,
-    "hit_at_3_pct": 0.0,
+    "hit_at_1_count": 5,
+    "hit_at_1_pct": 100.0,
+    "hit_at_3_count": 5,
+    "hit_at_3_pct": 100.0,
     "role_violation_count": 0,
-    "refusal_correct_count": 5,
-    "refusal_accuracy_pct": 100.0
+    "refusal_correct_count": 4,
+    "refusal_accuracy_pct": 80.0
   },
-  "misses": [
-    {
-      "question": "Where do I find comments left by my evaluator on completed assessments?",
-      "role": "trainee",
-      "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
-      "top_returned_heading": null,
-      "hit_at_3": false
-    },
-    {
-      "question": "Can I talk with classmates in my own training group through the platform?",
-      "role": "trainee",
-      "expected_heading": "Trainee Guide: Private Messages and Cohort Communication",
-      "top_returned_heading": null,
-      "hit_at_3": false
-    },
-    {
-      "question": "How can instructors upload multiple student test records at once using spreadsheets?",
-      "role": "trainer",
-      "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
-      "top_returned_heading": "1. Problem Statement",
-      "hit_at_3": false
-    },
-    {
-      "question": "Which dashboard visualizes student failure rates and defect frequencies by topic?",
-      "role": "trainer",
-      "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
-      "top_returned_heading": "1. Problem Statement",
-      "hit_at_3": false
-    },
-    {
-      "question": "Where are default sign-in passwords for testing accounts documented?",
-      "role": "admin",
-      "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
-      "top_returned_heading": "Admin Guide: User Provisioning and Account Controls",
-      "hit_at_3": false
-    }
-  ],
+  "misses": [],
   "detailed_results": [
     {
       "question": "Where do I find comments left by my evaluator on completed assessments?",
       "role": "trainee",
       "expected_heading": "Trainee Guide: Reviewing Session Feedback Notes",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": null,
-      "results": []
+      "top_returned_heading": "Trainee Guide: Reviewing Session Feedback Notes",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Reviewing Session Feedback Notes",
+          "text": "Following each evaluation session, instructors record qualitative feedback notes outlining your technical strengths and specific error patterns. Trainees can inspect these notes directly from their session ledger to understand examiner recommendations and prepare effectively for subsequent drills.\n\nAlso asked as: finding evaluator comments and critique on finished assessments, reading teacher feedback and notes on completed tests, where to view examiner remarks on past drills, instructor advice and constructive notes on my work.",
+          "role": "trainee",
+          "score": 12.0259
+        },
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Corrective Remediation Records",
+          "text": "When an evaluation session indicates areas that need reinforcement, your instructor may assign a corrective remediation drill. Trainees can review all assigned remediations in their profile view. Each record details the module, required focus area, and guidance provided by your evaluator. Remediations remain listed until your instructor marks them resolved.\n\nAlso asked as: where to find assigned makeup exercises and remediation drills, checking corrective homework assigned by my instructor, reviewing extra practice tasks to fix weak areas, status of my assigned remediation assignments.",
+          "role": "trainee",
+          "score": 5.997
+        }
+      ]
     },
     {
       "question": "Can I talk with classmates in my own training group through the platform?",
       "role": "trainee",
       "expected_heading": "Trainee Guide: Private Messages and Cohort Communication",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": null,
-      "results": []
+      "top_returned_heading": "Trainee Guide: Private Messages and Cohort Communication",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Private Messages and Cohort Communication",
+          "text": "The private messaging screen provides a direct inbox for conversations with instructors and peers. Trainees can compose messages to ask for help on difficult topics, review session notes, or coordinate practice sessions. All messages are scoped to your cohort, ensuring that communication remains private and protected within your assigned batch.\n\nAlso asked as: talking with classmates in my training group, messaging peers in my cohort through the portal, where is my direct inbox to communicate with fellow students, private discussions with cohort classmates.",
+          "role": "trainee",
+          "score": 9.4677
+        }
+      ]
     },
     {
       "question": "How can instructors upload multiple student test records at once using spreadsheets?",
       "role": "trainer",
       "expected_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": "1. Problem Statement",
+      "top_returned_heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
       "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainer Guide: Session Recording and Batch CSV Import Rules",
+          "text": "Trainers can record individual assessment sessions or bulk-import session records via CSV files. All imports enforce atomic validation:\n- Every CSV row must specify an existing trainee email, valid module name, valid date, non-negative duration, and non-negative defect count.\n- The raw score cannot exceed the module maximum score.\n- If any single row contains validation errors or invalid values, the entire import transaction is rejected, preventing partial or inconsistent data persistence.\n\nAlso asked as: uploading multiple student assessment records at once with spreadsheets, bulk importing session results using a CSV file, spreadsheet upload guidelines and data validation errors, how instructors log assessment grades in bulk.",
+          "role": "trainer",
+          "score": 16.315
+        },
         {
           "source_path": "REPORT.md",
           "heading": "1. Problem Statement",
           "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
           "role": "all",
-          "score": 10.4617
+          "score": 9.4798
+        },
+        {
+          "source_path": "REPORT.md",
+          "heading": "4.3 Atomic Two-Phase Batch CSV Import",
+          "text": "File uploads undergo a dry-run validation pass before database persistence. Rows are checked for trainee existence, module bounds, date validity, and duplicate entries. If any row contains an error, the commit action is disabled, preventing partial database corruption.\n\nAlso asked as: dry run validation process for spreadsheet file uploads, atomic checks preventing corrupted session imports, two phase verification when importing student test files, architecture of the spreadsheet bulk upload safety mechanism.",
+          "role": "trainer",
+          "score": 6.9837
         }
       ]
     },
@@ -92,17 +93,31 @@
       "question": "Which dashboard visualizes student failure rates and defect frequencies by topic?",
       "role": "trainer",
       "expected_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": "1. Problem Statement",
+      "top_returned_heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
       "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainer Guide: Curriculum Heatmap and Defect Matrix",
+          "text": "The cohort heatmap displays a cross-tabulated matrix of trainees and curriculum modules. Each cell displays the trainee average percentage score, recorded error count, and session total. This allows instructors to identify both cohort-wide curriculum bottlenecks and individual learner struggle areas at a glance. Cells with lower averages or higher error counts indicate where review lectures or supplemental exercises are needed.\n\nAlso asked as: grid visualizing student defect counts and failure frequencies by module, cohort curriculum heatmap showing learner struggle areas, identifying difficult topics and error rates across the class, module breakdown matrix for student mistakes and averages.",
+          "role": "trainer",
+          "score": 12.9913
+        },
+        {
+          "source_path": "REPORT.md",
+          "heading": "3.4 Curriculum Defect Diagnostics Query",
+          "text": "Computes error distributions across modules for an individual trainee:\n\n```sql\nSELECT \n    m.name AS module_name,\n    ROUND(AVG(s.errors), 1) AS avg_errors,\n    COUNT(s.id) AS session_count\nFROM sessions s\nJOIN modules m ON m.id = s.module_id\nWHERE s.trainee_id = :trainee_id\nGROUP BY m.id, m.name\nORDER BY avg_errors DESC, m.name ASC;\n```\n\n---\n\nAlso asked as: sql query calculating defect error distribution by topic, diagnosing curriculum trouble spots per student in sql, ranking modules with the highest mistake counts, query isolating specific error frequency patterns per trainee.",
+          "role": "trainer",
+          "score": 6.7581
+        },
         {
           "source_path": "REPORT.md",
           "heading": "1. Problem Statement",
           "text": "Technical training programs frequently experience difficulty monitoring trainee skill acquisition across diverse curriculum topics. Without centralized tracking tools, instructors must rely on distributed spreadsheets and informal observations. This approach introduces multiple operational shortcomings:\n\n- Inconsistent grading scales across assessment modules (such as 20, 50, or 100 maximum marks) prevent direct comparison of student performance.\n- Instructors lack early warning indicators to detect struggling students before final evaluations take place.\n- Assigning and tracking corrective assignments occurs outside the evaluation workflow, leading to unaddressed skill deficits.\n- Disjointed metrics between administrative overviews, trainer cohort dashboards, and student dossiers produce conflicting assessments of progress.\n\nThe Training Analytics Portal addresses these challenges through a unified full-stack system that standardizes score normalization, implements role-based access control, tracks curriculum defect frequencies, evaluates predictive risk models, and manages corrective remediations.\n\n---",
           "role": "all",
-          "score": 6.6269
+          "score": 5.8237
         }
       ]
     },
@@ -110,24 +125,31 @@
       "question": "Where are default sign-in passwords for testing accounts documented?",
       "role": "admin",
       "expected_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
-      "hit_at_1": false,
-      "hit_at_3": false,
+      "hit_at_1": true,
+      "hit_at_3": true,
       "role_violation": false,
-      "top_returned_heading": "Admin Guide: User Provisioning and Account Controls",
+      "top_returned_heading": "Admin Guide: Seeded User Credentials and Access Tokens",
       "results": [
         {
           "source_path": "README.md",
-          "heading": "Admin Guide: User Provisioning and Account Controls",
-          "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.",
+          "heading": "Admin Guide: Seeded User Credentials and Access Tokens",
+          "text": "For development and demonstration, the database seed initializes three role accounts:\n- Administrator: admin@example.com (Password: Admin123!)\n- Trainer: trainer@example.com (Password: Trainer@123)\n- Trainee: trainee@example.com (Password: Trainee@123)\nAuthentication uses JSON Web Tokens (JWT) signed with HS256, valid for 24 hours.\n\nAlso asked as: default sign-in passwords and access tokens for test accounts, documented demo passwords for seeded user profiles, where to find test account credentials and jwt token lifetimes, seeded authentication credentials for testing and demo environments.",
           "role": "admin",
-          "score": 8.4824
+          "score": 21.0161
         },
         {
           "source_path": "README.md",
           "heading": "3. Default Seeded Credentials",
-          "text": "The database seed provides pre-configured user accounts across all three platform roles:\n\n| Role | Email | Password | Scope |\n| :--- | :--- | :--- | :--- |\n| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |\n| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |\n| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |\n\n---",
+          "text": "The database seed provides pre-configured user accounts across all three platform roles:\n\n| Role | Email | Password | Scope |\n| :--- | :--- | :--- | :--- |\n| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |\n| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |\n| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |\n\n---\n\nAlso asked as: default demo usernames and logins for admin trainer and trainee, pre-configured test accounts and seeded passwords, sample credentials table for local development testing, default login details for testing each platform role.",
           "role": "admin",
-          "score": 6.0582
+          "score": 14.8811
+        },
+        {
+          "source_path": "README.md",
+          "heading": "Admin Guide: User Provisioning and Account Controls",
+          "text": "Administrators manage user accounts across all platform roles (admin, trainer, and trainee). User provisioning includes creating new accounts, assigning role permissions, resetting passwords with secure hashing, and activating or deactivating user access. Administrators ensure proper role separation across the training organization.\n\nAlso asked as: creating new user accounts and assigning system roles, user administration password resets and account activation, managing permissions and user access controls across the organization, deactivating or updating staff and student profiles.",
+          "role": "admin",
+          "score": 7.3885
         }
       ]
     },
@@ -135,10 +157,10 @@
       "question": "How do I request an official course completion certificate for LinkedIn?",
       "role": "trainee",
       "expected_heading": null,
-      "results_returned": 0,
-      "refusal_correct": true,
+      "results_returned": 2,
+      "refusal_correct": false,
       "role_violation": false,
-      "top_returned_heading": null
+      "top_returned_heading": "Trainee Guide: Batch Messaging With Assigned Trainer"
     },
     {
       "question": "Can I install VS Code extensions on the lab virtual machines?",
@@ -184,10 +206,10 @@
       "total_questions": 10,
       "in_scope_questions": 5,
       "out_of_scope_questions": 5,
-      "hit_at_1_count": 0,
-      "hit_at_1_pct": 0.0,
-      "hit_at_3_count": 0,
-      "hit_at_3_pct": 0.0,
+      "hit_at_1_count": 5,
+      "hit_at_1_pct": 100.0,
+      "hit_at_3_count": 5,
+      "hit_at_3_pct": 100.0,
       "role_violation_count": 0,
       "refusal_correct_count": 3,
       "refusal_accuracy_pct": 60.0
@@ -197,26 +219,26 @@
       "total_questions": 10,
       "in_scope_questions": 5,
       "out_of_scope_questions": 5,
-      "hit_at_1_count": 0,
-      "hit_at_1_pct": 0.0,
-      "hit_at_3_count": 0,
-      "hit_at_3_pct": 0.0,
+      "hit_at_1_count": 5,
+      "hit_at_1_pct": 100.0,
+      "hit_at_3_count": 5,
+      "hit_at_3_pct": 100.0,
       "role_violation_count": 0,
-      "refusal_correct_count": 5,
-      "refusal_accuracy_pct": 100.0
+      "refusal_correct_count": 4,
+      "refusal_accuracy_pct": 80.0
     },
     "6.0": {
       "floor": 6.0,
       "total_questions": 10,
       "in_scope_questions": 5,
       "out_of_scope_questions": 5,
-      "hit_at_1_count": 0,
-      "hit_at_1_pct": 0.0,
-      "hit_at_3_count": 0,
-      "hit_at_3_pct": 0.0,
+      "hit_at_1_count": 5,
+      "hit_at_1_pct": 100.0,
+      "hit_at_3_count": 5,
+      "hit_at_3_pct": 100.0,
       "role_violation_count": 0,
-      "refusal_correct_count": 5,
-      "refusal_accuracy_pct": 100.0
+      "refusal_correct_count": 4,
+      "refusal_accuracy_pct": 80.0
     }
   }
 }
