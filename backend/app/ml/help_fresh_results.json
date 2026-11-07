@@ -1,0 +1,224 @@
+{
+  "summary": {
+    "floor": 5.0,
+    "total_questions": 10,
+    "in_scope_questions": 5,
+    "out_of_scope_questions": 5,
+    "hit_at_1_count": 3,
+    "hit_at_1_pct": 60.0,
+    "hit_at_3_count": 4,
+    "hit_at_3_pct": 80.0,
+    "role_violation_count": 0,
+    "refusal_correct_count": 5,
+    "refusal_accuracy_pct": 100.0
+  },
+  "misses": [
+    {
+      "question": "How do I check what score percentage I need to get the excellence achievement badge?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "top_returned_heading": "General Definitions: Score Bands and Thresholds",
+      "hit_at_3": true
+    },
+    {
+      "question": "Why was a newly enrolled student with only one test placed on the intervention list?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cold-Start Evaluation Rules",
+      "top_returned_heading": "Trainer Guide: Needs-Attention Queue and Alerts",
+      "hit_at_3": false
+    }
+  ],
+  "detailed_results": [
+    {
+      "question": "Is there a scatter plot to see if taking longer on a test gives me better accuracy?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "role_violation": false,
+      "top_returned_heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+          "text": "The speed versus accuracy scatter chart displays the relationship between completion duration and percentage score across your recorded sessions. Trainees can analyze their speed accuracy balance to determine optimal pacing. Rushing through assessment drills often leads to avoidable defect errors, while excessive caution slows completion. Aim for steady speed paired with high accuracy above passing thresholds.\n\nAlso asked as: chart comparing completion time against accuracy, how to check if I am rushing through exercises, drill pacing and defect scatter plot, analyzing time spent versus test score errors.",
+          "role": "trainee",
+          "score": 15.6916
+        }
+      ]
+    },
+    {
+      "question": "How do I check what score percentage I need to get the excellence achievement badge?",
+      "role": "trainee",
+      "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+      "hit_at_1": false,
+      "hit_at_3": true,
+      "role_violation": false,
+      "top_returned_heading": "General Definitions: Score Bands and Thresholds",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "General Definitions: Score Bands and Thresholds",
+          "text": "The platform applies consistent system-wide grading thresholds:\n- PASS_THRESHOLD (60.0%): The minimum percentage score required to pass an individual assessment drill. Also serves as the cohort target benchmark.\n- EXCELLENT_THRESHOLD (75.0%): The boundary designating student mastery and high achievement.\n\n---",
+          "role": "all",
+          "score": 6.469
+        },
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Score Bands and Thresholds",
+          "text": "The portal measures evaluation results against standard score thresholds:\n- Pass Mark: To pass an evaluation session, trainees must achieve a percentage score of 60.0% (PASS_THRESHOLD) or higher. Scoring 60.0% or above confirms basic competency in the module material and counts as an individual passing attempt.\n- Excellence Tier: A percentage score of 75.0% (EXCELLENT_THRESHOLD) marks the tier for outstanding performance and advanced subject mastery. Trainees who sustain percentage marks of 75.0% or higher demonstrate exceptional skill acquisition across the curriculum.\n\nAlso asked as: pass threshold for trainee tests and assessment sessions, minimum passing score and pass threshold requirements, what is the pass threshold to qualify on evaluation drills, percentage cutoff and passing threshold for students.",
+          "role": "trainee",
+          "score": 5.6668
+        },
+        {
+          "source_path": "README.md",
+          "heading": "Trainee Guide: Performance and Progress Tracking",
+          "text": "Trainees can view their historical evaluation performance from the Trainee Dashboard. The progress chart plots percentage scores across consecutive evaluation sessions, illustrating your learning trajectory and mastery over time. Consistent scores above the passing cutoff demonstrate readiness for practical deployment.\n\nAlso asked as: how can I check my score trends over past sessions, where do I see my learning curve and history, viewing student score history and overall improvement, chart showing my performance over time.",
+          "role": "trainee",
+          "score": 5.4567
+        }
+      ]
+    },
+    {
+      "question": "Why was a newly enrolled student with only one test placed on the intervention list?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cold-Start Evaluation Rules",
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "role_violation": false,
+      "top_returned_heading": "Trainer Guide: Needs-Attention Queue and Alerts",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainer Guide: Needs-Attention Queue and Alerts",
+          "text": "The Needs-Attention queue highlights candidates within active batches who require prompt pedagogical intervention. A trainee is placed in this queue for two explicit reasons:\n1. Their historical average score across completed sessions falls below the 60.0% pass threshold.\n2. An early-warning alert is triggered during initial onboarding when early performance falls below acceptable marks.\nTrainers should review flagged candidates daily and assign corrective remediation drills where deficits are found.\n\nAlso asked as: which students are flagged for instructor intervention, how the struggling trainee alert queue works, finding candidates who need immediate help or tutoring, reasons a student appears in the needs-attention list.",
+          "role": "trainer",
+          "score": 11.8432
+        }
+      ]
+    },
+    {
+      "question": "Can instructors send direct messages to other trainers on the staff?",
+      "role": "trainer",
+      "expected_heading": "Trainer Guide: Cohort Messaging Rules",
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "role_violation": false,
+      "top_returned_heading": "Trainer Guide: Cohort Messaging Rules",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Trainer Guide: Cohort Messaging Rules",
+          "text": "Trainers can exchange direct messages with trainees enrolled in batches assigned to them. Trainer messaging adheres to strict participant boundaries:\n- Trainers may message only trainees in batches to which they are assigned via batch trainer mappings.\n- Trainer-to-trainer messaging is prohibited to ensure communication remains focused on trainee instruction.\n- All communications are strictly contained within batch boundaries.\n\nAlso asked as: rules for communicating with students in my assigned cohort, can teachers message instructors or only assigned trainees, cohort messaging boundaries and restrictions for instructors, who can a trainer contact through the messaging system.",
+          "role": "trainer",
+          "score": 11.1848
+        }
+      ]
+    },
+    {
+      "question": "What information is logged when someone modifies or deletes a database entity?",
+      "role": "admin",
+      "expected_heading": "Admin Guide: Audit Log Compliance Tracking",
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "role_violation": false,
+      "top_returned_heading": "Admin Guide: Audit Log Compliance Tracking",
+      "results": [
+        {
+          "source_path": "README.md",
+          "heading": "Admin Guide: Audit Log Compliance Tracking",
+          "text": "The platform maintains an append-only audit log tracking sensitive administrative and evaluation modifications. Every log entry records the action performed, the entity type, the entity ID, the actor user ID, changes, and the exact timestamp. Audit logs cannot be modified or deleted through the interface, providing accountability and compliance traceability.\n\nAlso asked as: inspecting compliance logs and administrative activity history, tracking actor details entity modifications and timestamps in audit records, viewing immutable records of sensitive system actions and changes, how administrators review the system audit trail.",
+          "role": "admin",
+          "score": 5.9758
+        }
+      ]
+    },
+    {
+      "question": "How do I reserve a study room in the campus library for the weekend?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "Where do I submit my doctor medical note for an excused absence?",
+      "role": "trainee",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "Can I connect a physical barcode scanner to track classroom attendance?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "What is the reimbursement limit for team lunch catering expenses?",
+      "role": "trainer",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    },
+    {
+      "question": "How do I configure SAML single sign on with Microsoft Azure Active Directory?",
+      "role": "admin",
+      "expected_heading": null,
+      "results_returned": 0,
+      "refusal_correct": true,
+      "role_violation": false,
+      "top_returned_heading": null
+    }
+  ],
+  "source_file": "help_fresh_questions.json",
+  "floor_comparisons": {
+    "4.0": {
+      "floor": 4.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 3,
+      "hit_at_1_pct": 60.0,
+      "hit_at_3_count": 4,
+      "hit_at_3_pct": 80.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 100.0
+    },
+    "5.0": {
+      "floor": 5.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 3,
+      "hit_at_1_pct": 60.0,
+      "hit_at_3_count": 4,
+      "hit_at_3_pct": 80.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 100.0
+    },
+    "6.0": {
+      "floor": 6.0,
+      "total_questions": 10,
+      "in_scope_questions": 5,
+      "out_of_scope_questions": 5,
+      "hit_at_1_count": 2,
+      "hit_at_1_pct": 40.0,
+      "hit_at_3_count": 2,
+      "hit_at_3_pct": 40.0,
+      "role_violation_count": 0,
+      "refusal_correct_count": 5,
+      "refusal_accuracy_pct": 100.0
+    }
+  }
+}

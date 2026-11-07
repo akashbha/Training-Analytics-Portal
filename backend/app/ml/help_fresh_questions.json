@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Is there a scatter plot to see if taking longer on a test gives me better accuracy?",
+    "role": "trainee",
+    "expected_heading": "Trainee Guide: Speed Versus Accuracy Analysis",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "How do I check what score percentage I need to get the excellence achievement badge?",
+    "role": "trainee",
+    "expected_heading": "Trainee Guide: Score Bands and Thresholds",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Why was a newly enrolled student with only one test placed on the intervention list?",
+    "role": "trainer",
+    "expected_heading": "Trainer Guide: Cold-Start Evaluation Rules",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Can instructors send direct messages to other trainers on the staff?",
+    "role": "trainer",
+    "expected_heading": "Trainer Guide: Cohort Messaging Rules",
+    "must_not_role": "admin"
+  },
+  {
+    "question": "What information is logged when someone modifies or deletes a database entity?",
+    "role": "admin",
+    "expected_heading": "Admin Guide: Audit Log Compliance Tracking",
+    "must_not_role": null
+  },
+  {
+    "question": "How do I reserve a study room in the campus library for the weekend?",
+    "role": "trainee",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Where do I submit my doctor medical note for an excused absence?",
+    "role": "trainee",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "Can I connect a physical barcode scanner to track classroom attendance?",
+    "role": "trainer",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "What is the reimbursement limit for team lunch catering expenses?",
+    "role": "trainer",
+    "expected_heading": null,
+    "must_not_role": "admin"
+  },
+  {
+    "question": "How do I configure SAML single sign on with Microsoft Azure Active Directory?",
+    "role": "admin",
+    "expected_heading": null,
+    "must_not_role": null
+  }
+]
