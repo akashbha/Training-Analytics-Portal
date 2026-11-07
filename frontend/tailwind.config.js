@@ -15,7 +15,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["'Inter'", "system-ui", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        sans: ["'Outfit'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["'Outfit'", "sans-serif"],
       },
     },
   },
