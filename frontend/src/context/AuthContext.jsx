@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
         }
         // Token invalid or expired (401)
         localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.setItem("user", "null");
         setUser(null);
       })
       .finally(() => {
@@ -115,7 +115,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.setItem("user", "null");
     setUser(null);
   };
 

@@ -71,6 +71,7 @@ class MessageResponse(BaseModel):
     created_at: datetime
     read_at: Optional[datetime] = None
     sender_name: Optional[str] = None
+    sender_role: Optional[str] = None
     recipient_name: Optional[str] = None
     attachments: list[AttachmentResponse] = Field(default_factory=list)
 

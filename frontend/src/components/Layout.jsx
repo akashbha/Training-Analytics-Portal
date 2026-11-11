@@ -164,7 +164,7 @@ export function Layout({ children }) {
               <div className="w-8 h-8 rounded-xl bg-[#272520] border border-[#F09A3E]/30 flex items-center justify-center shrink-0">
                 <GraduationCap size={20} className="text-[#F09A3E]" />
               </div>
-              <span className="truncate">Trainer</span>
+              <span className="truncate">{isAdmin ? "Admin" : isTrainer ? "Trainer" : "TraineeIQ"}</span>
             </Link>
           ) : (
             <Link to="/" className="brand-mark--compact mx-auto">

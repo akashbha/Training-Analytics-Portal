@@ -33,7 +33,7 @@ apiClient.interceptors.response.use(
     // 401 Unauthorized: Clear session and redirect to login
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      localStorage.setItem("user", "null");
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }

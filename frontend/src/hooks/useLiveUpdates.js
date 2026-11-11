@@ -121,7 +121,7 @@ export function useLiveUpdates(token) {
         setStatus("offline");
         clearReconnectTimer();
         localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.setItem("user", "null");
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
         }

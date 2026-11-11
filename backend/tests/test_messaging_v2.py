@@ -508,3 +508,64 @@ def test_database_check_constraint_channel_batch_with_recipient(db_session):
     with pytest.raises(IntegrityError):
         db_session.commit()
     db_session.rollback()
+
+
+def test_message_response_includes_sender_role(client, trainee_headers, trainer_headers, messaging_context_v2):
+    """Sent and fetched messages expose sender_role ('trainee' or 'trainer') for UI badges."""
+    peer_id = messaging_context_v2["trainee2_user_id"]
+    trainer_id = messaging_context_v2["trainer1_id"]
+
+    res_peer = client.post(
+        "/messages",
+        json={"channel": "private", "recipient_id": peer_id, "body": "Peer role check"},
+        headers=trainee_headers
+    )
+    assert res_peer.status_code == 201
+    assert res_peer.json()["sender_role"] == "trainee"
+
+    res_trainer = client.post(
+        "/messages",
+        json={"channel": "batch", "batch_id": messaging_context_v2["b1_id"], "body": "Trainer batch check"},
+        headers=trainer_headers
+    )
+    assert res_trainer.status_code == 201
+    assert res_trainer.json()["sender_role"] == "trainer"
+
+
+def test_upgrade_existing_db_rebuilds_legacy_notnull_messages(tmp_path):
+    """Legacy SQLite messages tables with NOT NULL recipient_id are rebuilt cleanly preserving rows."""
+    from sqlalchemy import create_engine, text
+    from scripts.upgrade_existing_db import upgrade_existing_database
+
+    db_file = tmp_path / "legacy_messages.db"
+    test_engine = create_engine(f"sqlite:///{db_file}", connect_args={"check_same_thread": False})
+    with test_engine.begin() as conn:
+        conn.execute(text("CREATE TABLE batches (id INTEGER PRIMARY KEY, name VARCHAR(100) NOT NULL UNIQUE, start_date DATE NOT NULL, end_date DATE NOT NULL)"))
+        conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(20) NOT NULL, is_active BOOLEAN NOT NULL DEFAULT 1, trainee_id INTEGER)"))
+        conn.execute(text("INSERT INTO batches VALUES (1, 'Batch A', '2026-01-01', '2026-06-01')"))
+        conn.execute(text("INSERT INTO users VALUES (1, 'a@example.com', 'x', 'trainee', 1, NULL)"))
+        conn.execute(text("INSERT INTO users VALUES (2, 'b@example.com', 'x', 'trainee', 1, NULL)"))
+        conn.execute(text(
+            "CREATE TABLE messages ("
+            "id INTEGER NOT NULL PRIMARY KEY, "
+            "sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "recipient_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, "
+            "body VARCHAR(500) NOT NULL, "
+            "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+            "read_at DATETIME, "
+            "channel VARCHAR(20) NOT NULL DEFAULT 'private', "
+            "batch_id INTEGER REFERENCES batches(id) ON DELETE CASCADE)"
+        ))
+        conn.execute(text("INSERT INTO messages (id, sender_id, recipient_id, body, channel) VALUES (1, 1, 2, 'Legacy note', 'private')"))
+
+    upgrade_existing_database(engine=test_engine)
+
+    with test_engine.begin() as conn:
+        cols = {row[1]: row[3] for row in conn.exec_driver_sql("PRAGMA table_info(messages)").fetchall()}
+        assert cols["recipient_id"] == 0  # Nullable now
+        assert cols["body"] == 0
+        # Batch message with NULL recipient_id must succeed and preserve legacy private message
+        conn.execute(text("INSERT INTO messages (channel, sender_id, recipient_id, batch_id, body) VALUES ('batch', 1, NULL, 1, 'Cohort hello')"))
+        rows = conn.execute(text("SELECT channel, body FROM messages ORDER BY id")).fetchall()
+        assert rows == [("private", "Legacy note"), ("batch", "Cohort hello")]
+    test_engine.dispose()

@@ -289,6 +289,7 @@ def format_message(m: Message) -> Dict[str, Any]:
         "created_at": m.created_at,
         "read_at": m.read_at,
         "sender_name": get_user_display_name(m.sender),
+        "sender_role": m.sender.role if m.sender else None,
         "recipient_name": get_user_display_name(m.recipient) if m.recipient else None,
         "attachments": attachments
     }
@@ -319,7 +320,7 @@ class MessagingService:
             assigned_trainers = (
                 self.db.query(User)
                 .join(BatchTrainer, BatchTrainer.trainer_id == User.id)
-                .filter(BatchTrainer.batch_id == batch_id)
+                .filter(BatchTrainer.batch_id == batch_id, User.is_active.is_(True))
                 .all()
             )
             for t in assigned_trainers:
@@ -336,7 +337,8 @@ class MessagingService:
             peers = (
                 self.db.query(User)
                 .join(Trainee, User.trainee_id == Trainee.id)
-                .filter(Trainee.batch_id == batch_id, User.id != caller.id)
+                .filter(Trainee.batch_id == batch_id, User.id != caller.id, User.is_active.is_(True))
+                .order_by(Trainee.name.asc())
                 .all()
             )
             for p in peers:
@@ -363,7 +365,7 @@ class MessagingService:
             trainees_users = (
                 self.db.query(User)
                 .join(Trainee, User.trainee_id == Trainee.id)
-                .filter(Trainee.batch_id.in_(batch_ids))
+                .filter(Trainee.batch_id.in_(batch_ids), User.is_active.is_(True))
                 .order_by(Trainee.name.asc())
                 .all()
             )

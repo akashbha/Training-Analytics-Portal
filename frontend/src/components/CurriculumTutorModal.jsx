@@ -132,20 +132,20 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#1C1B17]/60 backdrop-blur-xs">
+      <div className="bg-white rounded-2xl border border-[#F0E3D5] shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-start justify-between gap-3 bg-slate-50/50">
+        <div className="p-4 sm:p-5 border-b border-[#F0E3D5] flex items-start justify-between gap-3 bg-[#FAF6F0]">
           <div>
             <div className="flex items-center space-x-2 mb-1">
-              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md uppercase tracking-wider">
                 Curriculum Technical Tutor
               </span>
-              <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+              <span className="text-[10px] font-medium text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded-md">
                 Syllabus Grounded
               </span>
             </div>
-            <h2 className="text-sm font-bold text-slate-900">
+            <h2 className="text-sm font-bold text-[#1C1B17]">
               {moduleName || "Technical Module Explainer"}
             </h2>
           </div>
@@ -153,7 +153,7 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[#787063] hover:text-[#1C1B17] hover:bg-[#FEF4E8] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -162,20 +162,20 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
         {/* Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {/* Core Concept Box */}
-          <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 text-xs text-blue-950 space-y-1">
-            <span className="font-bold block uppercase text-[10px] text-blue-700">
+          <div className="p-3.5 rounded-xl bg-[#FEF4E8] border border-[#FBD1A7] text-xs text-[#1C1B17] space-y-1">
+            <span className="font-bold block uppercase text-[10px] text-[#D97718]">
               Curriculum Core Focus
             </span>
-            <p className="leading-relaxed">{data.coreConcept}</p>
+            <p className="leading-relaxed text-[#4A443B]">{data.coreConcept}</p>
           </div>
 
           {/* Common Defects Analysis */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-            <div className="flex items-center space-x-1.5 text-slate-900 font-bold">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+          <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] text-xs space-y-2">
+            <div className="flex items-center space-x-1.5 text-[#1C1B17] font-bold">
+              <Lightbulb className="w-3.5 h-3.5 text-[#F09A3E]" />
               <span>Common Evaluation Defects in {moduleName}</span>
             </div>
-            <ul className="space-y-1 text-slate-600 list-disc list-inside">
+            <ul className="space-y-1 text-[#787063] list-disc list-inside">
               {data.commonDefects.map((def, i) => (
                 <li key={i} className="leading-relaxed">
                   {def}
@@ -185,16 +185,16 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
           </div>
 
           {/* Recommended Remediation Strategy */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
-            <span className="font-bold text-slate-900 block">
+          <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] text-xs space-y-1">
+            <span className="font-bold text-[#1C1B17] block">
               Remediation Benchmark Advice
             </span>
-            <p className="text-slate-600 leading-relaxed">{data.recommendedRemediation}</p>
+            <p className="text-[#787063] leading-relaxed">{data.recommendedRemediation}</p>
           </div>
 
           {/* Quick FAQ buttons */}
           <div className="space-y-2 pt-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#787063] uppercase tracking-wider block">
               Ask Common Curriculum Questions
             </span>
             <div className="flex flex-wrap gap-2">
@@ -203,7 +203,7 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
                   key={i}
                   type="button"
                   onClick={() => handleQuickQuestion(faq)}
-                  className="px-2.5 py-1 text-left rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-left rounded-lg text-xs font-semibold text-[#1C1B17] bg-white border border-[#F0E3D5] hover:border-[#F09A3E] hover:bg-[#FEF4E8] transition-colors cursor-pointer"
                 >
                   {faq.q}
                 </button>
@@ -213,17 +213,17 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
 
           {/* Conversation Thread */}
           {chatHistory.length > 0 && (
-            <div className="space-y-3 pt-2 border-t border-slate-100">
+            <div className="space-y-3 pt-2 border-t border-[#F0E3D5]">
               {chatHistory.map((msg, i) => (
                 <div
                   key={i}
                   className={`p-3 rounded-xl text-xs space-y-1 ${
                     msg.sender === "trainee"
-                      ? "bg-slate-100 text-slate-900 font-medium ml-6"
-                      : "bg-blue-50 border border-blue-200 text-blue-950 mr-6"
+                      ? "bg-[#FAF6F0] border border-[#F0E3D5] text-[#1C1B17] font-medium ml-6"
+                      : "bg-[#FEF4E8] border border-[#FBD1A7] text-[#1C1B17] mr-6"
                   }`}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-wider block text-slate-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider block text-[#787063]">
                     {msg.sender === "trainee" ? "Trainee Question" : "Tutor Explanation"}
                   </span>
                   <p className="leading-relaxed">{msg.text}</p>
@@ -234,18 +234,18 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
         </div>
 
         {/* Question Input Footer */}
-        <form onSubmit={handleAsk} className="p-3.5 border-t border-slate-100 bg-slate-50 flex items-center space-x-2">
+        <form onSubmit={handleAsk} className="p-3.5 border-t border-[#F0E3D5] bg-[#FAF6F0] flex items-center space-x-2">
           <input
             type="text"
             value={userQuery}
             onChange={(e) => setUserQuery(e.target.value)}
             placeholder={`Ask a technical question about ${moduleName || "this module"}...`}
-            className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="flex-1 px-3 py-2 bg-white border border-[#F0E3D5] rounded-xl text-xs text-[#1C1B17] placeholder-[#A2998A] focus:outline-none focus:ring-2 focus:ring-[#F09A3E]/30 focus:border-[#F09A3E]"
           />
           <button
             type="submit"
             disabled={!userQuery.trim()}
-            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center space-x-1"
+            className="px-3.5 py-2 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center space-x-1"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Ask</span>

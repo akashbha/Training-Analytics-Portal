@@ -40,6 +40,7 @@ export function Messages() {
   // Contacts for private messaging
   const [contacts, setContacts] = useState([]);
   const [contactSearchQuery, setContactSearchQuery] = useState("");
+  const [contactRoleFilter, setContactRoleFilter] = useState("all");
   const [contactsLoading, setContactsLoading] = useState(true);
   const [contactsError, setContactsError] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
@@ -315,16 +316,41 @@ export function Messages() {
     }
   };
 
+  const peerTraineeCount = useMemo(
+    () => contacts.filter((c) => c.role === "trainee").length,
+    [contacts]
+  );
+
+  const trainerCount = useMemo(
+    () => contacts.filter((c) => c.role === "trainer").length,
+    [contacts]
+  );
+
   const filteredContacts = useMemo(() => {
-    if (!contactSearchQuery.trim()) return contacts;
+    let pool = contacts;
+    if (contactRoleFilter !== "all") {
+      pool = pool.filter((c) => c.role === contactRoleFilter);
+    }
+    if (!contactSearchQuery.trim()) return pool;
     const q = contactSearchQuery.toLowerCase();
-    return contacts.filter(
+    return pool.filter(
       (c) =>
         c.name?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q) ||
         c.batch_name?.toLowerCase().includes(q)
     );
-  }, [contacts, contactSearchQuery]);
+  }, [contacts, contactRoleFilter, contactSearchQuery]);
+
+  const handleRoleFilterChange = (roleFilter) => {
+    setContactRoleFilter(roleFilter);
+    if (roleFilter === "all") return;
+    if (!selectedContact || selectedContact.role !== roleFilter) {
+      const firstMatch = contacts.find((c) => c.role === roleFilter);
+      if (firstMatch) {
+        setSelectedContact(firstMatch);
+      }
+    }
+  };
 
   if (isAdmin) {
     return (
@@ -369,7 +395,9 @@ export function Messages() {
               </span>
             </div>
             <p className="text-xs text-[#787063] font-medium mt-0.5">
-              Direct private threads with learners and batch-wide collaboration feeds.
+              {user?.role === "trainee"
+                ? "Private 1:1 conversations with fellow cohort trainees & your assigned trainer, plus your batch channel."
+                : "Direct private threads with learners and batch-wide collaboration feeds."}
             </p>
           </div>
         </div>
@@ -409,16 +437,54 @@ export function Messages() {
         <div className="md:col-span-4 border-r border-[#F0E3D5] flex flex-col bg-[#FAF6F0]/60">
           {activeTab === "private" ? (
             <>
-              {/* Contacts Header with Search Input */}
+              {/* Contacts Header with Search Input & Role Filter */}
               <div className="p-3.5 border-b border-[#F0E3D5] bg-white space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-[#1C1B17] uppercase tracking-wider">
-                    Eligible Contacts
+                    {user?.role === "trainee" ? "Peers & Trainers" : "Eligible Contacts"}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
                     {contacts.length} Available
                   </span>
                 </div>
+
+                {user?.role === "trainee" && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => handleRoleFilterChange("all")}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border ${
+                        contactRoleFilter === "all"
+                          ? "bg-[#1C1B17] text-white border-[#1C1B17]"
+                          : "bg-[#FAF6F0] text-[#787063] border-[#F0E3D5] hover:text-[#1C1B17]"
+                      }`}
+                    >
+                      All ({contacts.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRoleFilterChange("trainee")}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border ${
+                        contactRoleFilter === "trainee"
+                          ? "bg-[#1C1B17] text-white border-[#1C1B17]"
+                          : "bg-[#FAF6F0] text-[#787063] border-[#F0E3D5] hover:text-[#1C1B17]"
+                      }`}
+                    >
+                      Fellow Trainees ({peerTraineeCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRoleFilterChange("trainer")}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border ${
+                        contactRoleFilter === "trainer"
+                          ? "bg-[#1C1B17] text-white border-[#1C1B17]"
+                          : "bg-[#FAF6F0] text-[#787063] border-[#F0E3D5] hover:text-[#1C1B17]"
+                      }`}
+                    >
+                      Trainers ({trainerCount})
+                    </button>
+                  </div>
+                )}
 
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-[#A2998A] absolute left-3 top-2.5" />
@@ -499,7 +565,7 @@ export function Messages() {
                             <span
                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 uppercase tracking-wider ${
                                 c.role === "trainer"
-                                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                                  ? "bg-[#1C1B17] text-[#F09A3E] border-[#272520]"
                                   : "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]"
                               }`}
                             >
@@ -571,6 +637,28 @@ export function Messages() {
                   <span>Maximum 3 files per message, 5 MB limit per attachment.</span>
                 </div>
               </div>
+
+              {user?.role === "trainee" && (
+                <div className="border border-[#FBD1A7] rounded-xl bg-[#FEF4E8] p-4 text-xs space-y-2 shadow-2xs">
+                  <div className="font-bold text-[#1C1B17]">
+                    1:1 Private Messaging
+                  </div>
+                  <p className="text-[11px] text-[#787063] leading-relaxed">
+                    Message any of your {peerTraineeCount} cohort peers or your assigned trainer privately.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleRoleFilterChange("trainee");
+                      setActiveTab("private");
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-[#1C1B17] hover:bg-[#272520] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <User className="w-3.5 h-3.5 text-[#F09A3E]" />
+                    <span>Message Fellow Trainees ({peerTraineeCount})</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -607,7 +695,13 @@ export function Messages() {
                   {activeTab === "batch"
                     ? "Visible to enrolled learners and assigned instructional staff"
                     : selectedContact
-                    ? `${selectedContact.email} (${selectedContact.role})`
+                    ? `${selectedContact.email} · ${
+                        selectedContact.role === "trainer"
+                          ? "Assigned Trainer"
+                          : user?.role === "trainee"
+                          ? `Fellow Trainee (${selectedContact.batch_name || "Cohort"})`
+                          : `Learner (${selectedContact.batch_name || "Cohort"})`
+                      }`
                     : "Select a contact to start conversation"}
                 </p>
               </div>
@@ -636,7 +730,13 @@ export function Messages() {
                 description={
                   activeTab === "batch"
                     ? "Post a message or shared resource to initiate the cohort conversation."
-                    : "Send a direct message below to start private mentoring with this learner."
+                    : !selectedContact
+                    ? "Select a peer trainee or trainer on the left to start a private conversation."
+                    : user?.role === "trainee" && selectedContact.role === "trainee"
+                    ? `Send a private message below to chat 1:1 with fellow trainee ${selectedContact.name}.`
+                    : user?.role === "trainee" && selectedContact.role === "trainer"
+                    ? `Send a private message below to reach your trainer ${selectedContact.name}.`
+                    : `Send a direct message below to start a private thread with ${selectedContact.name}.`
                 }
                 className="py-12"
               />
@@ -754,6 +854,14 @@ export function Messages() {
               maxLength={500}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!submitting && (inputText.trim() || selectedFiles.length > 0)) {
+                    handleSendMessage(e);
+                  }
+                }
+              }}
               placeholder={
                 activeTab === "batch"
                   ? "Post to the batch channel (max 500 characters)..."

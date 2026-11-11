@@ -9,15 +9,15 @@ import { PASS_THRESHOLD, EXCELLENT_THRESHOLD } from "../constants/thresholds.js"
 function getCategoryPill(name = "") {
   const n = name.toLowerCase();
   if (n.includes("docker") || n.includes("deployment") || n.includes("ci/cd")) {
-    return { label: "DevOps & Infra", bg: "bg-purple-50 text-purple-700 border-purple-200" };
+    return { label: "DevOps & Infra", bg: "bg-[#1C1B17] text-[#F09A3E] border-[#272520]" };
   }
   if (n.includes("fastapi") || n.includes("rest") || n.includes("security") || n.includes("auth")) {
-    return { label: "Backend API", bg: "bg-blue-50 text-blue-700 border-blue-200" };
+    return { label: "Backend API", bg: "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]" };
   }
   if (n.includes("sql") || n.includes("postgres") || n.includes("data")) {
-    return { label: "Data & Storage", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    return { label: "Data & Storage", bg: "bg-[#FEF4E8] text-[#1C1B17] border-[#F0E3D5]" };
   }
-  return { label: "Core Logic", bg: "bg-amber-50 text-amber-700 border-amber-200" };
+  return { label: "Core Logic", bg: "bg-[#FAF6F0] text-[#787063] border-[#F0E3D5]" };
 }
 
 export function ModuleDiagnosticLedger({
@@ -90,7 +90,7 @@ export function ModuleDiagnosticLedger({
 
   if (moduleMatrix.length === 0) {
     return (
-      <div className="py-8 text-center text-xs text-slate-400">
+      <div className="py-8 text-center text-xs text-[#787063]">
         No module performance records available.
       </div>
     );
@@ -99,19 +99,19 @@ export function ModuleDiagnosticLedger({
   return (
     <div className="w-full space-y-4">
       {/* Metric Legend & Benchmarks */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100 text-xs">
-        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#F0E3D5] text-xs">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#787063]">
           <div className="flex items-center space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span className="font-semibold text-slate-700">Mastery (&gt;= {EXCELLENT_THRESHOLD}%)</span>
+            <span className="font-semibold text-[#1C1B17]">Mastery (&gt;= {EXCELLENT_THRESHOLD}%)</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-            <span className="font-semibold text-slate-700">Competent (&gt;= {PASS_THRESHOLD}%)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
+            <span className="font-semibold text-[#1C1B17]">Competent (&gt;= {PASS_THRESHOLD}%)</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-            <span className="font-semibold text-slate-700">Needs Focus (&lt; {PASS_THRESHOLD}%)</span>
+            <span className="font-semibold text-[#1C1B17]">Needs Focus (&lt; {PASS_THRESHOLD}%)</span>
           </div>
         </div>
 
@@ -130,19 +130,19 @@ export function ModuleDiagnosticLedger({
       </div>
 
       {/* Curriculum Module Table */}
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <div className="overflow-x-auto rounded-lg border border-[#F0E3D5]">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+          <thead className="bg-[#FAF6F0] border-b border-[#F0E3D5]">
+            <tr className="text-[#787063] font-semibold uppercase tracking-wider text-[10px]">
               <th className="py-2.5 px-3">Module</th>
               <th className="py-2.5 px-3">Sessions</th>
-              <th className="py-2.5 px-3 min-w-[160px]">Score & Progress</th>
+              <th className="py-2.5 px-3 min-w-[160px]">Score &amp; Progress</th>
               <th className="py-2.5 px-3">Defects / Session</th>
               <th className="py-2.5 px-3 text-center">Competency Status</th>
               <th className="py-2.5 px-3 text-right">Self-Practice</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[#F0E3D5]/70">
             {moduleMatrix.map((mod, idx) => {
               const cat = getCategoryPill(mod.module_name);
               const score = mod.avg_score != null ? mod.avg_score : null;
@@ -152,11 +152,11 @@ export function ModuleDiagnosticLedger({
               const isDefectOver = mod.avg_errors > toleranceBenchmark;
 
               return (
-                <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                <tr key={idx} className="hover:bg-[#FEF4E8]/50 transition-colors">
                   {/* Module Name & Category */}
                   <td className="py-3 px-3">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                      <span className="font-bold text-slate-900">{mod.module_name}</span>
+                      <span className="font-bold text-[#1C1B17]">{mod.module_name}</span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 w-fit ${cat.bg}`}>
                         {cat.label}
                       </span>
@@ -164,7 +164,7 @@ export function ModuleDiagnosticLedger({
                   </td>
 
                   {/* Sessions */}
-                  <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">
+                  <td className="py-3 px-3 text-[#787063] font-medium whitespace-nowrap">
                     {mod.session_count} {mod.session_count === 1 ? "session" : "sessions"}
                   </td>
 
@@ -172,20 +172,20 @@ export function ModuleDiagnosticLedger({
                   <td className="py-3 px-3">
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-slate-900">
+                        <span className="text-[#1C1B17]">
                           {score != null ? `${score.toFixed(1)}%` : "No scores"}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-[#A2998A]">
                           Pass: {PASS_THRESHOLD}%
                         </span>
                       </div>
-                      <div className="relative w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="relative w-full h-2 rounded-full bg-[#F0E3D5] overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
                             isMastery
                               ? "bg-emerald-500"
                               : isCompetent
-                              ? "bg-blue-500"
+                              ? "bg-[#F09A3E]"
                               : "bg-rose-500"
                           }`}
                           style={{ width: `${Math.min(100, Math.max(3, score || 0))}%` }}
@@ -197,10 +197,10 @@ export function ModuleDiagnosticLedger({
                   {/* Defects */}
                   <td className="py-3 px-3 whitespace-nowrap">
                     <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono font-bold text-xs ${isDefectOver ? "text-rose-600" : "text-slate-700"}`}>
+                      <span className={`font-mono font-bold text-xs ${isDefectOver ? "text-rose-600" : "text-[#1C1B17]"}`}>
                         {mod.avg_errors.toFixed(1)} errs
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-[#A2998A]">
                         (target: &lt;= {toleranceBenchmark.toFixed(1)})
                       </span>
                     </div>
@@ -209,15 +209,15 @@ export function ModuleDiagnosticLedger({
                   {/* Status Badge */}
                   <td className="py-3 px-3 text-center whitespace-nowrap">
                     {score == null ? (
-                      <span className="text-[10px] text-slate-400 font-medium">Pending Drills</span>
+                      <span className="text-[10px] text-[#A2998A] font-medium">Pending Drills</span>
                     ) : isMastery ? (
                       <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         <span>Mastery</span>
                       </span>
                     ) : isCompetent ? (
-                      <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#F09A3E]"></span>
                         <span>Competent</span>
                       </span>
                     ) : (
@@ -234,7 +234,7 @@ export function ModuleDiagnosticLedger({
                       <button
                         type="button"
                         onClick={() => onStartPractice && onStartPractice(mod.module_name)}
-                        className="px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-700 hover:text-white hover:bg-blue-600 bg-blue-50/70 border border-blue-200 hover:border-blue-600 transition-colors cursor-pointer shadow-2xs"
+                        className="px-2.5 py-1 rounded-md text-[11px] font-bold text-[#D97718] hover:text-white hover:bg-[#F09A3E] bg-[#FEF4E8] border border-[#FBD1A7] hover:border-[#F09A3E] transition-colors cursor-pointer shadow-2xs"
                       >
                         Practice Drill
                       </button>
@@ -242,7 +242,7 @@ export function ModuleDiagnosticLedger({
                         type="button"
                         onClick={() => onAskTutor && onAskTutor(mod.module_name)}
                         title={`Review ${mod.module_name} tutor notes`}
-                        className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-[#787063] hover:text-[#D97718] hover:bg-[#FEF4E8] border border-[#F0E3D5] transition-colors cursor-pointer"
                       >
                         <BookOpen className="w-3.5 h-3.5" />
                       </button>
