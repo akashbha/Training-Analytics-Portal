@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     def sync_database_url(self) -> str:
         """Returns a synchronous database URL for psycopg2/SQLAlchemy sync engine."""
         url = self.DATABASE_URL
+        if "sqlite:///./training_portal.db" in url and not os.path.exists("./training_portal.db") and os.path.exists("backend/training_portal.db"):
+            return "sqlite:///./backend/training_portal.db"
         if url.startswith("postgresql+asyncpg://"):
             return url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
         if url.startswith("postgres://"):
@@ -49,6 +51,12 @@ class Settings(BaseSettings):
             )
         return self
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=[
+            os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+            ".env"
+        ],
+        extra="ignore"
+    )
 
 settings = Settings()

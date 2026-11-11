@@ -6,6 +6,7 @@
 
 from datetime import datetime, timezone
 from app.models.batch import Batch
+from app.models.batch_trainer import BatchTrainer
 from app.models.trainee import Trainee
 from app.models.module import Module
 from app.models.session import Session as AssessmentSession
@@ -18,6 +19,9 @@ def test_heatmap_pivot_on_small_fixture(client, db_session, trainer_headers):
     now = datetime.now(timezone.utc)
     batch = Batch(name="Heatmap Test Batch", start_date=now.date(), end_date=now.date())
     db_session.add(batch)
+    db_session.commit()
+
+    db_session.add(BatchTrainer(batch_id=batch.id, trainer_id=10))
     db_session.commit()
 
     mod_a = Module(name="Mod A", max_score=100.0)
@@ -78,6 +82,9 @@ def test_csv_export_contains_reason_text(client, db_session, trainer_headers):
     db_session.add(batch)
     db_session.commit()
 
+    db_session.add(BatchTrainer(batch_id=batch.id, trainer_id=10))
+    db_session.commit()
+
     mod = Module(name="CSV Module", max_score=100.0)
     db_session.add(mod)
     db_session.commit()
@@ -106,7 +113,8 @@ def test_csv_export_contains_reason_text(client, db_session, trainer_headers):
     lines = csv_text.strip().split("\r\n") if "\r\n" in csv_text else csv_text.strip().split("\n")
 
     # Header verification
-    assert "trainee_id,trainee_name,trainee_email,batch_name,average_score_pct,session_count,flag_reason" in lines[0]
+    assert "trainee_id,trainee_name,trainee_email,batch_name,average_score_pct,session_count" in lines[0]
+    assert "flag_reason" in lines[0]
 
     # Content verification
     assert "Struggling Trainee" in csv_text

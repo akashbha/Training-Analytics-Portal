@@ -77,6 +77,8 @@ Thumbs.db
 .vite/
 .parcel-cache/
 
-# Local verification scratch scripts and artifacts
+# Local verification scratch scripts and runtime uploads
 scratch/
+backend/uploads/
+uploads/
 

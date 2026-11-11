@@ -11,14 +11,13 @@ from app.models.user import User
 
 @pytest.fixture
 def sample_batch(db_session):
-    """Retrieves or creates a sample batch for testing."""
-    b = db_session.query(Batch).first()
-    if not b:
-        from datetime import date
-        b = Batch(name="Test Cohort For Trainers", start_date=date(2026, 1, 1), end_date=date(2026, 6, 1))
-        db_session.add(b)
-        db_session.commit()
-        db_session.refresh(b)
+    """Creates an isolated batch for trainer assignment testing."""
+    import uuid
+    from datetime import date
+    b = Batch(name=f"Test Cohort For Trainers {uuid.uuid4().hex[:6]}", start_date=date(2026, 1, 1), end_date=date(2026, 6, 1))
+    db_session.add(b)
+    db_session.commit()
+    db_session.refresh(b)
     return b
 
 def test_admin_can_assign_and_list_batch_trainer(client, admin_headers, sample_batch, db_session):
@@ -106,4 +105,59 @@ def test_admin_can_unassign_batch_trainer(client, admin_headers, sample_batch, d
     assert audit_entry is not None
     assert audit_entry.before["batch_id"] == sample_batch.id
     assert audit_entry.before["trainer_id"] == trainer.id
+
+
+def test_inactive_and_duplicate_trainer_assignment_blocked(client, admin_headers, sample_batch, db_session):
+    """Inactive trainers return 422 INACTIVE_TRAINER and duplicate assignment returns 409 TRAINER_ALREADY_ASSIGNED."""
+    from app.core.security import get_password_hash
+
+    active_trainer = User(
+        email="active_extra_trainer@example.com",
+        password_hash=get_password_hash("Trainer@123"),
+        role="trainer",
+        is_active=True,
+    )
+    inactive_trainer = User(
+        email="inactive_extra_trainer@example.com",
+        password_hash=get_password_hash("Trainer@123"),
+        role="trainer",
+        is_active=False,
+    )
+    db_session.add_all([active_trainer, inactive_trainer])
+    db_session.commit()
+    db_session.refresh(active_trainer)
+    db_session.refresh(inactive_trainer)
+
+    # Inactive trainer rejected
+    resp_inactive = client.post(
+        f"/batches/{sample_batch.id}/trainers",
+        json={"trainer_id": inactive_trainer.id},
+        headers=admin_headers,
+    )
+    assert resp_inactive.status_code == 422
+    assert resp_inactive.json()["error"]["code"] == "INACTIVE_TRAINER"
+
+    # Active trainer assigned cleanly once
+    resp_first = client.post(
+        f"/batches/{sample_batch.id}/trainers",
+        json={"trainer_id": active_trainer.id},
+        headers=admin_headers,
+    )
+    assert resp_first.status_code == 201
+
+    # Assigning same trainer twice returns 409
+    resp_dup = client.post(
+        f"/batches/{sample_batch.id}/trainers",
+        json={"trainer_id": active_trainer.id},
+        headers=admin_headers,
+    )
+    assert resp_dup.status_code == 409
+    assert resp_dup.json()["error"]["code"] == "TRAINER_ALREADY_ASSIGNED"
+
+    # Admin users role + is_active filter excludes inactive trainer
+    users_active = client.get("/admin/users?role=trainer&is_active=true&page_size=100", headers=admin_headers)
+    assert users_active.status_code == 200
+    emails = [u["email"] for u in users_active.json()["items"]]
+    assert "active_extra_trainer@example.com" in emails
+    assert "inactive_extra_trainer@example.com" not in emails
 

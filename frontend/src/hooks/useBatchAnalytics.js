@@ -527,3 +527,176 @@ export function useBatchHeatmap(batchId) {
   return { data, loading, error, refetch: fetchHeatmap };
 }
 
+/**
+ * Hook to retrieve assigned instructors for the active batch.
+ * Distinguishes loading, empty, forbidden (403), and failed request states without synthetic fallbacks.
+ */
+export function useBatchTrainers(batchId) {
+  const [trainers, setTrainers] = useState([]);
+  const [loading, setLoading] = useState(Boolean(batchId));
+  const [error, setError] = useState(null);
+  const [isForbidden, setIsForbidden] = useState(false);
+
+  const fetchTrainers = useCallback(async (silent = false) => {
+    if (!batchId) {
+      setTrainers([]);
+      setError(null);
+      setIsForbidden(false);
+      setLoading(false);
+      return;
+    }
+    if (!silent) setLoading(true);
+    setError(null);
+    setIsForbidden(false);
+    try {
+      const res = await apiClient.get(`/batches/${batchId}/trainers`);
+      const list = Array.isArray(res.data) ? res.data : [];
+      setTrainers(list);
+    } catch (err) {
+      setTrainers([]);
+      if (err.response?.status === 403) {
+        setIsForbidden(true);
+        setError("You do not have access");
+      } else {
+        setError(err.response?.data?.error?.message || err.message || "Unable to load trainers");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId]);
+
+  useEffect(() => {
+    fetchTrainers();
+  }, [fetchTrainers]);
+
+  return { trainers, loading, error, isForbidden, refetch: fetchTrainers };
+}
+
+/**
+ * Hook to retrieve curriculum module failure hotspots for the active batch.
+ * Ranks modules by failure rate (< 60% cutoff) with real attempt sample sizes.
+ */
+export function useBatchHotspots(batchId) {
+  const [hotspots, setHotspots] = useState([]);
+  const [loading, setLoading] = useState(Boolean(batchId));
+  const [error, setError] = useState(null);
+
+  const fetchHotspots = useCallback(async (silent = false) => {
+    if (!batchId) return;
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get(`/analytics/batches/${batchId}/hotspots`);
+      const list = Array.isArray(res.data) ? res.data : [];
+      setHotspots(list);
+    } catch (err) {
+      if (isNetworkFailure(err) || err.response?.status === 404) {
+        setHotspots([]);
+      } else {
+        setError(err.message || "Failed to load module hotspots");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId]);
+
+  useEffect(() => {
+    fetchHotspots();
+  }, [fetchHotspots]);
+
+  return { hotspots, loading, error, refetch: fetchHotspots };
+}
+
+/**
+ * Hook to retrieve intervention outcome tracking records for a batch.
+ * Tracks remediations through Pending Re-assessment, In Progress, and Resolved states with real score deltas.
+ */
+export function useBatchRemediations(batchId) {
+  const [remediations, setRemediations] = useState([]);
+  const [loading, setLoading] = useState(Boolean(batchId));
+  const [error, setError] = useState(null);
+
+  const fetchRemediations = useCallback(async (silent = false) => {
+    if (!batchId) return;
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get(`/batches/${batchId}/remediations`);
+      const list = Array.isArray(res.data) ? res.data : [];
+      setRemediations(list);
+    } catch (err) {
+      if (isNetworkFailure(err) || err.response?.status === 404) {
+        setRemediations([]);
+      } else {
+        setError(err.message || "Failed to load intervention outcomes");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId]);
+
+  useEffect(() => {
+    fetchRemediations();
+  }, [fetchRemediations]);
+
+  return { remediations, loading, error, refetch: fetchRemediations };
+}
+
+/**
+ * Hook to retrieve curriculum misconception and recurring error clusters for a batch.
+ * Groups session failure diagnostic notes with TF-IDF semantic clustering and trainer approval toggle.
+ */
+export function useBatchMisconceptions(batchId) {
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(Boolean(batchId));
+  const [error, setError] = useState(null);
+
+  const fetchMisconceptions = useCallback(async (silent = false) => {
+    if (!batchId) return;
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get(`/analytics/batches/${batchId}/misconceptions`);
+      setAnalysis(res.data);
+    } catch (err) {
+      if (isNetworkFailure(err) || err.response?.status === 404) {
+        setAnalysis(null);
+      } else {
+        setError(err.message || "Failed to load misconception analysis");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId]);
+
+  const toggleApproval = useCallback(async (clusterId, approved) => {
+    if (!batchId || !clusterId) return;
+    try {
+      await apiClient.post(`/analytics/batches/${batchId}/misconceptions/${clusterId}/approval?approved=${approved}`);
+      setAnalysis((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          clusters: prev.clusters.map((c) =>
+            c.id === clusterId ? { ...c, approved } : c
+          ),
+        };
+      });
+    } catch (err) {
+      console.error("Failed to toggle misconception approval:", err);
+    }
+  }, [batchId]);
+
+  useEffect(() => {
+    fetchMisconceptions();
+  }, [fetchMisconceptions]);
+
+  return {
+    analysis,
+    clusters: analysis?.clusters || [],
+    loading,
+    error,
+    refetch: fetchMisconceptions,
+    toggleApproval,
+  };
+}

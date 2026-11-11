@@ -7,7 +7,13 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user, require_staff
+from app.core.deps import (
+    get_db,
+    get_current_user,
+    require_staff,
+    verify_batch_access,
+    verify_trainee_cohort_access,
+)
 from app.core.exceptions import AppException
 from app.schemas.analytics import (
     BatchSummaryResponse,
@@ -19,39 +25,21 @@ from app.schemas.analytics import (
     TraineeProgressItem,
     ModuleErrorItem,
     BatchCompareItem,
-    BatchHeatmapResponse
+    BatchHeatmapResponse,
+    ModuleHotspotItem
 )
+from app.schemas.misconception import MisconceptionAnalysisResponse
+from app.services.misconception_service import MisconceptionService
 from app.services.analytics_service import AnalyticsService
 from app.repositories.trainee_repository import TraineeRepository
 from app.models.user import User
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
-def verify_batch_access(batch_id: int, current_user: User, db: Session) -> None:
-    """Ensures trainees can only access analytics for their assigned cohort."""
-    if current_user.role in ("trainer", "admin"):
-        return
-    if current_user.role == "trainee" and current_user.trainee_id:
-        t = TraineeRepository(db).get_by_id(current_user.trainee_id)
-        if t and t.batch_id == batch_id:
-            return
-    raise AppException(
-        code="FORBIDDEN_COHORT_ACCESS",
-        message="Trainees are restricted to viewing only their assigned cohort analytics",
-        status_code=403
-    )
 
-def verify_trainee_access(trainee_id: int, current_user: User) -> None:
-    """Ensures trainees can only access their personal performance metrics."""
-    if current_user.role in ("trainer", "admin"):
-        return
-    if current_user.role == "trainee" and current_user.trainee_id == trainee_id:
-        return
-    raise AppException(
-        code="FORBIDDEN_RESOURCE_ACCESS",
-        message="Trainees are restricted to viewing only their own performance data",
-        status_code=403
-    )
+def verify_trainee_access(trainee_id: int, current_user: User, db: Session) -> None:
+    """Delegates trainee access checks to shared cohort-scoped authorization helper."""
+    verify_trainee_cohort_access(trainee_id, current_user, db)
 
 @router.get("/batches/{batch_id}/summary", response_model=BatchSummaryResponse)
 def get_batch_summary(
@@ -100,6 +88,7 @@ def get_batch_leaderboard(
     staff: User = Depends(require_staff)
 ):
     """Returns cohort rankings using SQL RANK() window functions (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
     service = AnalyticsService(db)
     return service.get_batch_leaderboard(batch_id, order=order, limit=limit)
 
@@ -110,6 +99,7 @@ def get_batch_attention(
     staff: User = Depends(require_staff)
 ):
     """Returns up to 5 trainees needing attention with falling trends (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
     service = AnalyticsService(db)
     return service.get_batch_attention(batch_id)
 
@@ -124,6 +114,17 @@ def get_batch_heatmap(
     service = AnalyticsService(db)
     return service.get_batch_heatmap(batch_id)
 
+@router.get("/batches/{batch_id}/hotspots", response_model=List[ModuleHotspotItem])
+def get_batch_hotspots(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Returns curriculum modules ranked by failure rate (< 60% passing benchmark) with attempt counts and failing trainee IDs."""
+    verify_batch_access(batch_id, current_user, db)
+    service = AnalyticsService(db)
+    return service.get_batch_hotspots(batch_id)
+
 @router.get("/batches/{batch_id}/at-risk/export")
 def export_batch_at_risk_csv(
     batch_id: int,
@@ -131,6 +132,7 @@ def export_batch_at_risk_csv(
     staff: User = Depends(require_staff)
 ):
     """Exports at-risk cohort trainees with descriptive flag reasons as a downloadable CSV (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
     service = AnalyticsService(db)
     csv_content = service.export_batch_at_risk_csv(batch_id)
     filename = f"at_risk_batch_{batch_id}.csv"
@@ -139,6 +141,51 @@ def export_batch_at_risk_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
+
+@router.get("/batches/{batch_id}/weekly-summary/export")
+def export_batch_weekly_summary(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Exports a deterministic weekly cohort summary built strictly from real metrics as a downloadable text document (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
+    service = AnalyticsService(db)
+    summary_content = service.export_batch_weekly_summary(batch_id)
+    filename = f"batch_{batch_id}_weekly_summary.txt"
+    return Response(
+        content=summary_content,
+        media_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@router.get("/batches/{batch_id}/misconceptions", response_model=MisconceptionAnalysisResponse)
+def get_batch_misconceptions(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Computes TF-IDF semantic clusters of recurring curriculum errors and misconceptions for a batch (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
+    service = MisconceptionService(db)
+    return service.get_batch_misconceptions(batch_id)
+
+
+@router.post("/batches/{batch_id}/misconceptions/{cluster_id}/approval")
+def toggle_misconception_approval(
+    batch_id: int,
+    cluster_id: str,
+    approved: bool = Query(..., description="Approval state for human-in-the-loop validation"),
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Sets trainer approval status for a generated misconception cluster label."""
+    verify_batch_access(batch_id, staff, db)
+    service = MisconceptionService(db)
+    new_state = service.toggle_cluster_approval(cluster_id, approved)
+    return {"cluster_id": cluster_id, "approved": new_state}
 
 
 @router.get("/trainees/{trainee_id}/summary", response_model=TraineeSummaryResponse)
@@ -150,7 +197,7 @@ def get_trainee_summary(
     current_user: User = Depends(get_current_user)
 ):
     """Returns single trainee summary metrics and first-3 vs last-3 improvement in SQL."""
-    verify_trainee_access(trainee_id, current_user)
+    verify_trainee_access(trainee_id, current_user, db)
     service = AnalyticsService(db)
     return service.get_trainee_summary(trainee_id, from_date=from_date, to_date=to_date)
 
@@ -163,7 +210,7 @@ def get_trainee_progress(
     current_user: User = Depends(get_current_user)
 ):
     """Returns chronological session timeline for a trainee."""
-    verify_trainee_access(trainee_id, current_user)
+    verify_trainee_access(trainee_id, current_user, db)
     service = AnalyticsService(db)
     return service.get_trainee_progress(trainee_id, from_date=from_date, to_date=to_date)
 
@@ -174,9 +221,20 @@ def get_trainee_errors_by_module(
     current_user: User = Depends(get_current_user)
 ):
     """Returns error frequency per module aggregated in SQL."""
-    verify_trainee_access(trainee_id, current_user)
+    verify_trainee_access(trainee_id, current_user, db)
     service = AnalyticsService(db)
     return service.get_trainee_errors_by_module(trainee_id)
+
+@router.get("/trainees/{trainee_id}/standing")
+def get_trainee_cohort_standing(
+    trainee_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Returns trainee rank within their cohort batch and peer percentile standing."""
+    verify_trainee_access(trainee_id, current_user, db)
+    service = AnalyticsService(db)
+    return service.get_trainee_standing(trainee_id)
 
 @router.get("/batches/compare", response_model=List[BatchCompareItem])
 def get_batches_compare(
@@ -207,6 +265,7 @@ def get_batch_ml_attention_endpoint(
     staff: User = Depends(require_staff)
 ):
     """Predicts trainees requiring early trainer intervention using trained ML pipeline with cold-start fallback (Staff only)."""
+    verify_batch_access(batch_id, staff, db)
     from app.ml.predictor import get_batch_ml_attention
     return get_batch_ml_attention(db, batch_id=batch_id, limit=limit)
 
@@ -217,7 +276,7 @@ def get_trainee_ml_prediction_endpoint(
     current_user: User = Depends(get_current_user)
 ):
     """Returns granular ML risk score, probability, and contributing risk factors for a trainee."""
-    verify_trainee_access(trainee_id, current_user)
+    verify_trainee_access(trainee_id, current_user, db)
     from app.ml.predictor import predict_trainee_attention
     return predict_trainee_attention(db, trainee_id=trainee_id)
 
@@ -228,7 +287,7 @@ def get_trainee_risk_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     """Returns ML performance risk prediction with rule-based fallback and access control."""
-    verify_trainee_access(id, current_user)
+    verify_trainee_access(id, current_user, db)
     trainee = TraineeRepository(db).get_by_id(id)
     if not trainee:
         raise AppException(

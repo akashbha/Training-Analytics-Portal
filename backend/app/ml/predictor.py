@@ -71,6 +71,7 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
 
         return {
             "trainee_id": trainee.id,
+            "user_id": trainee.user.id if trainee.user else None,
             "trainee_name": trainee.name,
             "batch_id": trainee.batch_id,
             "is_cold_start": True,
@@ -91,6 +92,7 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
         needs = feat["recent_avg_score"] < 55.0 or feat["score_trend_slope"] < -6.0
         return {
             "trainee_id": trainee.id,
+            "user_id": trainee.user.id if trainee.user else None,
             "trainee_name": trainee.name,
             "batch_id": trainee.batch_id,
             "is_cold_start": False,
@@ -132,6 +134,7 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
 
     return {
         "trainee_id": trainee.id,
+        "user_id": trainee.user.id if trainee.user else None,
         "trainee_name": trainee.name,
         "batch_id": trainee.batch_id,
         "is_cold_start": False,

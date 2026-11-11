@@ -8,72 +8,109 @@ The system is built with a FastAPI backend (Python, SQLAlchemy, SQLite/PostgreSQ
 
 ## Setup Steps
 
+> **Important Working Directory Note:** Each command block states whether it runs from the **repository root**, `backend/`, or `frontend/`. Do not run `seed.py --reset` against an existing or production database.
+
+**Environment Configuration Templates:**
+
+Copy the tracked templates before startup:
+- **Backend & ML Service** (`backend/.env` from `backend/.env.example`):
+  - `ENVIRONMENT`: `development` or `production` (`production` refuses startup if `SECRET_KEY` is left at the default insecure value)
+  - `DATABASE_URL`: SQLite (`sqlite:///./training_portal.db`) or PostgreSQL (`postgresql+psycopg2://user:pass@localhost:5432/training_portal`)
+  - `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`: JWT signing settings
+  - `ALLOWED_ORIGINS`: Comma-separated origins (`http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173`)
+  - `ML_SERVICE_URL`: Prediction microservice URL (default `http://127.0.0.1:8001`)
+  - `ML_MODEL_PATH`: Optional model override for `ml_service/main.py` (default `app/ml/risk_model.joblib`)
+- **Frontend** (`frontend/.env` from `frontend/.env.example`):
+  - `VITE_API_URL`: Backend API URL (default `http://localhost:8000`)
+  - `VITE_WS_URL`: WebSocket URL (default `ws://localhost:8000`)
+
 ### 1. Backend Setup
 
-1. Open a terminal and navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
+Run the virtual environment and dependency installation from `backend/`:
 
-2. Create and activate a Python virtual environment:
-   ```bash
-   # Windows (PowerShell)
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
+```powershell
+cd backend
+# Windows PowerShell (macOS/Linux: python3 -m venv venv && source venv/bin/activate)
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-   # macOS / Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+**Option A — Existing Database Upgrade (Non-Destructive, preserves data):**
 
-3. Install backend dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+- **SQLite installations** (from repository root or `backend/`):
+  ```powershell
+  python backend/scripts/upgrade_existing_db.py
+  ```
+- **PostgreSQL installations** (`alembic` revisions `001`–`003` target PostgreSQL syntax; then apply post-`003` tables/columns):
+  ```powershell
+  cd backend
+  alembic upgrade head
+  python scripts/upgrade_existing_db.py
+  ```
 
-4. Seed the database with sample data using the `--reset` flag:
-   ```bash
-   python scripts/seed.py --reset
-   ```
-   *Note: This creates all required tables and seeds deterministic batches, trainees, modules, and assessment sessions.*
+*Note: `backend/scripts/upgrade_existing_db.py` idempotently creates post-`003` tables (`batch_trainers`, `messages`, `message_attachments`, `remediations`, `trainee_goals`, `session_notes`, `help_chunks`) and adds missing columns on `audit_logs` and `remediations` without dropping or resetting existing data.*
 
-5. Start the FastAPI backend server:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-   *The backend API will be available at `http://localhost:8000`. Interactive OpenAPI documentation is accessible at `http://localhost:8000/docs`.*
+**Option B — Fresh Disposable Demo Database (DESTRUCTIVE RESET):**
 
----
+> **DESTRUCTIVE WARNING:** `python scripts/seed.py --reset` drops/recreates tables or wipes existing rows and inserts synthetic demo records. Use this **only** for a disposable demo or clean development database—never on an existing installation.
+
+```powershell
+cd backend
+python scripts/seed.py --reset
+```
+
+**Start Backend API (Port `8000`) & Optional ML Risk Microservice (Port `8001`):**
+
+```powershell
+# Terminal 1 (from backend/) — Main API server (http://localhost:8000/docs)
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+```powershell
+# Terminal 2 (optional, from backend/) — Random Forest ML prediction microservice
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn ml_service.main:app --port 8001
+```
+
+*Requires `backend/app/ml/risk_model.joblib` (or `ML_MODEL_PATH`). When the ML microservice is offline, the main backend starts normally and automatically applies deterministic rule fallback for risk predictions.*
 
 ### 2. Frontend Setup
 
-1. Open a second terminal and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+Run from `frontend/`:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```powershell
+cd frontend
+npm install
+npm run dev
+```
 
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The web application will be accessible at `http://localhost:5173`.*
+*Configured in `frontend/vite.config.js` to serve at `http://localhost:3000` (pass `--port 5173` if you prefer port `5173` and keep it listed in `ALLOWED_ORIGINS`).*
 
----
+**Verification Commands (Run from Repository Root):**
+
+```powershell
+# 1. Backend test suite
+backend\venv\Scripts\pytest.exe backend/tests -o pythonpath=backend -v
+
+# 2. Frontend production build
+npm --prefix frontend run build
+
+# 3. End-to-end Admin & ML verification (empty DB, seeded DB, RBAC, ML offline & online)
+backend\venv\Scripts\python.exe backend/scripts/verify_admin_release.py
+```
 
 ### 3. Default Seeded Credentials
 
-The database seed provides pre-configured user accounts across all three platform roles:
+> **Synthetic Demo Data Notice:** All seeded user accounts (`admin@example.com`, `trainer@example.com`, `trainee@example.com`), cohorts, assessment scores, remediations, and analytics created by `scripts/seed.py` are synthetically generated demo data for evaluation and presentation only.
 
 | Role | Email | Password | Scope |
 | :--- | :--- | :--- | :--- |
-| Administrator | `admin@example.com` | `Admin123!` | System-wide batch oversight, user management, audit logs, and model evaluation metrics |
-| Trainer | `trainer@example.com` | `Trainer@123` | Cohort performance, heatmap analytics, session recording, batch CSV import, and remediation assignment |
-| Trainee | `trainee@example.com` | `Trainee@123` | Personal profile dossier, progress timeline, defect diagnostics, speed versus accuracy analysis, and module targets |
+| Administrator | `admin@example.com` | `Admin123!` | System-wide cohort oversight, trainer assignment, user management, audit logs, and service/model status |
+| Trainer | `trainer@example.com` | `Trainer@123` | Assigned-cohort analytics, heatmap, session recording, batch CSV import, copilot, and closed-loop remediations |
+| Trainee | `trainee@example.com` | `Trainee@123` | Personal dossier, progress timeline, misconception feedback, practice submission, and personal goals |
 
 ---
 
@@ -200,6 +237,36 @@ The platform applies consistent system-wide grading thresholds:
 
 ---
 
+## Core Technical Architecture and Accurate System Descriptions
+
+The platform is built on four core analytical and pedagogical workflows, described below according to verified codebase implementations:
+
+1. **Early-Warning Performance Risk Prediction**:
+   - Supervised tabular **Random Forest classifier** (`RandomForestClassifier` in Scikit-learn) trained to predict whether a candidate will fall below the passing benchmark on subsequent sessions.
+   - Deterministic heuristic rule fallback applied automatically when candidates have fewer than 3 completed sessions or when the microservice is cold.
+   - Not a deep learning model or neural network.
+
+2. **Curriculum Misconception and Error Clustering**:
+   - Statistical Natural Language Processing using **TF-IDF feature extraction** (`TfidfVectorizer` with n-grams) paired with **hierarchical agglomerative clustering** (`AgglomerativeClustering` using cosine distance) on session feedback text and error logs.
+   - Synthesizes recurring failure patterns into structured misconception themes without neural embeddings or LLM APIs.
+   - Features trainer human-in-the-loop validation controls to inspect and approve generated themes.
+
+3. **Evidence-Grounded Trainer Help Assistant**:
+   - Retrieval system powered by **SQLite FTS5 BM25 full-text search** over syllabus guidelines and rubrics, combined with relational SQL joins over candidate sessions and remediations.
+   - Returns structured answers strictly paired with source citations and deep-linked action recommendations.
+   - Enforces domain boundaries: when a query lacks supporting documentation or telemetry, the assistant returns an explicit low-confidence "Insufficient domain evidence" disclaimer. Not a generative neural model or NIST-certified system.
+
+4. **Closed-Loop Remediation Outcome Tracker**:
+   - Complete 5-stage intervention lifecycle: Trainer assigns drill &rarr; Trainee reviews instructions &rarr; Trainee submits completed practice &rarr; Trainer evaluates follow-up re-assessment &rarr; Ledger updates longitudinal outcome.
+   - Defined resolution criteria: Clicking "Complete" records trainee submission without prematurely marking the intervention resolved; resolution requires a confirmed re-assessment score meeting the 70.0% passing benchmark or explicit trainer resolution.
+   - Score trajectory changes are recorded as **percentage-point deltas** (the arithmetic difference between post-drill and pre-drill percentage scores).
+
+5. **Cohort-Level Object Authorization (OWASP BOLA Defense)**:
+   - Object-level authorization enforced on every batch-specific endpoint (`/analytics/batches/{id}/*`, `/batches/{id}/remediations`, `/help/trainer-copilot`, etc.).
+   - Trainers can only view analytics, list interventions, and assign drills for cohorts to which they are assigned via the `batch_trainers` table. Unauthorized cross-cohort access attempts receive HTTP 403 Forbidden.
+
+---
+
 ## Machine Learning Prediction Service and Endpoint
 Role tag: all
 
@@ -270,11 +337,15 @@ The state switcher pills and simulated query parameters (`?state=loading`, `?sta
 
 ## Known Limitations
 
-- **Frontend Risk Component Test Coverage**: The flagged trainee risk display component (`FlaggedTraineeRiskCard.jsx`) is verified via clean Vite production build compilation, static string audits (checking for forbidden buzzwords and typography rules), and live backend API integration, rather than a dedicated frontend component or browser test suite.
-- **Machine Learning Generalization and Evaluation**: As documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md), models were evaluated on 8 synthetic test trainees where the 3-row difference between models (2 false positives) and the baseline rule (5 false positives) is within statistical sampling noise.
-- **Audit Log Append-Only Scope**: Audit logging is append-only at the application layer only via repository interfaces; database-level immutability triggers or external database administrator access restrictions are not implemented.
-- **Database Schema and Migrations**: The `audit_logs.actor_id` column requires a database reseed (`python scripts/seed.py --reset`) on old databases because automatic table creation (`Base.metadata.create_all`) does not alter pre-existing tables.
-- **SQLite DateTime Parameter Warnings**: Deprecation warnings during SQLite test execution occur because raw Python datetime objects are bound directly in specific text SQL queries; these will be migrated to SQLAlchemy typed expressions or explicit ISO strings in future maintenance.
+- **Per-Process ML Fallback Telemetry**: `Service Status` fallback counters (`fallback_used_count` and `last_fallback_at`) track runtime ML-to-rule fallback events **since this backend process started** using in-memory worker state; counts reset on server restart and are not aggregated across multi-worker processes.
+- **First-Page Cohort & Add-User Trainee Selectors (`100`-Record Limit)**: While `Manage Trainers` paginates across all trainer pages (`1..pages`) and `User & Role Directory` supports server-side paginated search, `AdminDashboard` Cohort Directory batch loading and the `Add User` trainee dropdown request only page 1 (`page_size=100`). Extend pagination to those selectors before operating on more than 100 cohorts or 100 unlinked trainees.
+- **Missing Evaluation Execution Timestamp**: When cached `backend/app/ml/evaluation.json` lacks a recorded `evaluated_at` timestamp, the Admin UI intentionally displays `Evaluation artifact modified: <date>` alongside `Execution time: not recorded` instead of conflating file mtime with evaluation execution time.
+- **Dependency Deprecation Warnings**: Backend `pytest` reports SQLite Python 3.12+ datetime adapter deprecation warnings and Starlette `python_multipart`/`BlockingPortal` deprecation warnings; these are tracked separately as maintenance work.
+- **Frontend Verification Scope**: Admin workflows and states are verified via `vite build` and headless Chrome CDP automation (`backend/scripts/verify_admin_release.py`) alongside backend `pytest` suites rather than a standalone Jest/Vitest component suite.
+- **Machine Learning Generalization and Evaluation**: As documented in [MODEL_CARD.md](backend/app/ml/MODEL_CARD.md), holdout models were evaluated on synthetic cohorts (`8` held-out trainees in `model_results.json`; `41` trainees in cached `evaluation.json`), where service availability (`ML Available`) must not be mistaken for prediction superiority over the baseline rule.
+- **Audit Log Append-Only Scope**: Audit logging is enforced append-only at the application layer (`AuditRepository`) rather than via database-level triggers.
+- **Existing-Database Schema Upgrades**: Alembic migrations cover revisions `001`–`003`; post-`003` tables and columns on existing databases require running `python backend/scripts/upgrade_existing_db.py` (never `seed.py --reset`).
+- **Illustrative Static Trainee Preview Widgets**: In [`TraineeDashboard`](frontend/src/pages/TraineeDashboard.jsx), the `Readiness Score` ring, `Skills Overview` / `Competency Radar` (`SkillsRadar`), `Placement Readiness` (`Career` tab), `Learning Journey`, `Mentor Feedback`, and `Today's Tasks` cards are explicitly labeled `Illustrative Preview` and display static/sample visual indicators rather than live readiness scoring; live trainee assessment telemetry is rendered in the progress charts, `ModuleDiagnosticLedger`, session history, and remediation workflow.
 
 ---
 

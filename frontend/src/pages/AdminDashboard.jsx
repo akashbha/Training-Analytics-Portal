@@ -5,7 +5,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { LoadingState, EmptyState, ErrorState } from "../components/states/index.js";
-import { HelpAssistantPanel } from "../components/HelpAssistantPanel.jsx";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -41,6 +40,7 @@ import {
   CheckCircle2,
   UserCheck,
   UserX,
+  UserPlus,
   BookOpen,
   FileText,
   Activity,
@@ -55,13 +55,23 @@ import {
 } from "lucide-react";
 import { EXCELLENT_THRESHOLD, PASS_THRESHOLD } from "../constants/thresholds.js";
 
-const BATCH_LEAD_TRAINERS = {
-  1: { name: "Dr. Marcus Vance", role: "Principal Systems Architect", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" },
-  2: { name: "Sarah Jenkins", role: "Senior Data Systems Architect", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" },
-  3: { name: "Alex Rivera", role: "Cloud Platform Principal Lead", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-  4: { name: "David Zhao", role: "Senior Full-Stack Principal", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
-  5: { name: "Elena Rostova", role: "DevOps & SRE Principal Lead", avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80" },
-};
+function formatRoleCount(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function formatDateShort(isoStr) {
+  if (!isoStr) return null;
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+function formatTimeShort(isoStr) {
+  if (!isoStr) return null;
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(11, 16) + " UTC";
+}
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -71,27 +81,42 @@ export function AdminDashboard() {
   // 1. Admin System KPIs
   const [adminStats, setAdminStats] = useState({
     activeUsers: 0,
+    inactiveUsers: 0,
     roleBreakdown: { admin: 0, trainer: 0, trainee: 0 },
+    totalTrainees: 0,
+    totalSessions: 0,
     connectedClients: 0,
     messagesSent: 0,
     uptimeSeconds: 0,
     sessionsToday: 0,
     totalBatches: 0,
     batchesBelowTarget: 0,
-    overallPassRate: 0,
+    overallPassRate: null,
     weekly: [],
+    overviewAvailable: false,
+    realtimeAvailable: false,
   });
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(null);
+
+  // Live Dependency Health Probe State
+  const [serviceHealth, setServiceHealth] = useState({
+    status: "unchecked", // "unchecked" | "loaded" | "error"
+    data: null,
+    error: null,
+    loading: false,
+  });
 
   // 2. Recent Activity (Audit logs limit 5)
   const [recentActivity, setRecentActivity] = useState([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState(null);
 
-  // 3. Batches Table Data
+  // 3. Batches Table Data & Real Trainer Assignments
   const [batchesList, setBatchesList] = useState([]);
   const [comparisons, setComparisons] = useState({});
+  const [batchTrainersMap, setBatchTrainersMap] = useState({});
+  const [batchTrainersErrorMap, setBatchTrainersErrorMap] = useState({});
   const [batchesLoading, setBatchesLoading] = useState(true);
   const [batchesError, setBatchesError] = useState(null);
 
@@ -142,7 +167,11 @@ export function AdminDashboard() {
   const activeUsersDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.activeUsers;
   const connectedClientsDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.connectedClients;
   const sessionsTodayDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? 0 : adminStats.sessionsToday;
-  const overallPassRateDisplay = effectiveStatsLoading ? "..." : isDemoEmpty || isDemoError ? "-" : `${adminStats.overallPassRate.toFixed(1)}%`;
+  const overallPassRateDisplay = effectiveStatsLoading
+    ? "..."
+    : isDemoEmpty || isDemoError || adminStats.overallPassRate === null
+    ? "-"
+    : `${Number(adminStats.overallPassRate).toFixed(1)}%`;
 
   // Add / Edit Batch Modal state
   const [batchModalOpen, setBatchModalOpen] = useState(false);
@@ -155,6 +184,20 @@ export function AdminDashboard() {
   const [deleteBatchTarget, setDeleteBatchTarget] = useState(null);
   const [deleteBatchError, setDeleteBatchError] = useState("");
   const [deleteBatchSubmitting, setDeleteBatchSubmitting] = useState(false);
+
+  // Manage Trainers Modal state
+  const [manageTrainersBatch, setManageTrainersBatch] = useState(null);
+  const [assignedTrainers, setAssignedTrainers] = useState([]);
+  const [assignedTrainersLoading, setAssignedTrainersLoading] = useState(false);
+  const [assignedTrainersError, setAssignedTrainersError] = useState("");
+  const [eligibleTrainers, setEligibleTrainers] = useState([]);
+  const [inactiveTrainers, setInactiveTrainers] = useState([]);
+  const [eligibleTrainersLoading, setEligibleTrainersLoading] = useState(false);
+  const [eligibleTrainersError, setEligibleTrainersError] = useState("");
+  const [trainerSearchQuery, setTrainerSearchQuery] = useState("");
+  const [trainerMutationLoadingId, setTrainerMutationLoadingId] = useState(null);
+  const [trainerMutationError, setTrainerMutationError] = useState("");
+  const [removeConfirmTrainer, setRemoveConfirmTrainer] = useState(null);
 
   // Add User Modal state
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -173,13 +216,31 @@ export function AdminDashboard() {
         setTraineeOptions(res.data?.items || res.data || []);
       })
       .catch(() => {
-        setTraineeOptions([
-          { id: 1, name: "Danielle Johnson", email: "danielle.j@example.com" },
-          { id: 2, name: "Alex Chen", email: "alex.chen@example.com" },
-          { id: 3, name: "Jordan Taylor", email: "jordan.t@example.com" },
-          { id: 4, name: "Elena Rostova", email: "elena.r@example.com" },
-        ]);
+        setTraineeOptions([]);
       });
+  }, []);
+
+  // Fetch live Service Health probe
+  const fetchServiceHealth = useCallback(async (silent = false) => {
+    if (!silent) {
+      setServiceHealth((prev) => ({ ...prev, loading: true, error: null }));
+    }
+    try {
+      const res = await apiClient.get("/admin/service-health");
+      setServiceHealth({
+        status: "loaded",
+        data: res.data,
+        error: null,
+        loading: false,
+      });
+    } catch (err) {
+      setServiceHealth((prev) => ({
+        status: "error",
+        data: silent ? prev.data : null,
+        error: err.response?.data?.error?.message || err.message || "Health probe failed",
+        loading: false,
+      }));
+    }
   }, []);
 
   // Fetch Admin KPI Stats
@@ -187,72 +248,36 @@ export function AdminDashboard() {
     if (!silent) setStatsLoading(true);
     setStatsError(null);
     try {
-      const [overviewRes, healthRes, usersRes] = await Promise.all([
-        apiClient.get("/analytics/overview").catch(() => null),
+      const [overviewRes, healthRes] = await Promise.all([
+        apiClient.get("/analytics/overview"),
         apiClient.get("/realtime/health").catch(() => apiClient.get("/health/realtime").catch(() => null)),
-        apiClient.get("/admin/users?page=1&page_size=100").catch(() => null),
       ]);
 
       const overview = overviewRes?.data || {};
-      const health = healthRes?.data || {};
-      const usersData = usersRes?.data || {};
-      const allUsers = usersData.items || [];
-
-      // Calculate roles breakdown
-      const roles = { admin: 0, trainer: 0, trainee: 0 };
-      let activeCount = 0;
-      allUsers.forEach((u) => {
-        if (roles[u.role] !== undefined) roles[u.role]++;
-        if (u.is_active) activeCount++;
-      });
+      const health = healthRes?.data || null;
 
       setAdminStats({
-        activeUsers: activeCount || overview.active_users || 6,
-        roleBreakdown: overview.role_breakdown || (allUsers.length > 0 ? roles : { admin: 1, trainer: 2, trainee: 3 }),
-        connectedClients: health.connected_clients ?? 1,
-        messagesSent: health.messages_sent ?? 24,
-        uptimeSeconds: health.uptime_seconds ?? 3600,
-        sessionsToday: overview.sessions_today ?? 8,
-        totalBatches: overview.total_batches ?? 5,
+        activeUsers: overview.active_users ?? 0,
+        inactiveUsers: overview.inactive_users ?? 0,
+        roleBreakdown: overview.role_breakdown || { admin: 0, trainer: 0, trainee: 0 },
+        totalTrainees: overview.total_trainees ?? 0,
+        totalSessions: overview.total_sessions ?? 0,
+        connectedClients: health ? (health.connected_clients ?? 0) : 0,
+        messagesSent: health ? (health.messages_sent ?? 0) : 0,
+        uptimeSeconds: health ? (health.uptime_seconds ?? 0) : 0,
+        sessionsToday: overview.sessions_today ?? 0,
+        totalBatches: overview.total_batches ?? 0,
         batchesBelowTarget: overview.batches_below_target ?? 0,
-        overallPassRate: overview.overall_pass_rate_pct ?? 82.5,
-        weekly: overview.weekly || [
-          { week_start: "2026-08-15", avg_score_pct: 68.5, session_count: 14 },
-          { week_start: "2026-08-22", avg_score_pct: 72.0, session_count: 18 },
-          { week_start: "2026-08-29", avg_score_pct: 74.5, session_count: 22 },
-          { week_start: "2026-09-05", avg_score_pct: 71.0, session_count: 19 },
-          { week_start: "2026-09-12", avg_score_pct: 76.2, session_count: 25 },
-          { week_start: "2026-09-19", avg_score_pct: 79.4, session_count: 28 },
-          { week_start: "2026-09-26", avg_score_pct: 84.5, session_count: 31 },
-          { week_start: "2026-10-03", avg_score_pct: 82.1, session_count: 34 },
-        ],
+        overallPassRate:
+          "mean_cohort_pass_rate_pct" in overview
+            ? overview.mean_cohort_pass_rate_pct
+            : overview.overall_pass_rate_pct ?? null,
+        weekly: overview.weekly || [],
+        overviewAvailable: Boolean(overviewRes?.data),
+        realtimeAvailable: Boolean(health),
       });
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setAdminStats({
-          activeUsers: 6,
-          roleBreakdown: { admin: 1, trainer: 2, trainee: 3 },
-          connectedClients: 2,
-          messagesSent: 48,
-          uptimeSeconds: 7200,
-          sessionsToday: 12,
-          totalBatches: 5,
-          batchesBelowTarget: 0,
-          overallPassRate: 82.5,
-          weekly: [
-            { week_start: "2026-08-15", avg_score_pct: 68.5, session_count: 14 },
-            { week_start: "2026-08-22", avg_score_pct: 72.0, session_count: 18 },
-            { week_start: "2026-08-29", avg_score_pct: 74.5, session_count: 22 },
-            { week_start: "2026-09-05", avg_score_pct: 71.0, session_count: 19 },
-            { week_start: "2026-09-12", avg_score_pct: 76.2, session_count: 25 },
-            { week_start: "2026-09-19", avg_score_pct: 79.4, session_count: 28 },
-            { week_start: "2026-09-26", avg_score_pct: 84.5, session_count: 31 },
-            { week_start: "2026-10-03", avg_score_pct: 82.1, session_count: 34 },
-          ],
-        });
-      } else {
-        setStatsError(err.message || "Failed to load administrative overview.");
-      }
+      setStatsError(err.response?.data?.error?.message || err.message || "Failed to load administrative overview.");
     } finally {
       setStatsLoading(false);
     }
@@ -266,58 +291,37 @@ export function AdminDashboard() {
       const res = await apiClient.get("/admin/audit-logs?page=1&page_size=5");
       setRecentActivity(res.data?.items || []);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setRecentActivity([
-          {
-            id: 1,
-            user_email: "admin@portal.com",
-            action: "user_created",
-            entity_type: "user",
-            details: { email: "trainer@portal.com", role: "trainer" },
-            created_at: new Date(Date.now() - 1800000).toISOString(),
-          },
-          {
-            id: 2,
-            user_email: "admin@portal.com",
-            action: "batch_created",
-            entity_type: "batch",
-            details: { name: "Batch C - Cloud Native" },
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-          },
-          {
-            id: 3,
-            user_email: "marcus.vance@portal.com",
-            action: "trainee_created",
-            entity_type: "trainee",
-            details: { name: "Elena Rostova", email: "elena.r@portal.com" },
-            created_at: new Date(Date.now() - 7200000).toISOString(),
-          },
-          {
-            id: 4,
-            user_email: "marcus.vance@portal.com",
-            action: "session_created",
-            entity_type: "session",
-            details: { module: "React & State Engineering", score: 82.5 },
-            created_at: new Date(Date.now() - 14400000).toISOString(),
-          },
-          {
-            id: 5,
-            user_email: "admin@portal.com",
-            action: "password_reset",
-            entity_type: "user",
-            details: { email: "trainee@portal.com" },
-            created_at: new Date(Date.now() - 28800000).toISOString(),
-          },
-        ]);
-      } else {
-        setActivityError(err.message || "Failed to load activity stream.");
-      }
+      setActivityError(err.response?.data?.error?.message || err.message || "Failed to load activity stream.");
     } finally {
       setActivityLoading(false);
     }
   }, []);
 
-  // Fetch Batches & Comparison Metrics
+  // Fetch assigned trainers for all loaded cohorts
+  const fetchBatchTrainersForList = useCallback(async (batches) => {
+    if (!batches || batches.length === 0) {
+      setBatchTrainersMap({});
+      setBatchTrainersErrorMap({});
+      return;
+    }
+    const results = await Promise.allSettled(
+      batches.map((b) => apiClient.get(`/batches/${b.id}/trainers`))
+    );
+    const nextMap = {};
+    const nextErrMap = {};
+    results.forEach((result, idx) => {
+      const batchId = batches[idx].id;
+      if (result.status === "fulfilled") {
+        nextMap[batchId] = result.value.data || [];
+      } else {
+        nextErrMap[batchId] = true;
+      }
+    });
+    setBatchTrainersMap(nextMap);
+    setBatchTrainersErrorMap(nextErrMap);
+  }, []);
+
+  // Fetch Batches, Comparison Metrics & Assigned Trainers
   const fetchBatches = useCallback(async (silent = false) => {
     if (!silent) setBatchesLoading(true);
     setBatchesError(null);
@@ -335,29 +339,14 @@ export function AdminDashboard() {
         compMap[c.batch_id] = c;
       });
       setComparisons(compMap);
+
+      await fetchBatchTrainersForList(bList);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setBatchesList([
-          { id: 1, name: "Batch A - Web Core", start_date: "2026-07-01", end_date: "2026-11-18", trainee_count: 10 },
-          { id: 2, name: "Batch B - Data Systems", start_date: "2026-07-15", end_date: "2026-12-02", trainee_count: 10 },
-          { id: 3, name: "Batch C - Cloud Native", start_date: "2026-07-22", end_date: "2026-12-09", trainee_count: 10 },
-          { id: 4, name: "Batch D - Full Stack (Foundational)", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
-          { id: 5, name: "Batch E - DevOps & Architecture", start_date: "2026-07-29", end_date: "2026-12-16", trainee_count: 10 },
-        ]);
-        setComparisons({
-          1: { batch_id: 1, name: "Batch A - Web Core", trainee_count: 10, avg_score_pct: 78.4, pass_rate_pct: 87.5 },
-          2: { batch_id: 2, name: "Batch B - Data Systems", trainee_count: 10, avg_score_pct: 71.2, pass_rate_pct: 79.0 },
-          3: { batch_id: 3, name: "Batch C - Cloud Native", trainee_count: 10, avg_score_pct: 84.0, pass_rate_pct: 93.3 },
-          4: { batch_id: 4, name: "Batch D - Full Stack (Foundational)", trainee_count: 10, avg_score_pct: 76.5, pass_rate_pct: 82.0 },
-          5: { batch_id: 5, name: "Batch E - DevOps & Architecture", trainee_count: 10, avg_score_pct: 86.8, pass_rate_pct: 95.0 },
-        });
-      } else {
-        setBatchesError(err.message || "Failed to load cohorts.");
-      }
+      setBatchesError(err.response?.data?.error?.message || err.message || "Failed to load cohorts.");
     } finally {
       setBatchesLoading(false);
     }
-  }, []);
+  }, [fetchBatchTrainersForList]);
 
   // Fetch RBAC Users list
   const fetchUsers = useCallback(async (silent = false) => {
@@ -372,25 +361,7 @@ export function AdminDashboard() {
       const res = await apiClient.get(`/admin/users?${params.toString()}`);
       setUsersList(res.data?.items || []);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        let fallback = [
-          { id: 1, email: "admin@example.com", role: "admin", is_active: true, trainee_id: null, trainee_name: null },
-          { id: 2, email: "trainer@example.com", role: "trainer", is_active: true, trainee_id: null, trainee_name: null },
-          { id: 3, email: "trainee@example.com", role: "trainee", is_active: true, trainee_id: 1, trainee_name: "Danielle Johnson" },
-          { id: 4, email: "joshua.w@example.com", role: "trainee", is_active: true, trainee_id: 2, trainee_name: "Joshua Walker" },
-          { id: 5, email: "jill.r@example.com", role: "trainee", is_active: true, trainee_id: 3, trainee_name: "Jill Rhodes" },
-        ];
-        if (userRoleFilter) fallback = fallback.filter((u) => u.role === userRoleFilter);
-        if (userSearch.trim()) {
-          const q = userSearch.toLowerCase();
-          fallback = fallback.filter(
-            (u) => u.email.toLowerCase().includes(q) || u.trainee_name?.toLowerCase().includes(q)
-          );
-        }
-        setUsersList(fallback);
-      } else {
-        setUsersError(err.message || "Failed to load user accounts.");
-      }
+      setUsersError(err.response?.data?.error?.message || err.message || "Failed to load user accounts.");
     } finally {
       setUsersLoading(false);
     }
@@ -408,15 +379,7 @@ export function AdminDashboard() {
       });
       fetchRecentActivity(true);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setRevealModal({
-          email: targetUser.email,
-          tempPassword: "TempPass@" + Math.floor(1000 + Math.random() * 9000),
-          title: "Demo Temporary Password Generated",
-        });
-      } else {
-        alert(err.response?.data?.error?.message || err.message || "Failed to reset password");
-      }
+      alert(err.response?.data?.error?.message || err.message || "Failed to reset password");
     } finally {
       setUserActionLoadingId(null);
     }
@@ -431,13 +394,7 @@ export function AdminDashboard() {
       fetchAdminStats(true);
       fetchRecentActivity(true);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setUsersList((prev) =>
-          prev.map((u) => (u.id === targetUser.id ? { ...u, is_active: !u.is_active } : u))
-        );
-      } else {
-        alert(err.response?.data?.error?.message || err.message || "Failed to update user status");
-      }
+      alert(err.response?.data?.error?.message || err.message || "Failed to update user status");
     } finally {
       setUserActionLoadingId(null);
     }
@@ -453,13 +410,7 @@ export function AdminDashboard() {
       fetchAdminStats(true);
       fetchRecentActivity(true);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setUsersList((prev) =>
-          prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
-        );
-      } else {
-        alert(err.response?.data?.error?.message || err.message || "Failed to change user role");
-      }
+      alert(err.response?.data?.error?.message || err.message || "Failed to change user role");
     } finally {
       setUserActionLoadingId(null);
     }
@@ -483,11 +434,12 @@ export function AdminDashboard() {
 
   useEffect(() => {
     fetchAdminStats();
+    fetchServiceHealth();
     fetchRecentActivity();
     fetchBatches();
     fetchUsers();
     fetchModelEvaluation();
-  }, [fetchAdminStats, fetchRecentActivity, fetchBatches, fetchUsers, fetchModelEvaluation]);
+  }, [fetchAdminStats, fetchServiceHealth, fetchRecentActivity, fetchBatches, fetchUsers, fetchModelEvaluation]);
 
   // Live WebSocket debounced updates
   const debounceTimerRef = useRef(null);
@@ -496,22 +448,24 @@ export function AdminDashboard() {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
         fetchAdminStats(true);
+        fetchServiceHealth(true);
         fetchRecentActivity(true);
         fetchBatches(true);
         fetchUsers(true);
         fetchModelEvaluation(true);
       }, 500);
-    }, [fetchAdminStats, fetchRecentActivity, fetchBatches, fetchUsers, fetchModelEvaluation])
+    }, [fetchAdminStats, fetchServiceHealth, fetchRecentActivity, fetchBatches, fetchUsers, fetchModelEvaluation])
   );
 
   // Polling fallback: 15s refresh
   usePollingFallback(
     useCallback(() => {
       fetchAdminStats(true);
+      fetchServiceHealth(true);
       fetchRecentActivity(true);
       fetchBatches(true);
       fetchUsers(true);
-    }, [fetchAdminStats, fetchRecentActivity, fetchBatches, fetchUsers]),
+    }, [fetchAdminStats, fetchServiceHealth, fetchRecentActivity, fetchBatches, fetchUsers]),
     15000
   );
 
@@ -544,6 +498,10 @@ export function AdminDashboard() {
         return `Updated cohort #${item.entity_id || ""}`;
       case "batch_deleted":
         return `Deleted cohort "${item.details?.name || ""}"`;
+      case "assign_batch_trainer":
+        return `Assigned trainer #${item.after?.trainer_id || item.details?.trainer_id || ""} to cohort #${item.after?.batch_id || item.details?.batch_id || ""}`;
+      case "unassign_batch_trainer":
+        return `Unassigned trainer #${item.before?.trainer_id || item.details?.trainer_id || ""} from cohort #${item.before?.batch_id || item.details?.batch_id || ""}`;
       case "module_created":
         return `Added curriculum module "${item.details?.name || ""}"`;
       case "module_deleted":
@@ -581,21 +539,141 @@ export function AdminDashboard() {
         title: "User Account Provisioned",
       });
       setUserForm({ email: "", role: "trainer", trainee_id: "", password: "" });
+      fetchUsers(true);
       fetchAdminStats(true);
       fetchRecentActivity(true);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setAddUserModalOpen(false);
-        setRevealModal({
-          email: userForm.email,
-          tempPassword: "TempPass@" + Math.floor(1000 + Math.random() * 9000),
-          title: "Demo User Account Provisioned",
-        });
-      } else {
-        setUserFormError(err.response?.data?.error?.message || err.message || "Failed to create user");
-      }
+      setUserFormError(err.response?.data?.error?.message || err.message || "Failed to create user");
     } finally {
       setUserSubmitting(false);
+    }
+  };
+
+  // Manage Trainers Dialog Handlers
+  const loadManageTrainersData = useCallback(async (batchId) => {
+    setAssignedTrainersLoading(true);
+    setAssignedTrainersError("");
+    setEligibleTrainersLoading(true);
+    setEligibleTrainersError("");
+
+    const fetchAllTrainers = async () => {
+      const byId = new Map();
+      let currentPage = 1;
+      let totalPages = 1;
+      do {
+        const res = await apiClient.get(
+          `/admin/users?role=trainer&page=${currentPage}&page_size=100`
+        );
+        const data = res.data || {};
+        for (const item of data.items || []) {
+          byId.set(item.id, item);
+        }
+        totalPages = Math.max(1, Number(data.pages || 1));
+        currentPage += 1;
+      } while (currentPage <= totalPages);
+      return Array.from(byId.values());
+    };
+
+    const [assignedResult, eligibleResult] = await Promise.allSettled([
+      apiClient.get(`/batches/${batchId}/trainers`),
+      fetchAllTrainers(),
+    ]);
+
+    if (assignedResult.status === "fulfilled") {
+      const assignedList = assignedResult.value.data || [];
+      setAssignedTrainers(assignedList);
+      setBatchTrainersMap((prev) => ({ ...prev, [batchId]: assignedList }));
+      setBatchTrainersErrorMap((prev) => {
+        const copy = { ...prev };
+        delete copy[batchId];
+        return copy;
+      });
+    } else {
+      setAssignedTrainersError(
+        assignedResult.reason?.response?.data?.error?.message ||
+          assignedResult.reason?.message ||
+          "Failed to load assigned trainers."
+      );
+    }
+    setAssignedTrainersLoading(false);
+
+    if (eligibleResult.status === "fulfilled") {
+      const trainers = eligibleResult.value || [];
+      setEligibleTrainers(trainers.filter((u) => u.role === "trainer" && u.is_active));
+      setInactiveTrainers(trainers.filter((u) => u.role === "trainer" && !u.is_active));
+    } else {
+      setInactiveTrainers([]);
+      setEligibleTrainersError(
+        eligibleResult.reason?.response?.data?.error?.message ||
+          eligibleResult.reason?.message ||
+          "Failed to load eligible trainers."
+      );
+    }
+    setEligibleTrainersLoading(false);
+  }, []);
+
+  const handleOpenManageTrainers = (batch, e) => {
+    if (e) e.stopPropagation();
+    setManageTrainersBatch(batch);
+    setTrainerSearchQuery("");
+    setTrainerMutationError("");
+    setRemoveConfirmTrainer(null);
+    loadManageTrainersData(batch.id);
+  };
+
+  const handleAssignTrainerToBatch = async (trainerUser) => {
+    if (!manageTrainersBatch || trainerMutationLoadingId !== null) return;
+    if (assignedTrainers.some((t) => t.trainer_id === trainerUser.id)) {
+      setTrainerMutationError("Trainer is already assigned to this batch.");
+      return;
+    }
+    if (!trainerUser.is_active) {
+      setTrainerMutationError("Inactive trainers cannot be assigned to batches.");
+      return;
+    }
+    setTrainerMutationError("");
+    setTrainerMutationLoadingId(trainerUser.id);
+    try {
+      await apiClient.post(`/batches/${manageTrainersBatch.id}/trainers`, {
+        trainer_id: trainerUser.id,
+      });
+      await loadManageTrainersData(manageTrainersBatch.id);
+      fetchBatches(true);
+      fetchAdminStats(true);
+      fetchRecentActivity(true);
+    } catch (err) {
+      setTrainerMutationError(
+        err.response?.data?.error?.message || err.message || "Failed to assign trainer."
+      );
+      await loadManageTrainersData(manageTrainersBatch.id);
+      fetchBatches(true);
+    } finally {
+      setTrainerMutationLoadingId(null);
+    }
+  };
+
+  const handleConfirmUnassignTrainer = async () => {
+    if (!manageTrainersBatch || !removeConfirmTrainer || trainerMutationLoadingId !== null) return;
+    setTrainerMutationError("");
+    setTrainerMutationLoadingId(removeConfirmTrainer.trainer_id);
+    try {
+      await apiClient.delete(
+        `/batches/${manageTrainersBatch.id}/trainers/${removeConfirmTrainer.trainer_id}`
+      );
+      setRemoveConfirmTrainer(null);
+      await loadManageTrainersData(manageTrainersBatch.id);
+      fetchBatches(true);
+      fetchAdminStats(true);
+      fetchRecentActivity(true);
+    } catch (err) {
+      setTrainerMutationError(
+        err.response?.data?.error?.message || err.message || "Failed to remove trainer assignment."
+      );
+      setRemoveConfirmTrainer(null);
+      await loadManageTrainersData(manageTrainersBatch.id);
+      fetchBatches(true);
+    } finally {
+      setTrainerMutationLoadingId(null);
     }
   };
 
@@ -639,12 +717,7 @@ export function AdminDashboard() {
       fetchAdminStats(true);
       fetchRecentActivity(true);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setBatchModalOpen(false);
-        fetchBatches();
-      } else {
-        setBatchFormError(err.response?.data?.error?.message || err.message || "Failed to save batch cohort.");
-      }
+      setBatchFormError(err.response?.data?.error?.message || err.message || "Failed to save batch cohort.");
     } finally {
       setBatchSubmitting(false);
     }
@@ -667,9 +740,6 @@ export function AdminDashboard() {
           err.response?.data?.error?.message ||
             `Cannot delete cohort "${deleteBatchTarget.name}" because active trainees are currently enrolled.`
         );
-      } else if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setDeleteBatchTarget(null);
-        fetchBatches();
       } else {
         setDeleteBatchError(err.response?.data?.error?.message || err.message || "Failed to delete batch.");
       }
@@ -736,6 +806,7 @@ export function AdminDashboard() {
             type="button"
             onClick={() => {
               fetchAdminStats(true);
+              fetchServiceHealth(true);
               fetchRecentActivity(true);
               fetchBatches(true);
             }}
@@ -770,18 +841,15 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Help Assistant Panel */}
-      <HelpAssistantPanel />
-
       {/* =========================================================================
-          2. PLATFORM TELEMETRY KPI STRIP (4 Clean Typographic Cards)
+          2. PLATFORM TELEMETRY KPI STRIP (4 Honest Operational Cards)
           ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Metric 1: Platform Users & RBAC */}
+        {/* Metric 1: Active Accounts & Role Breakdown */}
         <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
-              Platform Accounts
+              Active Accounts
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
               RBAC Auth
@@ -789,94 +857,118 @@ export function AdminDashboard() {
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-              {effectiveStatsLoading ? "..." : `${activeUsersDisplay} Active`}
+              {effectiveStatsLoading
+                ? "..."
+                : effectiveStatsError
+                ? "Unavailable"
+                : `${activeUsersDisplay} Active`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-normal truncate">
-              {isDemoEmpty || isDemoError
+              {isDemoEmpty || isDemoError || effectiveStatsError
                 ? "0 admin, 0 trainers, 0 trainees"
-                : `${adminStats.roleBreakdown.admin} admin, ${adminStats.roleBreakdown.trainer} trainers, ${adminStats.roleBreakdown.trainee} trainees`}
+                : `${formatRoleCount(adminStats.roleBreakdown.admin, "admin", "admins")}, ${formatRoleCount(adminStats.roleBreakdown.trainer, "trainer", "trainers")}, ${formatRoleCount(adminStats.roleBreakdown.trainee, "trainee", "trainees")}`}
             </div>
-            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-              <span>Supervisory Ratio:</span>
-              <span className="font-semibold text-slate-700 tabular-nums">1 : 25 Trainer Ratio</span>
-            </div>
+            {!effectiveStatsError && adminStats.inactiveUsers > 0 && !isDemoEmpty && !isDemoError && (
+              <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Inactive Accounts:</span>
+                <span className="font-semibold text-slate-700 tabular-nums">{adminStats.inactiveUsers}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Metric 2: Live Realtime Streams */}
+        {/* Metric 2: Live Realtime Stream */}
         <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
-              Realtime Telemetry
+              Realtime Gateway
             </span>
-            <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Live Socket</span>
-            </span>
+            {effectiveStatsLoading ? (
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                Checking
+              </span>
+            ) : !adminStats.realtimeAvailable || isDemoError || effectiveStatsError ? (
+              <span className="text-[10px] font-medium uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                Unavailable
+              </span>
+            ) : (
+              <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Socket</span>
+              </span>
+            )}
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-              {effectiveStatsLoading ? "..." : `${connectedClientsDisplay} Online`}
+              {effectiveStatsLoading
+                ? "..."
+                : !adminStats.realtimeAvailable || effectiveStatsError
+                ? "Unavailable"
+                : `${connectedClientsDisplay} Connected`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-normal">
-              {isDemoEmpty || isDemoError
-                ? "0 events, 0m engine uptime"
-                : `${adminStats.messagesSent} events, ${Math.round(adminStats.uptimeSeconds / 60)}m engine uptime`}
+              {!adminStats.realtimeAvailable || isDemoEmpty || isDemoError || effectiveStatsError
+                ? "Realtime relay probe did not return metrics"
+                : `${adminStats.messagesSent} events broadcast · ${Math.round(adminStats.uptimeSeconds / 60)}m uptime`}
             </div>
           </div>
         </div>
 
-        {/* Metric 3: Assessment Drills Today */}
+        {/* Metric 3: Assessments Recorded Today */}
         <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
-              Evaluations Today
+              Assessments Recorded Today
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-              Daily Ledger
+              UTC Day
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-              {effectiveStatsLoading ? "..." : `${sessionsTodayDisplay} Drills`}
+              {effectiveStatsLoading
+                ? "..."
+                : effectiveStatsError
+                ? "Unavailable"
+                : `${sessionsTodayDisplay} ${Number(sessionsTodayDisplay) === 1 ? "Session" : "Sessions"}`}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-normal">
-              Processed across active cohort sandboxes
+              Recorded since 00:00 UTC today
             </div>
+            {!effectiveStatsError && !isDemoEmpty && !isDemoError && (
+              <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Total Assessments Logged:</span>
+                <span className="font-semibold text-slate-700 tabular-nums">{adminStats.totalSessions}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Metric 4: Cohort Health & Compliance */}
+        {/* Metric 4: Total Cohorts & Pass Benchmark */}
         <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-500">
-              Cohort Governance
+              Total Cohorts
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-              {isDemoEmpty || isDemoError ? 0 : adminStats.totalBatches} Cohorts
+              {effectiveStatsError ? "-" : isDemoEmpty || isDemoError ? 0 : adminStats.totalBatches} Cohorts
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-              {overallPassRateDisplay}
+              {effectiveStatsError ? "Unavailable" : overallPassRateDisplay}
             </div>
             <div className="text-xs text-slate-500 mt-1 font-normal">
-              Global qualification benchmark rate
+              {overallPassRateDisplay === "-" ? "No assessed cohorts yet" : "Mean cohort pass rate"}
             </div>
-            <div className="mt-2.5 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-                <span>License Capacity</span>
-                <span className="font-semibold text-slate-700 tabular-nums">
-                  {isDemoEmpty || isDemoError ? "0 / 100 Seats (0%)" : "50 / 100 Seats (50%)"}
+            {!effectiveStatsError && !isDemoEmpty && !isDemoError && (
+              <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Cohorts with avg score &lt; {PASS_THRESHOLD}%:</span>
+                <span className={`font-semibold tabular-nums ${adminStats.batchesBelowTarget > 0 ? "text-amber-700" : "text-slate-700"}`}>
+                  {adminStats.batchesBelowTarget} {adminStats.batchesBelowTarget === 1 ? "cohort" : "cohorts"}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 rounded-full"
-                  style={{ width: isDemoEmpty || isDemoError ? "0%" : "50%" }}
-                ></div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -885,12 +977,12 @@ export function AdminDashboard() {
           3. MAIN GOVERNANCE GRID (8 Cols Left, 4 Cols Right)
           ========================================================================= */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* =========================================================================
             LEFT COLUMN (8 Cols): Cross-Cohort Progression + Cohort Directory
             ========================================================================= */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Widget 1: Cross-Cohort Progression Visualizer */}
           <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
@@ -934,14 +1026,18 @@ export function AdminDashboard() {
             <div className="flex flex-wrap items-center gap-2 pt-3 pb-1 text-[11px]">
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
                 <span className="w-2 h-2 rounded-xs bg-blue-600"></span>
-                <span>Current Week: <strong className="font-semibold text-slate-900">{effectiveWeekly?.slice(-1)[0]?.avg_score_pct?.toFixed(1) || "82.1"}%</strong></span>
+                <span>Current Week: <strong className="font-semibold text-slate-900">{effectiveWeekly?.slice(-1)[0]?.avg_score_pct !== undefined && effectiveWeekly?.slice(-1)[0]?.avg_score_pct !== null ? `${effectiveWeekly.slice(-1)[0].avg_score_pct.toFixed(1)}%` : "-"}</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
-                <span className="w-2 h-2 rounded-xs bg-slate-900"></span>
-                <span>Target: <strong className="font-semibold text-slate-900">{EXCELLENT_THRESHOLD.toFixed(1)}% Benchmark</strong></span>
+                <span className="w-2 h-2 rounded-xs bg-blue-500"></span>
+                <span>Target: <strong className="font-semibold text-slate-900">{EXCELLENT_THRESHOLD}%</strong></span>
               </div>
               <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
-                <span>Peak Milestone: <strong className="font-semibold text-slate-900">{highestWeeklyPct.toFixed(1)}%</strong></span>
+                <span className="w-2 h-2 rounded-xs bg-slate-500"></span>
+                <span>Pass: <strong className="font-semibold text-slate-900">{PASS_THRESHOLD}%</strong></span>
+              </div>
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-medium tabular-nums">
+                <span>Peak Milestone: <strong className="font-semibold text-slate-900">{highestWeeklyPct > 0 ? `${highestWeeklyPct.toFixed(1)}%` : "-"}</strong></span>
               </div>
             </div>
 
@@ -972,7 +1068,7 @@ export function AdminDashboard() {
                           ...w,
                           label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
                         }))}
-                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                        margin={{ top: 18, right: 88, left: -20, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                         <XAxis
@@ -996,11 +1092,10 @@ export function AdminDashboard() {
                           strokeWidth={1.5}
                           label={{
                             value: `Pass: ${PASS_THRESHOLD}%`,
-                            position: "insideTopRight",
+                            position: "right",
                             fill: "#64748B",
                             fontSize: 10,
                             fontWeight: 600,
-                            offset: 4,
                           }}
                         />
                         <ReferenceLine
@@ -1009,12 +1104,11 @@ export function AdminDashboard() {
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Excellence: ${EXCELLENT_THRESHOLD}%`,
-                            position: "insideTopRight",
+                            value: `Target: ${EXCELLENT_THRESHOLD}%`,
+                            position: "right",
                             fill: "#2563EB",
                             fontSize: 10,
                             fontWeight: 600,
-                            offset: 4,
                           }}
                         />
                         <RechartsTooltip
@@ -1046,12 +1140,12 @@ export function AdminDashboard() {
                                     <span>Benchmark Delta:</span>
                                     <strong className={isAbove ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>
                                       {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)} pts`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)} pts`}
                                     </strong>
                                   </div>
                                   <div className="text-[10px] text-slate-400 pt-0.5 tabular-nums">
-                                    {item.session_count || 0} drills evaluated
+                                    {item.session_count || 0} assessments evaluated
                                   </div>
                                 </div>
                               );
@@ -1094,7 +1188,7 @@ export function AdminDashboard() {
                           ...w,
                           label: w.week_start ? w.week_start.slice(5) : `W${i + 1}`,
                         }))}
-                        margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                        margin={{ top: 18, right: 88, left: -20, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                         <XAxis
@@ -1118,11 +1212,10 @@ export function AdminDashboard() {
                           strokeWidth={1.5}
                           label={{
                             value: `Pass: ${PASS_THRESHOLD}%`,
-                            position: "insideTopRight",
+                            position: "right",
                             fill: "#64748B",
                             fontSize: 10,
                             fontWeight: 600,
-                            offset: 4,
                           }}
                         />
                         <ReferenceLine
@@ -1131,12 +1224,11 @@ export function AdminDashboard() {
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Excellence: ${EXCELLENT_THRESHOLD}%`,
-                            position: "insideTopRight",
+                            value: `Target: ${EXCELLENT_THRESHOLD}%`,
+                            position: "right",
                             fill: "#2563EB",
                             fontSize: 10,
                             fontWeight: 600,
-                            offset: 4,
                           }}
                         />
                         <RechartsTooltip
@@ -1168,12 +1260,12 @@ export function AdminDashboard() {
                                     <span>Benchmark Delta:</span>
                                     <strong className={isAbove ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>
                                       {item.avg_score_pct >= EXCELLENT_THRESHOLD
-                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`
-                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)}%`}
+                                        ? `+${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)} pts`
+                                        : `${(item.avg_score_pct - EXCELLENT_THRESHOLD).toFixed(1)} pts`}
                                     </strong>
                                   </div>
                                   <div className="text-[10px] text-slate-400 pt-0.5 tabular-nums">
-                                    {item.session_count || 0} drills evaluated
+                                    {item.session_count || 0} assessments evaluated
                                   </div>
                                 </div>
                               );
@@ -1197,7 +1289,7 @@ export function AdminDashboard() {
 
                 {/* Explicit Chart Sample Size Caption */}
                 <div className="text-[11px] text-slate-500 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 font-normal">
-                  <span>Sample size: {(effectiveWeekly || []).reduce((acc, w) => acc + (w.session_count || 0), 0) || 142} sessions evaluated across {(batchesList || []).length || 4} cohorts</span>
+                  <span>Sample size: {(effectiveWeekly || []).reduce((acc, w) => acc + (w.session_count || 0), 0)} assessments evaluated across {(batchesList || []).length} cohorts</span>
                   <span className="text-slate-400">Chronological 8-week aggregation</span>
                 </div>
               </>
@@ -1292,14 +1384,14 @@ export function AdminDashboard() {
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
                         <tr className="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3">Cohort Batch</th>
-                          <th className="py-2.5 px-3">Lead Trainer</th>
-                          <th className="py-2.5 px-3">Timeline</th>
-                          <th className="py-2.5 px-3 text-center">Seat Capacity</th>
-                          <th className="py-2.5 px-3 text-right">Avg Score</th>
-                          <th className="py-2.5 px-3 text-right">Pass Rate</th>
-                          <th className="py-2.5 px-3 text-center">Status</th>
-                          <th className="py-2.5 px-3 text-right">Actions</th>
+                          <th className="py-2.5 px-2">Cohort Batch</th>
+                          <th className="py-2.5 px-2">Assigned Trainers</th>
+                          <th className="py-2.5 px-2">Timeline</th>
+                          <th className="py-2.5 px-1.5 text-center">Enrolled</th>
+                          <th className="py-2.5 px-2 text-right">Avg</th>
+                          <th className="py-2.5 px-2 text-right">Pass</th>
+                          <th className="py-2.5 px-1.5 text-center">Staffing</th>
+                          <th className="py-2.5 px-2 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -1308,78 +1400,110 @@ export function AdminDashboard() {
                           const avg = comp?.avg_score_pct ?? null;
                           const pass = comp?.pass_rate_pct ?? null;
                           const isBelow = avg !== null && avg < PASS_THRESHOLD;
-                          const trainer = BATCH_LEAD_TRAINERS[b.id] || {
-                            name: "Staff Trainer",
-                            role: "Instructor",
-                            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-                          };
-                          const count = b.trainee_count ?? comp?.trainee_count ?? 10;
-                          const capacityPct = Math.min(100, Math.round((count / 12) * 100));
+                          const trainersFetchFailed = Boolean(batchTrainersErrorMap[b.id]);
+                          const assigned = batchTrainersMap[b.id];
+                          const assignedLoaded = Array.isArray(assigned);
+                          const count = b.trainee_count ?? comp?.trainee_count ?? 0;
 
                           return (
                             <tr key={b.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="py-3 px-3 font-semibold text-slate-900">
+                              <td className="py-2.5 px-2 font-semibold text-slate-900 text-[11px] max-w-[140px]">
                                 {b.name}
                               </td>
-                              <td className="py-3 px-3">
-                                <div className="flex items-center space-x-2">
-                                  <img
-                                    src={trainer.avatar}
-                                    alt=""
-                                    className="w-6 h-6 rounded-full object-cover border border-slate-200"
-                                  />
-                                  <div>
-                                    <div className="font-semibold text-slate-800 text-[11px] leading-tight">
-                                      {trainer.name}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">
-                                      {trainer.role}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-3 px-3 text-slate-500 text-[11px] font-normal whitespace-nowrap tabular-nums">
-                                {b.start_date || "-"} to {b.end_date || "-"}
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                <div className="inline-flex flex-col items-center">
-                                  <span className="font-semibold text-slate-700 text-[11px] tabular-nums">
-                                    {count} / 12 Seats
+                              <td className="py-2.5 px-2">
+                                {trainersFetchFailed ? (
+                                  <span className="text-[11px] text-rose-600 font-medium">
+                                    Unavailable
                                   </span>
-                                  <div className="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                                    <div
-                                      className="h-full bg-blue-600 rounded-full"
-                                      style={{ width: `${capacityPct}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-3 px-3 text-right font-bold tabular-nums">
-                                <span className={isBelow ? "text-rose-600" : "text-slate-900"}>
-                                  {avg !== null ? `${avg.toFixed(1)}%` : "-"}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-right font-medium text-slate-700 tabular-nums">
-                                {pass !== null ? `${pass.toFixed(1)}%` : "-"}
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                {isBelow ? (
-                                  <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-medium uppercase tracking-wider border border-rose-200">
-                                    Remediation
+                                ) : !assignedLoaded ? (
+                                  <span className="text-[11px] text-slate-400">
+                                    Checking...
+                                  </span>
+                                ) : assigned.length === 0 ? (
+                                  <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-medium inline-block whitespace-nowrap">
+                                    No trainer assigned
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium uppercase tracking-wider border border-emerald-200">
-                                    On Track
+                                  <div className="flex items-center gap-1 flex-nowrap max-w-[145px]">
+                                    <span
+                                      title={assigned[0].trainer_email || assigned[0].trainer_name}
+                                      className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 text-[10px] font-medium truncate"
+                                    >
+                                      {assigned[0].trainer_email || assigned[0].trainer_name}
+                                    </span>
+                                    {assigned.length > 1 && (
+                                      <span
+                                        title={assigned.map((t) => t.trainer_email || t.trainer_name).join(", ")}
+                                        className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold shrink-0 tabular-nums"
+                                      >
+                                        +{assigned.length - 1}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="py-2.5 px-2 text-slate-500 text-[10px] font-normal whitespace-nowrap tabular-nums">
+                                {b.start_date || "-"} – {b.end_date || "-"}
+                              </td>
+                              <td className="py-2.5 px-1.5 text-center">
+                                <span
+                                  title={`${count} ${count === 1 ? "trainee" : "trainees"} enrolled`}
+                                  className="font-semibold text-slate-700 text-[11px] tabular-nums"
+                                >
+                                  {count}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-2 text-right font-bold tabular-nums text-[11px]">
+                                <div className="flex flex-col items-end">
+                                  <span className={isBelow ? "text-rose-600" : "text-slate-900"}>
+                                    {avg !== null ? `${avg.toFixed(1)}%` : "No data"}
+                                  </span>
+                                  {isBelow && (
+                                    <span className="text-[9px] font-medium text-rose-600 uppercase tracking-wide whitespace-nowrap">
+                                      &lt; {PASS_THRESHOLD}%
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-2.5 px-2 text-right font-medium text-slate-700 tabular-nums text-[11px]">
+                                {pass !== null ? `${pass.toFixed(1)}%` : "-"}
+                              </td>
+                              <td className="py-2.5 px-1.5 text-center">
+                                {trainersFetchFailed ? (
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium uppercase tracking-wider border border-slate-200">
+                                    Unknown
+                                  </span>
+                                ) : !assignedLoaded ? (
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-50 text-slate-400 text-[10px] font-medium uppercase tracking-wider border border-slate-200">
+                                    ...
+                                  </span>
+                                ) : assigned.length === 0 ? (
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 text-[10px] font-medium uppercase tracking-wider border border-amber-200">
+                                    Unassigned
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-medium uppercase tracking-wider border border-emerald-200">
+                                    Assigned
                                   </span>
                                 )}
                               </td>
-                              <td className="py-3 px-3 text-right">
+                              <td className="py-2.5 px-2 text-right">
                                 <div className="flex items-center justify-end space-x-1">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleOpenManageTrainers(b, e)}
+                                    title="Manage Trainers"
+                                    aria-label={`Manage Trainers for ${b.name}`}
+                                    className="px-1.5 py-1 rounded bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-200 text-[10px] font-medium transition-colors cursor-pointer inline-flex items-center space-x-1 shrink-0"
+                                  >
+                                    <UserPlus className="w-3 h-3" />
+                                    <span>Trainers</span>
+                                  </button>
                                   <button
                                     type="button"
                                     onClick={(e) => handleOpenEditBatch(b, e)}
                                     title="Edit cohort"
-                                    className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+                                    className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
@@ -1390,7 +1514,7 @@ export function AdminDashboard() {
                                       setDeleteBatchTarget(b);
                                     }}
                                     title="Delete cohort"
-                                    className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                    className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer shrink-0"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -1562,7 +1686,7 @@ export function AdminDashboard() {
             RIGHT COLUMN (4 Cols): Security Audit Trail + Governance Shortcuts
             ========================================================================= */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* Widget 3: Compliance & Security Audit Stream */}
           <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
@@ -1626,87 +1750,178 @@ export function AdminDashboard() {
             </div>
           </div>
 
-          {/* Widget 4: Platform Engine & Infrastructure Status Matrix */}
+          {/* Widget 4: Live Dependency & Service Status Matrix */}
           <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
               <div className="flex items-center space-x-2">
                 <Server className="w-4 h-4 text-slate-800" />
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Platform Engine & Infrastructure
+                  Service Status
                 </h3>
               </div>
-              <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Operational</span>
-              </span>
+              <div className="flex items-center space-x-1.5">
+                {serviceHealth.loading || serviceHealth.status === "unchecked" ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                    Unchecked
+                  </span>
+                ) : serviceHealth.status === "error" ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+                    Probe Failed
+                  </span>
+                ) : serviceHealth.data?.database?.status !== "connected" ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+                    DB Unavailable
+                  </span>
+                ) : serviceHealth.data?.ml_service?.status === "available" ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>All Services Up</span>
+                  </span>
+                ) : (serviceHealth.data?.ml_service?.fallback_used_count || 0) > 0 ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    Rule Fallback Used
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    ML Unavailable
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fetchServiceHealth(false)}
+                  title="Run live service health probe"
+                  className="p-1 rounded border border-slate-200 hover:bg-slate-50 text-slate-600 cursor-pointer transition-colors"
+                >
+                  <RotateCw className={`w-3 h-3 ${serviceHealth.loading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
             </div>
 
             <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Active subsystem telemetry, real-time micro-services, and platform health inspection:
+              Live dependency probe via <code className="text-[11px] font-mono text-slate-700">/admin/service-health</code>
+              {serviceHealth.data?.checked_at
+                ? ` · Checked ${formatTimeShort(serviceHealth.data.checked_at) || "recently"}`
+                : " · Pending probe"}
             </p>
 
             <div className="space-y-2.5">
-              {/* Service 1: SQLite Core DB */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+              {/* Service 1: Database */}
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                     <Server className="w-3.5 h-3.5" />
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-slate-800">SQLite 3 Core Database</div>
-                    <div className="text-[10px] text-slate-500 tabular-nums">WAL Mode | 50 Trainees | 142 Sessions</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-800">
+                      Core Database ({serviceHealth.data?.database?.engine?.toUpperCase() || "SQLite"})
+                    </div>
+                    <div className="text-[10px] text-slate-500 tabular-nums truncate">
+                      {adminStats.overviewAvailable
+                        ? `${adminStats.totalTrainees} Trainees | ${adminStats.totalSessions} Sessions`
+                        : "Overview totals unavailable"}
+                    </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Healthy
-                </span>
+                {serviceHealth.status === "unchecked" ? (
+                  <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                    Unchecked
+                  </span>
+                ) : serviceHealth.data?.database?.status === "connected" ? (
+                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    Connected
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 shrink-0">
+                    Unavailable
+                  </span>
+                )}
               </div>
 
-              {/* Service 2: ML Early-Warning */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+              {/* Service 2: ML Early-Warning Service */}
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                     <Cpu className="w-3.5 h-3.5" />
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-slate-800">ML Early-Warning Engine</div>
-                    <div className="text-[10px] text-slate-500 tabular-nums">Scikit-Learn | 92.4% Recall Model</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-800">ML Risk Service</div>
+                    <div className="text-[10px] text-slate-500 leading-snug">
+                      {serviceHealth.status === "unchecked"
+                        ? "Awaiting health probe..."
+                        : serviceHealth.data?.ml_service?.status === "available"
+                        ? `Random Forest${serviceHealth.data?.ml_service?.model_version ? ` v${serviceHealth.data.ml_service.model_version}` : ""}${serviceHealth.data?.ml_service?.fallback_configured ? " · Rule fallback available" : ""}`
+                        : (serviceHealth.data?.ml_service?.fallback_used_count || 0) > 0
+                        ? `ML unavailable · Rule fallback used (${serviceHealth.data.ml_service.fallback_used_count}x since this backend process started${serviceHealth.data.ml_service.last_fallback_at ? `, last ${formatTimeShort(serviceHealth.data.ml_service.last_fallback_at)}` : ""})`
+                        : serviceHealth.data?.ml_service?.fallback_configured !== false
+                        ? "ML unavailable · Rule fallback available"
+                        : serviceHealth.data?.ml_service?.detail || "ML unavailable"}
+                    </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Active
-                </span>
+                {serviceHealth.status === "unchecked" ? (
+                  <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                    Unchecked
+                  </span>
+                ) : serviceHealth.data?.ml_service?.status === "available" ? (
+                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    Available
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 shrink-0">
+                    ML Unavailable
+                  </span>
+                )}
               </div>
 
               {/* Service 3: WebSocket Live Stream */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                     <Radio className="w-3.5 h-3.5" />
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-slate-800">WebSocket Live Gateway</div>
-                    <div className="text-[10px] text-slate-500 tabular-nums">FastAPI /ws Broadcast | &lt; 20ms Latency</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-800">WebSocket Relay</div>
+                    <div className="text-[10px] text-slate-500 tabular-nums truncate">
+                      {serviceHealth.status === "loaded" && serviceHealth.data?.websocket
+                        ? `FastAPI /ws · ${serviceHealth.data.websocket.connected_clients ?? 0} clients · ${serviceHealth.data.websocket.messages_sent ?? 0} msgs`
+                        : adminStats.realtimeAvailable
+                        ? `FastAPI /ws · ${adminStats.connectedClients} clients`
+                        : "Relay telemetry unavailable"}
+                    </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Streaming
-                </span>
+                {serviceHealth.status === "unchecked" ? (
+                  <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                    Unchecked
+                  </span>
+                ) : serviceHealth.data?.websocket?.status === "healthy" ||
+                  serviceHealth.data?.websocket?.status === "active" ||
+                  adminStats.realtimeAvailable ? (
+                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    Active
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 shrink-0">
+                    Unavailable
+                  </span>
+                )}
               </div>
 
-              {/* Service 4: RBAC & Auth Guard */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+              {/* Service 4: RBAC Policy Config */}
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                     <Shield className="w-3.5 h-3.5 text-slate-700" />
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-slate-800">RBAC Security Guard</div>
-                    <div className="text-[10px] text-slate-500">JWT Bearer | Last-Admin Protected</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-800">RBAC Access Policy</div>
+                    <div className="text-[10px] text-slate-500 truncate">
+                      JWT Bearer | Cohort &amp; Admin Scope Guards
+                    </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                  Enforcing
+                <span className="text-[10px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                  Configured
                 </span>
               </div>
             </div>
@@ -1738,16 +1953,30 @@ export function AdminDashboard() {
               <Cpu className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center flex-wrap gap-2">
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">
                   Model Evaluation & Baseline Benchmark
                 </h3>
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                  Empirical Audit
+                  Holdout Audit
                 </span>
+                {effectiveEvaluationData?.evaluated_at ? (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
+                    Evaluated: {formatDateShort(effectiveEvaluationData.evaluated_at)}
+                  </span>
+                ) : effectiveEvaluationData?.artifact_modified_at ? (
+                  <>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
+                      Evaluation artifact modified: {formatDateShort(effectiveEvaluationData.artifact_modified_at)}
+                    </span>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-50 text-slate-500 border border-slate-200">
+                      Execution time: not recorded
+                    </span>
+                  </>
+                ) : null}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Empirical validation comparing the ML early-warning predictor against the baseline rule on held-out test sessions
+                Chronological holdout evaluation comparing the ML early-warning predictor against the baseline rule on held-out test sessions
               </p>
             </div>
           </div>
@@ -1807,9 +2036,29 @@ export function AdminDashboard() {
                         {(effectiveEvaluationData.model.precision * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 tabular-nums">
-                          Baseline +{((effectiveEvaluationData.baseline.precision - effectiveEvaluationData.model.precision) * 100).toFixed(1)}%
-                        </span>
+                        {(() => {
+                          const precDiffPts =
+                            (effectiveEvaluationData.baseline.precision - effectiveEvaluationData.model.precision) * 100;
+                          if (precDiffPts > 0.05) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 tabular-nums">
+                                Rule advantage: +{precDiffPts.toFixed(1)} pts
+                              </span>
+                            );
+                          }
+                          if (precDiffPts < -0.05) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 tabular-nums">
+                                ML advantage: +{Math.abs(precDiffPts).toFixed(1)} pts
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 tabular-nums">
+                              Tied (0.0 pts)
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                     <tr className="hover:bg-slate-50">
@@ -1821,9 +2070,22 @@ export function AdminDashboard() {
                         {(effectiveEvaluationData.model.recall * 100).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
-                          Tied (100%)
-                        </span>
+                        {(() => {
+                          const recallDiffPts =
+                            (effectiveEvaluationData.model.recall - effectiveEvaluationData.baseline.recall) * 100;
+                          if (Math.abs(recallDiffPts) < 0.05) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 tabular-nums">
+                                Tied ({(effectiveEvaluationData.model.recall * 100).toFixed(1)}%)
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 tabular-nums">
+                              {recallDiffPts > 0 ? "ML" : "Rule"} +{Math.abs(recallDiffPts).toFixed(1)} pts
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                     <tr className="hover:bg-slate-50 bg-slate-50/50">
@@ -1835,9 +2097,28 @@ export function AdminDashboard() {
                         {effectiveEvaluationData.model.f1.toFixed(4)}
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Baseline Higher
-                        </span>
+                        {(() => {
+                          const f1Diff = effectiveEvaluationData.model.f1 - effectiveEvaluationData.baseline.f1;
+                          if (f1Diff > 0.0001) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ML Higher (+{f1Diff.toFixed(4)})
+                              </span>
+                            );
+                          }
+                          if (f1Diff < -0.0001) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                Baseline Higher (+{Math.abs(f1Diff).toFixed(4)})
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
+                              Tied
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                     <tr className="hover:bg-slate-50">
@@ -1869,12 +2150,35 @@ export function AdminDashboard() {
               </div>
 
               {/* Status Alert Banner */}
-              <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div
+                className={`p-3.5 rounded-lg border text-xs flex items-start space-x-2.5 ${
+                  effectiveEvaluationData.model_beats_baseline
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                    : "bg-amber-50 border-amber-200 text-amber-900"
+                }`}
+              >
+                {effectiveEvaluationData.model_beats_baseline ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                )}
                 <div className="space-y-0.5">
-                  <div className="font-semibold">Model does NOT beat the baseline rule</div>
-                  <p className="text-[11px] text-amber-800 leading-relaxed font-normal">
-                    The simple heuristic threshold rule (average &lt; {effectiveEvaluationData.pass_threshold}%) achieves higher precision ({((effectiveEvaluationData.baseline.precision)*100).toFixed(1)}% vs {((effectiveEvaluationData.model.precision)*100).toFixed(1)}%) with fewer false alarms. In accordance with platform governance policy, the model is not artificially tuned.
+                  <div className="font-semibold">
+                    {effectiveEvaluationData.model_beats_baseline
+                      ? "Model outperforms baseline rule on holdout set"
+                      : "Model does NOT beat the baseline rule"}
+                  </div>
+                  <p
+                    className={`text-[11px] leading-relaxed font-normal ${
+                      effectiveEvaluationData.model_beats_baseline ? "text-emerald-800" : "text-amber-800"
+                    }`}
+                  >
+                    {effectiveEvaluationData.summary ||
+                      `The simple threshold rule (average < ${effectiveEvaluationData.pass_threshold}%) achieved ${(
+                        effectiveEvaluationData.baseline.precision * 100
+                      ).toFixed(1)}% precision vs ${(effectiveEvaluationData.model.precision * 100).toFixed(
+                        1
+                      )}% for the ML predictor.`}
                   </p>
                 </div>
               </div>
@@ -2214,6 +2518,256 @@ export function AdminDashboard() {
                 className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 flex items-center space-x-1"
               >
                 {deleteBatchSubmitting ? <Spinner size="sm" className="text-white" /> : <span>Confirm Delete</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Manage Cohort Trainers */}
+      {manageTrainersBatch && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-5 shadow-lg border border-slate-200 text-xs space-y-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+              <div>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                  Cohort Staffing
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 mt-1">
+                  Manage Trainers — {manageTrainersBatch.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setManageTrainersBatch(null);
+                  setRemoveConfirmTrainer(null);
+                }}
+                aria-label="Close Manage Trainers dialog"
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {trainerMutationError && (
+              <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium shrink-0">
+                {trainerMutationError}
+              </div>
+            )}
+
+            {/* Confirmation prompt before removing assigned trainer */}
+            {removeConfirmTrainer && (
+              <div className="p-3.5 rounded-md bg-amber-50 border border-amber-300 space-y-2.5 shrink-0">
+                <div className="flex items-start space-x-2 text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <div className="font-semibold">
+                      {assignedTrainers.length <= 1
+                        ? "This cohort will have no assigned trainer. Continue?"
+                        : `Remove ${removeConfirmTrainer.trainer_name || removeConfirmTrainer.trainer_email} from this cohort?`}
+                    </div>
+                    <p className="text-[11px] text-amber-800">
+                      Unassigning {removeConfirmTrainer.trainer_email} immediately revokes cohort-scoped trainer access.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setRemoveConfirmTrainer(null)}
+                    disabled={trainerMutationLoadingId !== null}
+                    className="px-3 py-1 rounded-md bg-white border border-amber-300 text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmUnassignTrainer}
+                    disabled={trainerMutationLoadingId !== null}
+                    className="px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-medium cursor-pointer disabled:opacity-60 inline-flex items-center space-x-1"
+                  >
+                    {trainerMutationLoadingId === removeConfirmTrainer.trainer_id ? (
+                      <Spinner size="sm" className="text-white" />
+                    ) : (
+                      <span>Confirm Remove</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="overflow-y-auto space-y-4 pr-0.5">
+              {/* Section 1: Currently Assigned Trainers */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+                    Assigned Trainers ({assignedTrainers.length})
+                  </span>
+                </div>
+                {assignedTrainersLoading ? (
+                  <div className="p-3 rounded-md border border-slate-200 bg-slate-50 text-slate-500">
+                    Loading assigned trainers...
+                  </div>
+                ) : assignedTrainersError ? (
+                  <div className="p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-700">
+                    {assignedTrainersError}
+                  </div>
+                ) : assignedTrainers.length === 0 ? (
+                  <div className="p-3 rounded-md border border-amber-200 bg-amber-50/70 text-amber-800 font-medium">
+                    No trainer assigned to this cohort yet.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden">
+                    {assignedTrainers.map((t) => (
+                      <div
+                        key={t.trainer_id}
+                        className="p-2.5 bg-white flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-900 truncate">
+                            {t.trainer_name || t.trainer_email}
+                          </div>
+                          <div className="text-[11px] text-slate-500 truncate">{t.trainer_email}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setRemoveConfirmTrainer(t)}
+                          disabled={trainerMutationLoadingId !== null}
+                          className="px-2.5 py-1 rounded-md border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 font-medium cursor-pointer disabled:opacity-50 shrink-0"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Available Active Trainers */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600 block">
+                  Assign Eligible Trainer
+                </span>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={trainerSearchQuery}
+                    onChange={(e) => setTrainerSearchQuery(e.target.value)}
+                    placeholder="Filter trainers by email..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                  />
+                </div>
+
+                {eligibleTrainersLoading ? (
+                  <div className="p-3 rounded-md border border-slate-200 bg-slate-50 text-slate-500">
+                    Loading trainer directory...
+                  </div>
+                ) : eligibleTrainersError ? (
+                  <div className="p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-700">
+                    {eligibleTrainersError}
+                  </div>
+                ) : (() => {
+                    const assignedIds = new Set(assignedTrainers.map((t) => t.trainer_id));
+                    const q = trainerSearchQuery.trim().toLowerCase();
+                    const candidates = eligibleTrainers.filter(
+                      (u) => !assignedIds.has(u.id) && (!q || u.email.toLowerCase().includes(q))
+                    );
+                    const matchingInactive = q
+                      ? inactiveTrainers.filter(
+                          (u) => !assignedIds.has(u.id) && u.email.toLowerCase().includes(q)
+                        )
+                      : [];
+                    if (candidates.length === 0 && matchingInactive.length === 0) {
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="p-3 rounded-md border border-slate-200 bg-slate-50 text-slate-500">
+                            {eligibleTrainers.length === 0
+                              ? "No active trainer accounts found."
+                              : q
+                              ? "No unassigned trainers match your filter."
+                              : "All active trainers are already assigned to this cohort."}
+                          </div>
+                          {inactiveTrainers.length > 0 && (
+                            <p className="text-[11px] text-slate-500">
+                              {inactiveTrainers.length} inactive trainer{" "}
+                              {inactiveTrainers.length === 1 ? "account" : "accounts"} excluded from
+                              assignment.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="space-y-1.5">
+                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden max-h-48 overflow-y-auto">
+                          {candidates.map((u) => (
+                            <div
+                              key={u.id}
+                              className="p-2.5 bg-white flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-semibold text-slate-800 truncate">{u.email}</div>
+                                <div className="text-[10px] text-slate-500">Active Trainer · ID #{u.id}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAssignTrainerToBatch(u)}
+                                disabled={trainerMutationLoadingId !== null}
+                                className="px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium cursor-pointer disabled:opacity-60 inline-flex items-center space-x-1 shrink-0"
+                              >
+                                {trainerMutationLoadingId === u.id ? (
+                                  <Spinner size="sm" className="text-white" />
+                                ) : (
+                                  <>
+                                    <Plus className="w-3 h-3" />
+                                    <span>Assign</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                          {matchingInactive.map((u) => (
+                            <div
+                              key={u.id}
+                              className="p-2.5 bg-slate-50/70 flex items-center justify-between gap-2 opacity-75"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-medium text-slate-600 truncate">{u.email}</div>
+                                <div className="text-[10px] text-slate-400">
+                                  Inactive account · ID #{u.id}
+                                </div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-[10px] font-medium shrink-0">
+                                Inactive
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        {inactiveTrainers.length > 0 && (
+                          <p className="text-[11px] text-slate-500">
+                            {inactiveTrainers.length} inactive trainer{" "}
+                            {inactiveTrainers.length === 1 ? "account" : "accounts"} excluded from
+                            assignment.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end border-t border-slate-100 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setManageTrainersBatch(null);
+                  setRemoveConfirmTrainer(null);
+                }}
+                className="px-3.5 py-1.5 rounded-md text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 font-medium cursor-pointer"
+              >
+                Done
               </button>
             </div>
           </div>

@@ -6,10 +6,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_db, get_current_user, require_staff, verify_batch_access
 from app.models.user import User
 from app.schemas.help import HelpSearchResponse
+from app.schemas.copilot import CopilotQueryRequest, CopilotQueryResponse
 from app.services.help_service import help_search
+from app.services.trainer_copilot_service import TrainerCopilotService
 
 router = APIRouter(prefix="/help", tags=["Help"])
 
@@ -35,4 +37,16 @@ def search_help_documentation(
         message="Matches from project documentation.",
         results=results
     )
+
+
+@router.post("/trainer-copilot", response_model=CopilotQueryResponse)
+def query_trainer_copilot(
+    payload: CopilotQueryRequest,
+    db: Session = Depends(get_db),
+    staff: User = Depends(require_staff)
+):
+    """Executes evidence-grounded queries for trainers against database telemetry and official rubrics (Staff only)."""
+    verify_batch_access(payload.batch_id, staff, db)
+    service = TrainerCopilotService(db)
+    return service.answer_query(batch_id=payload.batch_id, query_text=payload.query)
 

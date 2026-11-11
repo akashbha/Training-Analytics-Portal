@@ -1,0 +1,395 @@
+// src/constants/practiceQuestions.js
+// Verified technical question bank for trainee self-assessment practice drills.
+// Organized by curriculum module. Isolated from official grading sessions.
+
+export const PRACTICE_QUESTIONS = {
+  "Docker & Container Virtualization": [
+    {
+      id: 1,
+      question: "Which Dockerfile instruction creates an intermediate layer and executes build commands?",
+      options: ["RUN", "CMD", "ENTRYPOINT", "ENV"],
+      correctIndex: 0,
+      explanation: "RUN executes commands during the image build step and commits the results to a new image layer.",
+    },
+    {
+      id: 2,
+      question: "What is the primary benefit of a Docker multi-stage build?",
+      options: [
+        "Faster container boot times at runtime",
+        "Smaller final production image size by omitting build dependencies",
+        "Automatic container orchestration across multiple hosts",
+        "Direct hardware virtualization without the Linux kernel",
+      ],
+      correctIndex: 1,
+      explanation: "Multi-stage builds allow compiling in an early stage and copying only artifacts to the minimal final runtime image.",
+    },
+    {
+      id: 3,
+      question: "Which command runs a container detached in the background with port 80 mapped to host port 8080?",
+      options: [
+        "docker run -d -p 8080:80 nginx",
+        "docker run -it -p 80:8080 nginx",
+        "docker start --background -p 8080:80 nginx",
+        "docker exec -d -p 8080:80 nginx",
+      ],
+      correctIndex: 0,
+      explanation: "-d runs detached; -p 8080:80 binds host port 8080 to container port 80.",
+    },
+    {
+      id: 4,
+      question: "Where should persistent database files be stored when running a containerized PostgreSQL instance?",
+      options: [
+        "Inside the container root filesystem layer",
+        "In a named Docker volume or bind mount",
+        "In a temporary RAM tmpfs mount",
+        "In the container build cache",
+      ],
+      correctIndex: 1,
+      explanation: "Named volumes or bind mounts persist independently of container lifecycle, surviving restarts and removals.",
+    },
+    {
+      id: 5,
+      question: "What is the key difference between CMD and ENTRYPOINT in a Dockerfile?",
+      options: [
+        "CMD cannot be overridden from the CLI, ENTRYPOINT can",
+        "ENTRYPOINT sets the default executable; CMD provides default arguments that can be overridden",
+        "ENTRYPOINT runs during image build; CMD runs at container startup",
+        "CMD requires root privileges; ENTRYPOINT runs as a non-privileged user",
+      ],
+      correctIndex: 1,
+      explanation: "ENTRYPOINT defines the executable to run; CMD provides default arguments that CLI arguments override.",
+    },
+  ],
+
+  "FastAPI REST Architecture": [
+    {
+      id: 1,
+      question: "How does FastAPI perform automated request validation and schema serialization?",
+      options: [
+        "Using Marshmallow schemas",
+        "Using Pydantic BaseModel schemas and Python type annotations",
+        "Using custom regular expression interceptors",
+        "Using manual JSON string parsing",
+      ],
+      correctIndex: 1,
+      explanation: "FastAPI relies on Pydantic models and standard Python type hints for runtime request validation and response filtering.",
+    },
+    {
+      id: 2,
+      question: "Which FastAPI dependency mechanism is used to share database sessions across request handlers?",
+      options: [
+        "Depends() with a generator yielding the SQLAlchemy session",
+        "Global module-level database variables",
+        "Threading thread-local storage",
+        "Direct socket connection pooling in every endpoint",
+      ],
+      correctIndex: 0,
+      explanation: "Depends() injects a generator that yields a database session and cleanly executes cleanup/closing in a finally block.",
+    },
+    {
+      id: 3,
+      question: "Which HTTP status code should be returned when a resource is successfully created via a POST request?",
+      options: ["200 OK", "201 Created", "202 Accepted", "204 No Content"],
+      correctIndex: 1,
+      explanation: "HTTP 201 Created indicates that the request succeeded and resulted in the creation of a new resource.",
+    },
+    {
+      id: 4,
+      question: "What is the purpose of declaring async def for a FastAPI route handler?",
+      options: [
+        "It executes the route in a separate operating system process",
+        "It runs the route handler on the asyncio event loop for non-blocking I/O operations",
+        "It prevents multiple requests from accessing the route simultaneously",
+        "It compiles the Python code to C extensions",
+      ],
+      correctIndex: 1,
+      explanation: "async def executes on the event loop, enabling non-blocking concurrency when awaiting async calls.",
+    },
+    {
+      id: 5,
+      question: "Which built-in documentation endpoint is automatically generated by FastAPI using OpenAPI?",
+      options: ["/api/v1/help", "/docs using Swagger UI and /redoc using ReDoc", "/schema/json", "/admin/swagger"],
+      correctIndex: 1,
+      explanation: "FastAPI auto-generates Swagger UI at /docs and ReDoc documentation at /redoc out of the box.",
+    },
+  ],
+
+  "System Security & Token Authentication": [
+    {
+      id: 1,
+      question: "What are the three components that make up a JSON Web Token (JWT)?",
+      options: [
+        "Username, Password, Salt",
+        "Header, Payload, and Signature separated by dots",
+        "Algorithm, Public Key, Private Key",
+        "Cipher, Nonce, and Initialization Vector",
+      ],
+      correctIndex: 1,
+      explanation: "A standard JWT consists of base64url-encoded Header, Payload, and cryptographic Signature (header.payload.signature).",
+    },
+    {
+      id: 2,
+      question: "Why should access tokens have a short expiration time (e.g. 15 to 30 minutes)?",
+      options: [
+        "To reduce server memory usage",
+        "To limit the window of exposure if an access token is intercepted or compromised",
+        "Because JWT tokens cannot be read after 30 minutes",
+        "To reduce database connection counts",
+      ],
+      correctIndex: 1,
+      explanation: "Short expiration minimizes damage if leaked; clients use a securely stored refresh token to obtain new access tokens.",
+    },
+    {
+      id: 3,
+      question: "Which password hashing algorithm includes a built-in work factor and automatic salt generation?",
+      options: ["MD5", "SHA-256", "bcrypt", "Base64"],
+      correctIndex: 2,
+      explanation: "bcrypt incorporates an adjustable work factor (cost) and unique salt to defend against rainbow table attacks.",
+    },
+    {
+      id: 4,
+      question: "Which HTTP header is standard for transmitting a JWT bearer token to an API?",
+      options: [
+        "Authorization: Bearer <token>",
+        "X-Auth-Token: <token>",
+        "Authentication: Token <token>",
+        "Security-Key: Bearer <token>",
+      ],
+      correctIndex: 0,
+      explanation: "The RFC 6750 standard header is 'Authorization: Bearer <token>'.",
+    },
+    {
+      id: 5,
+      question: "What is the primary defense against Cross-Site Request Forgery (CSRF) for browser-based API clients?",
+      options: [
+        "Using HTTP instead of HTTPS",
+        "Storing JWT in memory or HttpOnly SameSite cookies with anti-CSRF verification tokens",
+        "Disabling CORS on the backend",
+        "Encoding passwords in base64",
+      ],
+      correctIndex: 1,
+      explanation: "SameSite cookies prevent cross-site transmission, and anti-CSRF tokens verify the request originated from the trusted client.",
+    },
+  ],
+
+  "Python Core & Data Structures": [
+    {
+      id: 1,
+      question: "What is the average time complexity for key lookup in a Python dictionary?",
+      options: ["O(1) constant time", "O(n) linear time", "O(log n) logarithmic time", "O(n log n)"],
+      correctIndex: 0,
+      explanation: "Python dictionaries use hash tables, providing average O(1) time complexity for lookups, insertions, and deletions.",
+    },
+    {
+      id: 2,
+      question: "What is the key difference between a Python list and a Python tuple?",
+      options: [
+        "Lists can hold numbers, tuples can only hold strings",
+        "Lists are mutable; tuples are immutable and can be used as dictionary keys",
+        "Tuples support append(), lists do not",
+        "Lists use less memory than tuples",
+      ],
+      correctIndex: 1,
+      explanation: "Tuples cannot be modified after creation (immutable), making them hashable and suitable as dictionary keys.",
+    },
+    {
+      id: 3,
+      question: "What does the yield keyword do when used inside a Python function?",
+      options: [
+        "Terminates the function and raises an exception",
+        "Pauses function execution and returns a generator iterator producing values on demand",
+        "Imports an external module at runtime",
+        "Converts a function to asynchronous execution",
+      ],
+      correctIndex: 1,
+      explanation: "yield produces a generator, maintaining state between iterations to lazily yield elements without loading all into memory.",
+    },
+    {
+      id: 4,
+      question: "Which construct safely handles cleanup like closing files or database connections even when exceptions occur?",
+      options: ["try...finally or context manager with statement", "while...else loop", "pass statement", "assert statement"],
+      correctIndex: 0,
+      explanation: "The with statement and try...finally guarantee cleanup code executes regardless of whether an exception was raised.",
+    },
+    {
+      id: 5,
+      question: "What is the output of [x * 2 for x in range(4) if x % 2 == 0]?",
+      options: ["[0, 4]", "[0, 2, 4, 6]", "[2, 4]", "[0, 1, 2, 3]"],
+      correctIndex: 0,
+      explanation: "range(4) produces 0, 1, 2, 3. The even numbers are 0 and 2. Multiplying each by 2 yields [0, 4].",
+    },
+  ],
+
+  "Git Version Control & Workflow": [
+    {
+      id: 1,
+      question: "What is the difference between git merge and git rebase?",
+      options: [
+        "git merge deletes branch history; git rebase retains branches",
+        "git merge creates a join commit preserving history; git rebase replays commits linearly on top of the target branch",
+        "git rebase can only be used on the main branch",
+        "git merge is only for remote repositories",
+      ],
+      correctIndex: 1,
+      explanation: "Merge creates a 2-parent merge commit preserving exact history; rebase rewrites commit history for a clean linear log.",
+    },
+    {
+      id: 2,
+      question: "What does a 'detached HEAD' state in Git mean?",
+      options: [
+        "The repository has corrupted commit objects",
+        "HEAD is pointing directly to a specific commit rather than a local branch reference",
+        "The working directory is deleted",
+        "The remote origin has been disconnected",
+      ],
+      correctIndex: 1,
+      explanation: "In detached HEAD, HEAD refers to a commit hash directly; commits made here will not advance any branch unless branched.",
+    },
+    {
+      id: 3,
+      question: "Which command safely shelves uncommitted changes without creating a permanent commit?",
+      options: ["git stash", "git drop", "git clean -f", "git checkout --force"],
+      correctIndex: 0,
+      explanation: "git stash saves modified tracked files and staged changes to a temporary stack and reverts working directory to HEAD.",
+    },
+    {
+      id: 4,
+      question: "Which command applies a specific single commit from one branch onto the current working branch?",
+      options: ["git cherry-pick <commit-hash>", "git pull --single", "git merge --only <hash>", "git rebase --pick <hash>"],
+      correctIndex: 0,
+      explanation: "git cherry-pick copies the exact changes introduced by a specific commit and applies them onto the current branch.",
+    },
+    {
+      id: 5,
+      question: "What does git reset --soft HEAD~1 do?",
+      options: [
+        "Deletes the commit and discards all changes in working directory",
+        "Undoes the last commit but keeps changed files staged in the index",
+        "Reverts the commit by creating an inverse commit",
+        "Pushes the commit to remote repository",
+      ],
+      correctIndex: 1,
+      explanation: "--soft moves HEAD back 1 commit while leaving all file modifications staged and ready for re-committing.",
+    },
+  ],
+
+  "Continuous Integration & Deployment": [
+    {
+      id: 1,
+      question: "What is the core principle of Continuous Integration (CI)?",
+      options: [
+        "Deploying software to production on the first day of each month",
+        "Frequently integrating code changes into a shared repository with automated builds and tests",
+        "Writing code without version control",
+        "Eliminating unit testing in favor of manual testing",
+      ],
+      correctIndex: 1,
+      explanation: "CI requires developers to integrate code regularly, triggering automated builds and test suites to detect regressions early.",
+    },
+    {
+      id: 2,
+      question: "What is the difference between Continuous Delivery and Continuous Deployment?",
+      options: [
+        "Continuous Delivery requires manual approval to release to production; Continuous Deployment automates release without human intervention",
+        "Continuous Deployment only works with Docker containers",
+        "Continuous Delivery does not include automated testing",
+        "There is no difference between the two terms",
+      ],
+      correctIndex: 0,
+      explanation: "Continuous Delivery produces deployable artifacts awaiting release sign-off; Continuous Deployment automatically deploys passing builds.",
+    },
+    {
+      id: 3,
+      question: "What is blue-green deployment?",
+      options: [
+        "Deploying on blue days and maintaining code on green days",
+        "Running two identical production environments, routing traffic to one while deploying updates to the other to eliminate downtime",
+        "A coding standard for UI theme colors",
+        "Testing code on macOS before deploying on Linux",
+      ],
+      correctIndex: 1,
+      explanation: "Blue-green maintains two identical environments; switching the router/load balancer provides instantaneous cutover with zero downtime.",
+    },
+    {
+      id: 4,
+      question: "Why should sensitive credentials (API keys, database passwords) never be hardcoded into CI workflow configuration files?",
+      options: [
+        "It slows down pipeline execution",
+        "They can be exposed in public logs or version control; secret managers or encrypted CI variables should be used instead",
+        "Git fails to push commits containing passwords",
+        "Linters reject strings with special characters",
+      ],
+      correctIndex: 1,
+      explanation: "Hardcoded credentials in repositories risk leaks; secrets should be injected securely at runtime via encrypted environment variables.",
+    },
+    {
+      id: 5,
+      question: "In a typical CI pipeline, what is the recommended order of pipeline stages?",
+      options: [
+        "Deploy -> Test -> Lint -> Build",
+        "Lint/Code Quality -> Unit/Integration Tests -> Build Artifact -> Staging Deploy",
+        "Build -> Deploy -> Test -> Lint",
+        "Integration Test -> Unit Test -> Deploy -> Compile",
+      ],
+      correctIndex: 1,
+      explanation: "Failing fast is optimal: quick linting runs first, followed by unit tests, artifact packaging, and finally deployment.",
+    },
+  ],
+
+  "SQL Modeling & PostgreSQL Operations": [
+    {
+      id: 1,
+      question: "Which index type is the default in PostgreSQL and optimal for equality and range queries?",
+      options: ["B-Tree index", "Hash index", "GIN index", "BRIN index"],
+      correctIndex: 0,
+      explanation: "B-Tree (Balanced Tree) is the default PostgreSQL index, handling <, <=, =, >=, and > operators with O(log n) efficiency.",
+    },
+    {
+      id: 2,
+      question: "What does the ON DELETE CASCADE foreign key constraint option do?",
+      options: [
+        "Prevents parent row deletion if children exist",
+        "Automatically deletes related child rows when the referenced parent row is deleted",
+        "Sets the child foreign key column to NULL",
+        "Archives the deleted rows to a backup table",
+      ],
+      correctIndex: 1,
+      explanation: "ON DELETE CASCADE propagates parent deletions to child rows, preserving referential integrity automatically.",
+    },
+    {
+      id: 3,
+      question: "Which PostgreSQL command analyzes the query execution plan and measures actual runtime performance?",
+      options: ["EXPLAIN ANALYZE <query>", "QUERY STATS <query>", "SHOW EXECUTION <query>", "PERF TRACE <query>"],
+      correctIndex: 0,
+      explanation: "EXPLAIN ANALYZE runs the statement and outputs both planner cost estimates and actual execution time per node.",
+    },
+    {
+      id: 4,
+      question: "What does the 'I' in the ACID transaction acronym stand for?",
+      options: ["Immutability", "Indexing", "Isolation", "Iteration"],
+      correctIndex: 2,
+      explanation: "Isolation ensures concurrent transactions execute without interference, preserving consistency across sessions.",
+    },
+    {
+      id: 5,
+      question: "Which SQL clause filters the results of aggregate functions like COUNT() or AVG()?",
+      options: ["WHERE", "HAVING", "GROUP BY", "LIMIT"],
+      correctIndex: 1,
+      explanation: "WHERE filters rows before aggregation; HAVING filters aggregated groups based on summary conditions.",
+    },
+  ],
+};
+
+/**
+ * Returns practice questions for a given module name.
+ * Falls back to Docker questions if the exact module name differs slightly.
+ */
+export function getPracticeQuestions(moduleName = "") {
+  if (PRACTICE_QUESTIONS[moduleName]) {
+    return PRACTICE_QUESTIONS[moduleName];
+  }
+  const matchKey = Object.keys(PRACTICE_QUESTIONS).find((k) =>
+    moduleName.toLowerCase().includes(k.split(" ")[0].toLowerCase())
+  );
+  return matchKey ? PRACTICE_QUESTIONS[matchKey] : PRACTICE_QUESTIONS["Docker & Container Virtualization"];
+}

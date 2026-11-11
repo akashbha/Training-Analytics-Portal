@@ -14,6 +14,7 @@ from app.models.trainee_goal import TraineeGoal
 from app.models.session_note import SessionNote
 from app.models.batch_trainer import BatchTrainer
 from app.models.message import Message
+from app.models.message_attachment import MessageAttachment
 from app.models.help_chunk import HelpChunk
 
-__all__ = ["Base", "Batch", "Trainee", "Module", "Session", "User", "AuditLog", "Remediation", "TraineeGoal", "SessionNote", "BatchTrainer", "Message", "HelpChunk"]
+__all__ = ["Base", "Batch", "Trainee", "Module", "Session", "User", "AuditLog", "Remediation", "TraineeGoal", "SessionNote", "BatchTrainer", "Message", "MessageAttachment", "HelpChunk"]

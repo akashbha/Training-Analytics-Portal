@@ -77,11 +77,7 @@ function HomeRoute() {
   const { user, isStaff, isAdmin } = useAuth();
 
   if (!isStaff) {
-    return (
-      <Layout>
-        <TraineeDashboard traineeId={user?.trainee_id} />
-      </Layout>
-    );
+    return <TraineeDashboard traineeId={user?.trainee_id} />;
   }
 
   if (isAdmin) {
@@ -113,11 +109,7 @@ function TraineeDetailRoute() {
     );
   }
 
-  return (
-    <Layout>
-      <TraineeDashboard />
-    </Layout>
-  );
+  return <TraineeDashboard />;
 }
 
 // RootRoute: Shows LandingPage if not logged in; shows appropriate Dashboard if logged in
@@ -149,6 +141,24 @@ export function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Protected Trainee Portal Route Aliases (resolve authenticated identity via /dashboard) */}
+            <Route
+              path="/trainee"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trainee-dashboard"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Authenticated Dashboard Route (Routes by Role) */}
             <Route

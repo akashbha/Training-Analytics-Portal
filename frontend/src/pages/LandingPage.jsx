@@ -32,7 +32,9 @@ export function LandingPage() {
     ? "/admin"
     : isStaff
     ? "/dashboard"
-    : `/trainees/${user?.trainee_id || 1}`;
+    : user?.trainee_id
+    ? `/trainees/${user.trainee_id}`
+    : "/dashboard";
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -100,7 +102,7 @@ __table_args__ = (
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F4] text-slate-900 font-sans selection:bg-amber-400 selection:text-black flex flex-col justify-between relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#FDF8F2] text-slate-900 font-sans selection:bg-[#F09A3E] selection:text-white flex flex-col justify-between relative overflow-x-hidden">
       {/* =========================================================================
           KEYFRAME ANIMATIONS (FOR THE UNIQUE ARCHITECTURAL PIPELINE)
           ========================================================================= */}
@@ -116,8 +118,8 @@ __table_args__ = (
           100% { stroke-dashoffset: 0; }
         }
         @keyframes nodeGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(250, 204, 21, 0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(240, 154, 62, 0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(240, 154, 62, 0); }
         }
         .anim-flow {
           stroke-dasharray: 8 8;
@@ -128,35 +130,35 @@ __table_args__ = (
         }
       `}</style>
 
-      {/* Decorative Yellow Dot Clusters (Top-Right & Bottom-Left - matching reference image) */}
+      {/* Decorative Axtroid Amber Dot Clusters (Top-Right & Bottom-Left) */}
       <div className="absolute top-6 right-10 flex space-x-2.5 pointer-events-none z-20">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
       </div>
 
       <div className="absolute top-[490px] left-10 flex space-x-2.5 pointer-events-none z-20">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
       </div>
 
       {/* =========================================================================
           1. TOP NAVIGATION (WORKING HOME & SECTION SCROLL, NO PORTAL ACCESS TAB)
           ========================================================================= */}
       <header className="relative w-full max-w-7xl mx-auto px-6 sm:px-12 pt-7 pb-3 flex items-center justify-between z-30">
-        {/* Logo: Stacked with Yellow Dot Accent (Matching 'YOU LOGO' in reference) */}
+        {/* Logo: Stacked with Warm Amber Accent (Matching Axtroid branding) */}
         <button
           onClick={scrollToTop}
           className="flex flex-col text-left select-none cursor-pointer"
         >
           <div className="flex items-center space-x-1">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase leading-none">
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-[#1C1B17] uppercase leading-none">
               TRAIN
             </span>
-            <span className="relative inline-block text-xl sm:text-2xl font-black tracking-tight text-black uppercase leading-none">
+            <span className="relative inline-block text-xl sm:text-2xl font-black tracking-tight text-[#1C1B17] uppercase leading-none">
               I
-              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#FACC15]"></span>
+              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#F09A3E]"></span>
             </span>
             <span className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase leading-none">
               NG
@@ -175,6 +177,13 @@ __table_args__ = (
           >
             Home
           </button>
+
+          <Link
+            to="/trainee"
+            className="hover:text-blue-600 text-blue-600 font-black transition-colors cursor-pointer"
+          >
+            Trainee Portal
+          </Link>
 
           <button
             onClick={() => scrollToSection("analytics-console")}
@@ -274,11 +283,19 @@ __table_args__ = (
 
           {/* Body Paragraph (Authentic description of the Training Analytics Portal) */}
           <p className="mt-6 sm:mt-8 text-slate-700 text-xs sm:text-sm font-medium leading-relaxed max-w-lg">
-            A small web app that stores trainee session results—scores, errors, and completion time—and shows progress charts per trainee and per cohort batch. Designed with precision database check constraints, automated leaderboards, and early intervention alerts.
+            A small web app that stores trainee session results: scores, errors, and completion time, and shows progress charts per trainee and per cohort batch. Designed with precision database check constraints, automated leaderboards, and early intervention alerts.
           </p>
 
           {/* Action Button: KNOW MORE Pill Outline Button & Direct Portal Access */}
           <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link
+              to="/trainee"
+              className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer"
+            >
+              <span>TRAINEEIQ DASHBOARD</span>
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+
             <button
               onClick={() => scrollToSection("analytics-console")}
               className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border-2 border-black bg-white hover:bg-black text-black hover:text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer"
@@ -359,28 +376,28 @@ __table_args__ = (
           <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 mb-12 border-b-2 border-black gap-6">
             <div>
               <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#FACC15] text-black font-black text-[10px] uppercase tracking-widest mb-3">
-                Live Analytics Engine
+                Illustrative Analytics Preview
               </div>
               <h2 className="text-3xl sm:text-5xl font-black text-black uppercase tracking-tight">
                 Trainee Session Logging & Cohort Tracking
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md leading-relaxed">
-              Real session records captured with strict constraints: score limits, non-negative error counts, and positive duration in seconds.
+              Sample session records illustrating strict validation constraints: score limits, non-negative error counts, and positive duration in seconds.
             </p>
           </div>
 
           {/* Two-Column Asymmetric Console (NOT 3 Cards) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left 7 Columns: Live Recorded Sessions Table */}
+            {/* Left 7 Columns: Sample Sessions Table */}
             <div className="lg:col-span-7 bg-[#F4F4F4] border-2 border-black p-6 sm:p-8">
               <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-black">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">
-                    Data Access Layer
+                    Data Access Layer (Illustrative Sample)
                   </span>
                   <h3 className="text-base font-black uppercase text-black">
-                    Recent Verified Assessment Sessions
+                    Sample Verified Assessment Sessions
                   </h3>
                 </div>
                 <span className="px-2.5 py-1 bg-black text-[#FACC15] font-black text-[10px] uppercase tracking-wider">
@@ -463,7 +480,7 @@ __table_args__ = (
                     </div>
                     <div className="text-right">
                       <span className="text-black font-black">94.8%</span>
-                      <span className="text-[10px] text-emerald-700 block">+8.2% trend</span>
+                      <span className="text-[10px] text-emerald-700 block">+8.2 pts trend</span>
                     </div>
                   </div>
 
@@ -476,7 +493,7 @@ __table_args__ = (
                     </div>
                     <div className="text-right">
                       <span className="text-black font-black">88.5%</span>
-                      <span className="text-[10px] text-emerald-700 block">+4.1% trend</span>
+                      <span className="text-[10px] text-emerald-700 block">+4.1 pts trend</span>
                     </div>
                   </div>
 
@@ -489,7 +506,7 @@ __table_args__ = (
                     </div>
                     <div className="text-right">
                       <span className="text-black font-black">81.0%</span>
-                      <span className="text-[10px] text-slate-500 block">0.0% trend</span>
+                      <span className="text-[10px] text-slate-500 block">0.0 pts trend</span>
                     </div>
                   </div>
                 </div>
@@ -497,15 +514,18 @@ __table_args__ = (
 
               {/* Early Warning Risk Detection Card */}
               <div className="bg-[#FFFBEB] border-2 border-black p-6">
-                <div className="flex items-center space-x-2 pb-3 mb-3 border-b-2 border-black text-amber-900 font-black text-xs uppercase tracking-wider">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  <span>Early Intervention Detection</span>
+                <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-black text-amber-900 font-black text-xs uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span>Early Intervention Detection</span>
+                  </div>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-amber-200 text-amber-950 font-black">Illustrative Sample</span>
                 </div>
                 <div className="text-xs font-bold text-black">
-                  Trainee Flagged: David Miller
+                  Sample Flagged Trainee: David Miller
                 </div>
                 <p className="text-xs text-slate-700 font-medium mt-1.5 leading-relaxed">
-                  Declining score trajectory (-11.4% across 3 sessions). Model flagged timing constraint errors for proactive trainer support before summative exams.
+                  Declining score trajectory (-11.4 pts across 3 sessions). Random Forest risk classifier flagged timing constraint errors for proactive trainer support before summative exams.
                 </p>
                 <div className="mt-4 pt-3 border-t border-amber-300/80 flex items-center justify-between text-xs font-black">
                   <span className="text-amber-800 text-[11px]">Rule & ML Hybrid Fallback</span>

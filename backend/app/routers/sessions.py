@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, UploadFile, File, status
 from fastapi.responses import Response, JSONResponse
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user, require_staff
+from app.core.deps import get_db, get_current_user, require_staff, verify_batch_access
 from app.core.exceptions import AppException
 from app.schemas.session import (
     SessionCreate,
@@ -63,6 +63,8 @@ def list_sessions(
                 status_code=403
             )
         trainee_id = current_user.trainee_id
+    elif batch_id is not None and current_user.role == "trainer":
+        verify_batch_access(batch_id, current_user, db)
 
     service = SessionService(db)
     return service.list_sessions(
@@ -103,6 +105,23 @@ def create_session(
     """Submits a single assessment session. Enforces score <= module.max_score and sets created_by (Staff only)."""
     service = SessionService(db)
     return service.create_session(payload, created_by=staff.id)
+
+@router.post("/practice", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
+def submit_practice_drill(
+    payload: SessionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Allows authenticated trainees to submit an interactive self-assessment practice drill."""
+    if current_user.role == "trainee":
+        if payload.trainee_id != current_user.trainee_id:
+            raise AppException(
+                code="FORBIDDEN_RESOURCE_ACCESS",
+                message="Trainees are restricted to recording practice drills strictly for their own profile",
+                status_code=403
+            )
+    service = SessionService(db)
+    return service.create_session(payload, created_by=current_user.id, check_db_duplicate=False)
 
 @router.put("/{session_id}", response_model=SessionResponse)
 def update_session(

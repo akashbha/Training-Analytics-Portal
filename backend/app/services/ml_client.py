@@ -4,7 +4,9 @@ Enforces a 2-second timeout and provides graceful degradation to rule-based fall
 when session history is insufficient (< 5 sessions) or the service is unavailable.
 """
 
+from datetime import datetime, timezone
 import os
+import threading
 from typing import Any, Dict, List, Optional
 import httpx
 import numpy as np
@@ -17,6 +19,27 @@ from scripts.build_ml_dataset import compute_decision_features
 
 ML_SERVICE_URL = os.getenv("ML_SERVICE_URL", "http://127.0.0.1:8001")
 REQUEST_TIMEOUT_SECONDS = 2.0
+
+_fallback_stats_lock = threading.Lock()
+_fallback_stats: Dict[str, Any] = {
+    "service_fallback_count": 0,
+    "last_fallback_at": None,
+    "last_fallback_reason": None,
+}
+
+
+def record_service_fallback(reason: str) -> None:
+    """Records when an inference call had to degrade because the ML microservice failed or timed out."""
+    with _fallback_stats_lock:
+        _fallback_stats["service_fallback_count"] += 1
+        _fallback_stats["last_fallback_at"] = datetime.now(timezone.utc).isoformat()
+        _fallback_stats["last_fallback_reason"] = reason
+
+
+def get_fallback_telemetry() -> Dict[str, Any]:
+    """Returns thread-safe counters for runtime ML-to-rule fallback executions."""
+    with _fallback_stats_lock:
+        return dict(_fallback_stats)
 
 
 def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
@@ -92,6 +115,7 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
             }
         else:
             # Service error fallback
+            record_service_fallback(f"HTTP {response.status_code}")
             rule_label = 1 if features["last_3_mean_score"] < PASS_THRESHOLD else 0
             return {
                 "method": "rule",
@@ -106,6 +130,7 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
 
     except Exception:
         # Microservice unreachable, connection error, or timeout
+        record_service_fallback("unreachable_or_timeout")
         rule_label = 1 if features["last_3_mean_score"] < PASS_THRESHOLD else 0
         return {
             "method": "rule",

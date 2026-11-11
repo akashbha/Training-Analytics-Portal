@@ -4,7 +4,13 @@ Provides paginated listings and protects all creation, update, and deletion oper
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-from app.core.deps import get_db, get_current_user, require_admin, require_staff
+from app.core.deps import (
+    get_db,
+    get_current_user,
+    require_admin,
+    require_staff,
+    verify_batch_access,
+)
 from app.core.exceptions import AppException
 from app.schemas.batch import (
     BatchCreate,
@@ -39,7 +45,8 @@ def get_batch(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieves single batch details by ID."""
+    """Retrieves single batch details by ID (enforcing object-level cohort access)."""
+    verify_batch_access(batch_id, current_user, db)
     service = BatchService(db)
     return service.get_batch(batch_id)
 
@@ -139,20 +146,22 @@ def assign_batch_trainer(
             status_code=422
         )
 
+    if not trainer_user.is_active:
+        raise AppException(
+            code="INACTIVE_TRAINER",
+            message=f"Trainer account {trainer_user.email} is inactive and cannot be assigned",
+            status_code=422
+        )
+
     existing = db.query(BatchTrainer).filter(
         BatchTrainer.batch_id == batch_id,
         BatchTrainer.trainer_id == payload.trainer_id
     ).first()
     if existing:
-        email = trainer_user.email
-        name = email.split("@")[0].replace(".", " ").title() if email else "Trainer"
-        return BatchTrainerResponse(
-            id=existing.id,
-            batch_id=existing.batch_id,
-            trainer_id=existing.trainer_id,
-            assigned_at=existing.assigned_at,
-            trainer_email=email,
-            trainer_name=name
+        raise AppException(
+            code="TRAINER_ALREADY_ASSIGNED",
+            message=f"Trainer {trainer_user.email} is already assigned to cohort {batch.name}",
+            status_code=409
         )
 
     assignment = BatchTrainer(batch_id=batch_id, trainer_id=payload.trainer_id)
@@ -227,16 +236,10 @@ def unassign_batch_trainer(
 def list_batch_trainers(
     batch_id: int,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin)
+    current_user: User = Depends(require_staff)
 ):
-    """Lists all trainers assigned to a specific batch (Admin only)."""
-    batch = db.query(Batch).filter(Batch.id == batch_id).first()
-    if not batch:
-        raise AppException(
-            code="BATCH_NOT_FOUND",
-            message=f"Batch with ID {batch_id} not found",
-            status_code=404
-        )
+    """Lists all trainers assigned to a specific batch (Staff only, cohort-scoped for trainers)."""
+    verify_batch_access(batch_id, current_user, db)
 
     assignments = (
         db.query(BatchTrainer)

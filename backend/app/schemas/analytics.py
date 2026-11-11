@@ -95,3 +95,13 @@ class BatchHeatmapResponse(BaseModel):
     batch_name: str
     modules: List[HeatmapModuleHeader]
     rows: List[HeatmapRow]
+
+
+class ModuleHotspotItem(BaseModel):
+    module_id: int
+    module_name: str
+    total_attempts: int
+    failed_attempts: int
+    failure_rate_pct: float
+    avg_score_pct: float
+    failed_trainee_ids: List[int] = []

@@ -3,7 +3,7 @@ Generates reproducible cohorts, trainees, modules, performance trajectories, and
 Implements:
 - 5 normalized batches
 - 45 trainees with uneven session counts (0 sessions, 1-2 cold-start sessions, dropouts, 10-35 active)
-- 7 modules with varied max_scores (100, 50, 20)
+- Modules loaded from curriculum.py for SEEDED_TRACKS (max_score: 100)
 - ~3 months of sessions with realistic noise, improving trajectories, and plateaus
 - Idempotent execution with --reset flag
 - Summary report printing per-batch session counts and averages
@@ -33,6 +33,19 @@ from app.models.user import User
 from app.models.remediation import Remediation
 from app.models.session_note import SessionNote
 from app.models.batch_trainer import BatchTrainer
+from app.models.message import Message
+from app.models.message_attachment import MessageAttachment
+from app.db.curriculum import CURRICULUM_CATALOG
+
+# Core tracks to seed modules and sessions for
+SEEDED_TRACKS = [
+    "Additive Manufacturing & 3D Printing",
+    "CAD Design & Product Development",
+    "3D Scanning & Reverse Engineering",
+    "XR / VR / AR & Animation",
+    "AI, Machine Learning & Industry 4.0",
+    "Robotics, IoT & Drone Technology",
+]
 
 # Password hashing context using standard bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -46,7 +59,9 @@ def hash_password(password: str) -> str:
 def clear_tables(db) -> None:
     """Truncates all tables in strict foreign-key dependency order."""
     print("Clearing existing data in cascade-safe order...")
-    # Dependency order: batch_trainers -> session_notes -> remediations -> sessions -> users -> trainees -> modules -> batches
+    # Dependency order: message_attachments -> messages -> batch_trainers -> session_notes -> remediations -> sessions -> users -> trainees -> modules -> batches
+    db.query(MessageAttachment).delete()
+    db.query(Message).delete()
     db.query(BatchTrainer).delete()
     db.query(SessionNote).delete()
     db.query(Remediation).delete()
@@ -102,23 +117,18 @@ def seed_database(reset: bool = False) -> None:
         db.flush()
 
         # -------------------------------------------------------------
-        # 2. Modules (7 modules with required max_scores: 100, 50, and 20)
+        # 2. Modules (loaded from curriculum.py for SEEDED_TRACKS)
         # -------------------------------------------------------------
-        module_configs = [
-            ("Python Core & Data Structures", 100.0),
-            ("SQL Modeling & PostgreSQL Operations", 50.0),
-            ("FastAPI REST Architecture", 100.0),
-            ("Git Version Control & Workflow", 20.0),
-            ("System Security & Token Authentication", 100.0),
-            ("Docker & Container Virtualization", 50.0),
-            ("Continuous Integration & Deployment", 20.0),
-        ]
-
+        seen_module_names = set()
         modules = []
-        for name, max_sc in module_configs:
-            mod = Module(name=name, max_score=max_sc)
-            db.add(mod)
-            modules.append(mod)
+        for entry in CURRICULUM_CATALOG:
+            if entry["track"] in SEEDED_TRACKS:
+                m_name = entry["name"]
+                if m_name not in seen_module_names:
+                    seen_module_names.add(m_name)
+                    mod = Module(name=m_name, max_score=float(entry.get("max_score", 100.0)))
+                    db.add(mod)
+                    modules.append(mod)
         db.flush()
 
         # -------------------------------------------------------------
@@ -323,14 +333,26 @@ def seed_database(reset: bool = False) -> None:
             is_active=True,
             trainee_id=None,
         )
-        trainee_user = User(
-            email="trainee@example.com",
-            password_hash=hash_password("Trainee@123"),
-            role="trainee",
-            is_active=True,
-            trainee_id=trainees[0].id,
-        )
-        db.add_all([admin_user, trainer_user, trainee_user])
+        trainee_users = [
+            User(
+                email="trainee@example.com",
+                password_hash=hash_password("Trainee@123"),
+                role="trainee",
+                is_active=True,
+                trainee_id=trainees[0].id,
+            )
+        ]
+        for t in trainees[1:]:
+            trainee_users.append(
+                User(
+                    email=t.email or f"trainee_{t.id}@training.internal",
+                    password_hash=hash_password("Trainee@123"),
+                    role="trainee",
+                    is_active=True,
+                    trainee_id=t.id,
+                )
+            )
+        db.add_all([admin_user, trainer_user] + trainee_users)
         db.commit()
 
         # Assign each seeded batch to the seeded trainer account
@@ -352,7 +374,7 @@ def seed_database(reset: bool = False) -> None:
         print("=" * 64)
         print(f"Batches inserted:  {total_batches}")
         print(f"Trainees inserted: {total_trainees}")
-        print(f"Modules inserted:  {total_modules} (max_scores: 100, 50, 20)")
+        print(f"Modules inserted:  {total_modules} (max_score: 100)")
         print(f"Sessions inserted: {total_sessions} (~3 months longitudinal data)")
         print(f"Users inserted:    {total_users}")
         print(f"Empty-state Trainees: ID {trainees[43].id} & {trainees[44].id} (0 sessions)")

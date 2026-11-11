@@ -13,6 +13,7 @@ from app.db.base import Base
 from app.core.deps import get_db
 from app.core.security import get_password_hash
 from app.models.batch import Batch
+from app.models.batch_trainer import BatchTrainer
 from app.models.trainee import Trainee
 from app.models.user import User
 from app.models.remediation import Remediation
@@ -78,7 +79,8 @@ def setup_test_db():
             is_active=True,
             trainee_id=2
         )
-        db.add_all([admin_user, trainer_user, trainee1_user, trainee2_user])
+        batch_trainer = BatchTrainer(batch_id=batch.id, trainer_id=trainer_user.id)
+        db.add_all([admin_user, trainer_user, trainee1_user, trainee2_user, batch_trainer])
         db.commit()
     finally:
         db.close()

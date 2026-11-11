@@ -131,7 +131,12 @@ class SessionService:
                 return False, "DUPLICATE_SESSION_DATE", f"A session for trainee {trainee.id} and module {module.id} already exists on {target_date.isoformat()}", 409
         return True, None, None, 200
 
-    def create_session(self, session_in: SessionCreate, created_by: Optional[int] = None) -> SessionResponse:
+    def create_session(
+        self,
+        session_in: SessionCreate,
+        created_by: Optional[int] = None,
+        check_db_duplicate: bool = True
+    ) -> SessionResponse:
         """Validates trainee existence, module bounds, sets created_by, and enforces score <= max_score."""
         trainee = self.trainee_repo.get_by_id(session_in.trainee_id)
         module = self.module_repo.get_by_id(session_in.module_id)
@@ -146,7 +151,7 @@ class SessionService:
             errors=session_in.errors,
             time_seconds=session_in.time_seconds,
             target_date=target_date,
-            check_db_duplicate=True
+            check_db_duplicate=check_db_duplicate
         )
         if not valid:
             raise AppException(code=err_code, message=err_msg, status_code=status_code)

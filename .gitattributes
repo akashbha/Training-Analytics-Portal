@@ -1,0 +1,11 @@
+# Scoped LF line-ending rules for release documentation, config, and application source files.
+# Leaves pre-existing artifacts outside this scope (e.g., REPORT.md, backend/app/ml/*.json) untouched.
+.gitattributes text eol=lf
+.gitignore text eol=lf
+README.md text eol=lf
+backend/.env.example text eol=lf
+backend/app/**/*.py text eol=lf
+backend/scripts/*.py text eol=lf
+backend/tests/*.py text eol=lf
+frontend/src/** text eol=lf
+frontend/tailwind.config.js text eol=lf

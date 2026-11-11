@@ -984,6 +984,41 @@ class AnalyticsRepository:
             for row in rows
         ]
 
+    def get_trainee_standing(self, trainee_id: int) -> Optional[Dict[str, Any]]:
+        """Calculates exact cohort rank, batch size, and percentile standing via SQL window ranking."""
+        trainee = self.db.query(Trainee).filter(Trainee.id == trainee_id).first()
+        if not trainee or not trainee.batch_id:
+            return None
+
+        leaderboard = self.get_batch_leaderboard(trainee.batch_id, limit=200) or []
+        total = len(leaderboard)
+        match = next((item for item in leaderboard if item.get("trainee_id") == trainee_id), None)
+        if not match:
+            return {
+                "trainee_id": trainee_id,
+                "batch_id": trainee.batch_id,
+                "batch_name": trainee.batch.name if trainee.batch else "",
+                "rank": None,
+                "total_trainees": total,
+                "percentile": None,
+                "avg_score_pct": None,
+                "status": "no_sessions"
+            }
+
+        rank = match.get("rank")
+        percentile = round(((total - rank + 1) / total) * 100, 1) if total > 0 and rank else None
+
+        return {
+            "trainee_id": trainee_id,
+            "batch_id": trainee.batch_id,
+            "batch_name": trainee.batch.name if trainee.batch else "",
+            "rank": rank,
+            "total_trainees": total,
+            "percentile": percentile,
+            "avg_score_pct": match.get("avg_score_pct"),
+            "status": match.get("status")
+        }
+
     # =========================================================================
     # 9. BATCH COMPARE
     # =========================================================================
@@ -1181,3 +1216,70 @@ class AnalyticsRepository:
                 })
 
         return at_risk_list
+
+    def get_batch_hotspots(self, batch_id: int) -> Optional[List[Dict[str, Any]]]:
+        """Ranks modules in the batch by failure rate (< 60% passing benchmark).
+        Includes total attempt count and list of failed trainee IDs for queue filtering.
+        """
+        from collections import defaultdict
+        batch = self.db.query(Batch).filter(Batch.id == batch_id).first()
+        if not batch:
+            return None
+
+        sessions = (
+            self.db.query(
+                SessionModel.id,
+                SessionModel.trainee_id,
+                SessionModel.module_id,
+                SessionModel.score,
+                Module.name.label("module_name"),
+                Module.max_score,
+            )
+            .join(Module, Module.id == SessionModel.module_id)
+            .join(Trainee, Trainee.id == SessionModel.trainee_id)
+            .filter(Trainee.batch_id == batch_id)
+            .all()
+        )
+
+        module_data = defaultdict(lambda: {
+            "module_id": None,
+            "module_name": "",
+            "total_attempts": 0,
+            "failed_attempts": 0,
+            "score_pcts": [],
+            "failed_trainee_ids": set(),
+        })
+
+        for s in sessions:
+            max_s = s.max_score if s.max_score and s.max_score > 0 else 100.0
+            pct = (s.score * 100.0) / max_s
+            m_id = s.module_id
+            entry = module_data[m_id]
+            entry["module_id"] = m_id
+            entry["module_name"] = s.module_name
+            entry["total_attempts"] += 1
+            entry["score_pcts"].append(pct)
+            if pct < PASS_THRESHOLD:
+                entry["failed_attempts"] += 1
+                entry["failed_trainee_ids"].add(s.trainee_id)
+
+        hotspots = []
+        for m_id, d in module_data.items():
+            if d["total_attempts"] == 0:
+                continue
+            tot = d["total_attempts"]
+            failed = d["failed_attempts"]
+            fail_rate = round((failed * 100.0) / tot, 1)
+            avg_score = round(sum(d["score_pcts"]) / tot, 1)
+            hotspots.append({
+                "module_id": d["module_id"],
+                "module_name": d["module_name"],
+                "total_attempts": tot,
+                "failed_attempts": failed,
+                "failure_rate_pct": fail_rate,
+                "avg_score_pct": avg_score,
+                "failed_trainee_ids": sorted(list(d["failed_trainee_ids"])),
+            })
+
+        hotspots.sort(key=lambda x: (x["failure_rate_pct"], x["failed_attempts"], x["total_attempts"]), reverse=True)
+        return hotspots

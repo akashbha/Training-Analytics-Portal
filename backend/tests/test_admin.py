@@ -257,3 +257,82 @@ def test_audit_logs_written_and_queried(client, admin_headers, db_session):
     for item in logs_data["items"]:
         if item.get("details"):
             assert "password" not in str(item["details"]).lower() or "[REDACTED]" in str(item["details"])
+
+
+def test_admin_service_health_probe(client, admin_headers, trainer_headers, trainee_headers, monkeypatch):
+    """GET /admin/service-health requires admin and distinguishes ML unavailable vs fallback used vs available."""
+    import httpx
+    from app.services import ml_client
+
+    assert client.get("/admin/service-health").status_code == 401
+    assert client.get("/admin/service-health", headers=trainer_headers).status_code == 403
+    assert client.get("/admin/service-health", headers=trainee_headers).status_code == 403
+
+    def fake_get_unreachable(url, timeout=1.0):
+        raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr("app.routers.admin.httpx.get", fake_get_unreachable)
+    res_down = client.get("/admin/service-health", headers=admin_headers)
+    assert res_down.status_code == 200
+    body_down = res_down.json()
+    assert body_down["backend_api"]["status"] == "healthy"
+    assert body_down["database"]["status"] == "connected"
+    assert body_down["websocket"]["status"] == "healthy"
+    assert body_down["ml_service"]["status"] == "unavailable"
+    assert body_down["ml_service"]["fallback_configured"] is True
+    assert body_down["ml_service"]["fallback_used_count"] == 0
+    assert "checked_at" in body_down
+
+    # Simulate an inference call actually triggering fallback
+    ml_client.record_service_fallback("test_simulated_timeout")
+    res_used = client.get("/admin/service-health", headers=admin_headers)
+    assert res_used.status_code == 200
+    assert res_used.json()["ml_service"]["fallback_used_count"] >= 1
+    assert res_used.json()["ml_service"]["last_fallback_at"] is not None
+
+    class FakeResp:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self._payload = payload
+
+        def json(self):
+            return self._payload
+
+    def fake_get_ok(url, timeout=1.0):
+        if url.endswith("/health"):
+            return FakeResp(200, {"status": "ok"})
+        return FakeResp(200, {"version": "1.2.3"})
+
+    monkeypatch.setattr("app.routers.admin.httpx.get", fake_get_ok)
+    res_up = client.get("/admin/service-health", headers=admin_headers)
+    assert res_up.status_code == 200
+    body_up = res_up.json()
+    assert body_up["ml_service"]["status"] == "available"
+    assert body_up["ml_service"]["model_version"] == "1.2.3"
+
+
+def test_admin_overview_and_evaluation_metadata(client, admin_headers, db_session):
+    """GET /analytics/overview matches active user role breakdown and model-evaluation distinguishes execution vs mtime."""
+    inactive_user = User(
+        email="inactive_overview_check@example.com",
+        password_hash=get_password_hash("Secret@123"),
+        role="trainer",
+        is_active=False
+    )
+    db_session.add(inactive_user)
+    db_session.commit()
+
+    ov_resp = client.get("/analytics/overview", headers=admin_headers)
+    assert ov_resp.status_code == 200
+    ov = ov_resp.json()
+    assert sum(ov["role_breakdown"].values()) == ov["active_users"]
+    assert ov["inactive_users"] >= 1
+    assert "total_trainees" in ov
+    assert "total_sessions" in ov
+    assert "mean_cohort_pass_rate_pct" in ov
+
+    eval_resp = client.get("/admin/model-evaluation", headers=admin_headers)
+    assert eval_resp.status_code == 200
+    eval_body = eval_resp.json()
+    assert eval_body.get("evaluation_timestamp_source") in ("execution_recorded", "file_mtime_only")
+    assert eval_body.get("evaluated_at") is not None or eval_body.get("artifact_modified_at") is not None

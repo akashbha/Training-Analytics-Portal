@@ -106,8 +106,20 @@ class ModelEvaluationResponse(BaseModel):
     model: ModelEvaluationMetrics
     model_beats_baseline: bool
     summary: str
+    evaluated_at: Optional[str] = None
+    artifact_modified_at: Optional[str] = None
+    evaluation_timestamp_source: Optional[str] = None
     details: Optional[List[Dict[str, Any]]] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceHealthResponse(BaseModel):
+    """Live infrastructure and dependency probe report for the admin console."""
+    checked_at: str
+    backend_api: Dict[str, Any]
+    database: Dict[str, Any]
+    websocket: Dict[str, Any]
+    ml_service: Dict[str, Any]
 
 

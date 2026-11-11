@@ -3,6 +3,7 @@ Computes precision, recall, and F1 on a held-out test set of 2 sessions for trai
 with at least 5 sessions, in accordance with platform grading thresholds.
 """
 
+from datetime import datetime, timezone
 import json
 import os
 from typing import Dict, Any, List, Tuple
@@ -175,6 +176,8 @@ def evaluate_model_vs_baseline(db: DbSession, save_to_file: bool = True) -> Dict
         + ("The ML model beats the baseline rule." if model_beats_baseline else "The ML model does NOT beat the baseline rule.")
     )
 
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     result_payload = {
         "sample_size": sample_size,
         "positive_labels": positive_labels,
@@ -189,6 +192,9 @@ def evaluate_model_vs_baseline(db: DbSession, save_to_file: bool = True) -> Dict
         "model": model_metrics,
         "model_beats_baseline": model_beats_baseline,
         "summary": summary_statement,
+        "evaluated_at": now_iso,
+        "artifact_modified_at": now_iso if save_to_file else None,
+        "evaluation_timestamp_source": "execution_recorded",
         "details": trainee_eval_details
     }
 
@@ -201,11 +207,18 @@ def evaluate_model_vs_baseline(db: DbSession, save_to_file: bool = True) -> Dict
 
 
 def get_stored_or_computed_evaluation(db: DbSession) -> Dict[str, Any]:
-    """Returns cached evaluation.json if present; otherwise runs evaluation."""
+    """Returns cached evaluation.json if present; distinguishes recorded execution time from file mtime."""
     if os.path.exists(EVALUATION_JSON_PATH):
         try:
             with open(EVALUATION_JSON_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+            mtime = os.path.getmtime(EVALUATION_JSON_PATH)
+            mtime_iso = datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat()
+            recorded_at = data.get("evaluated_at")
+            data["evaluated_at"] = recorded_at
+            data["artifact_modified_at"] = mtime_iso
+            data["evaluation_timestamp_source"] = "execution_recorded" if recorded_at else "file_mtime_only"
+            return data
         except Exception:
             pass
     return evaluate_model_vs_baseline(db, save_to_file=True)

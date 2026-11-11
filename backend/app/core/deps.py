@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SyncSessionLocal
 from app.models.user import User
+from app.models.batch import Batch
+from app.models.batch_trainer import BatchTrainer
+from app.models.trainee import Trainee
 from app.repositories.user_repository import UserRepository
 from app.core.security import decode_access_token
 from app.core.exceptions import AppException
@@ -132,3 +135,82 @@ def require_self_or_staff(trainee_id: int) -> Callable:
         )
 
     return dependency
+
+
+def verify_batch_access(batch_id: int, current_user: User, db: Session) -> Batch:
+    """Enforces object-level cohort access for batches (OWASP BOLA defense).
+    - Admins: global access.
+    - Trainers: must be explicitly assigned to the batch via batch_trainers.
+    - Trainees: must be enrolled in the batch.
+    """
+    batch = db.query(Batch).filter(Batch.id == batch_id).first()
+    if not batch:
+        raise AppException(
+            code="BATCH_NOT_FOUND",
+            message=f"Batch with ID {batch_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    if current_user.role == "admin":
+        return batch
+
+    if current_user.role == "trainer":
+        is_assigned = (
+            db.query(BatchTrainer)
+            .filter(BatchTrainer.batch_id == batch_id, BatchTrainer.trainer_id == current_user.id)
+            .first()
+        )
+        if is_assigned:
+            return batch
+        raise AppException(
+            code="FORBIDDEN_COHORT_ACCESS",
+            message="Trainers are restricted to viewing analytics for batches they are assigned to",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    if current_user.role == "trainee" and current_user.trainee_id:
+        trainee = db.query(Trainee).filter(Trainee.id == current_user.trainee_id).first()
+        if trainee and trainee.batch_id == batch_id:
+            return batch
+
+    raise AppException(
+        code="FORBIDDEN_COHORT_ACCESS",
+        message="Trainees are restricted to viewing only their assigned cohort analytics",
+        status_code=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def verify_trainee_cohort_access(trainee_id: int, current_user: User, db: Session) -> None:
+    """Enforces object-level access for trainee endpoints:
+    - Trainees: can only access their own trainee_id (checked before DB lookup to block ID enumeration).
+    - Admins: global access.
+    - Trainers: must be assigned to the trainee's cohort batch via batch_trainers (or 404 if trainee missing).
+    """
+    if current_user.role not in ("trainer", "admin"):
+        if current_user.role == "trainee" and current_user.trainee_id == trainee_id:
+            return
+        raise AppException(
+            code="FORBIDDEN_RESOURCE_ACCESS",
+            message="Trainees are restricted to viewing only their own performance data",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    if current_user.role == "admin":
+        return
+
+    trainee = db.query(Trainee).filter(Trainee.id == trainee_id).first()
+    if not trainee:
+        # Let downstream handlers return domain-specific 404 TRAINEE_NOT_FOUND
+        return
+
+    is_assigned = (
+        db.query(BatchTrainer)
+        .filter(BatchTrainer.batch_id == trainee.batch_id, BatchTrainer.trainer_id == current_user.id)
+        .first()
+    )
+    if not is_assigned:
+        raise AppException(
+            code="FORBIDDEN_COHORT_ACCESS",
+            message="Trainer is not assigned to the trainee's cohort batch",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )

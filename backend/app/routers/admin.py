@@ -2,14 +2,18 @@
 Enforces admin-only access, prevents self-harm/last-admin mutations, and maintains compliance logs.
 """
 
+from datetime import datetime, timezone
 import secrets
 import string
 from typing import Optional
+import httpx
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 
+from app.core.config import settings
 from app.core.deps import get_db, require_admin
+from app.core.realtime import manager
 from app.core.security import get_password_hash
 from app.core.exceptions import AppException
 from app.models.user import User
@@ -22,12 +26,14 @@ from app.schemas.admin import (
     AdminResetPasswordResponse,
     AuditLogResponse,
     DataQualityResponse,
-    ModelEvaluationResponse
+    ModelEvaluationResponse,
+    ServiceHealthResponse
 )
 from app.schemas.common import PaginatedResponse
 from app.services.audit_service import create_audit_log, AuditService
 from app.services.data_quality_service import DataQualityService
 from app.services.evaluation_service import get_stored_or_computed_evaluation
+from app.services.ml_client import ML_SERVICE_URL, get_fallback_telemetry
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -63,14 +69,17 @@ def list_users(
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     search: Optional[str] = Query(None, description="Search by email or trainee name"),
     role: Optional[str] = Query(None, pattern="^(admin|trainer|trainee)$", description="Filter by user role"),
+    is_active: Optional[bool] = Query(None, description="Filter by active account status"),
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    """Retrieves paginated user accounts with search and role filtering (Admin only)."""
+    """Retrieves paginated user accounts with search, role, and status filtering (Admin only)."""
     query = db.query(User).outerjoin(User.trainee)
 
     if role:
         query = query.filter(User.role == role)
+    if is_active is not None:
+        query = query.filter(User.is_active.is_(is_active))
     if search:
         search_pattern = f"%{search.strip()}%"
         query = query.filter(
@@ -384,7 +393,74 @@ def get_model_evaluation(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    """Retrieves empirical validation metrics comparing the ML predictor vs baseline rule (Admin only)."""
+    """Retrieves holdout validation metrics comparing the ML predictor vs baseline rule (Admin only)."""
     return get_stored_or_computed_evaluation(db)
+
+
+@router.get("/service-health", response_model=ServiceHealthResponse)
+def get_service_health(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Performs live dependency probes across database, WebSocket relay, and ML risk service (Admin only)."""
+    checked_at = datetime.now(timezone.utc).isoformat()
+
+    # 1. Database connectivity check
+    db_engine = db.bind.dialect.name if db.bind else "unknown"
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = {"status": "connected", "engine": db_engine}
+    except Exception as exc:
+        db_status = {"status": "unavailable", "engine": db_engine, "detail": str(exc)}
+
+    # 2. WebSocket relay stats
+    ws_stats = manager.get_health_stats()
+
+    # 3. ML prediction microservice probe + runtime fallback telemetry
+    fallback_stats = get_fallback_telemetry()
+    fallback_used_count = int(fallback_stats.get("service_fallback_count", 0))
+    last_fallback_at = fallback_stats.get("last_fallback_at")
+
+    ml_status: dict = {
+        "status": "unavailable",
+        "fallback_configured": True,
+        "fallback_used_count": fallback_used_count,
+        "last_fallback_at": last_fallback_at,
+        "detail": (
+            f"ML prediction microservice unreachable; rule fallback used {fallback_used_count}x since this backend process started"
+            if fallback_used_count > 0
+            else "ML prediction microservice unreachable; rule fallback available (not yet triggered)"
+        ),
+    }
+    try:
+        resp = httpx.get(f"{ML_SERVICE_URL}/health", timeout=1.0)
+        if resp.status_code == 200 and resp.json().get("status") == "ok":
+            model_version = None
+            try:
+                info_resp = httpx.get(f"{ML_SERVICE_URL}/model-info", timeout=1.0)
+                if info_resp.status_code == 200:
+                    model_version = info_resp.json().get("version")
+            except Exception:
+                pass
+            ml_status = {
+                "status": "available",
+                "model_version": model_version,
+                "fallback_configured": True,
+                "fallback_used_count": fallback_used_count,
+                "last_fallback_at": last_fallback_at,
+                "detail": "ML prediction microservice reachable; rule fallback available",
+            }
+        else:
+            ml_status["detail"] = f"ML health probe returned HTTP {resp.status_code}; rule fallback available"
+    except Exception:
+        pass
+
+    return ServiceHealthResponse(
+        checked_at=checked_at,
+        backend_api={"status": "healthy", "environment": settings.ENVIRONMENT},
+        database=db_status,
+        websocket=ws_stats,
+        ml_service=ml_status,
+    )
 
 

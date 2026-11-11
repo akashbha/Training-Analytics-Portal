@@ -10,6 +10,7 @@ from app.models.trainee import Trainee
 from app.models.module import Module
 from app.models.session import Session
 from app.models.user import User
+from app.models.batch_trainer import BatchTrainer
 
 @pytest.fixture
 def analytics_dataset(db_session):
@@ -56,6 +57,12 @@ def analytics_dataset(db_session):
     db_session.add_all([u_trainer, u_alice, u_bob])
     db_session.flush()
 
+    # Link trainer to cohorts for authorized access
+    bt1 = BatchTrainer(batch_id=cohort.id, trainer_id=u_trainer.id)
+    bt2 = BatchTrainer(batch_id=empty_cohort.id, trainer_id=u_trainer.id)
+    db_session.add_all([bt1, bt2])
+    db_session.flush()
+
     # 5. Core Sessions (Alice & Bob)
     now = datetime.now(timezone.utc)
     # Alice: 80/100 = 80%, errors: 2, time: 1000s
@@ -87,6 +94,11 @@ def analytics_dataset(db_session):
             "bob_headers": {"Authorization": f"Bearer {bob_token}"},
         }
     finally:
+        for bt in [bt1, bt2]:
+            try:
+                db_session.delete(bt)
+            except Exception:
+                pass
         for s in [s1, s2, s3]:
             try:
                 db_session.delete(s)
