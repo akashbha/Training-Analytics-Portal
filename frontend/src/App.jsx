@@ -22,9 +22,9 @@ import { Messages } from "./pages/Messages.jsx";
 import { UnauthorizedPage } from "./pages/UnauthorizedPage.jsx";
 import { Spinner } from "./components/Spinner.jsx";
 
-// ProtectedRoute: Blocks unauthenticated visitors and redirects to /login
+// ProtectedRoute: Blocks unauthenticated or unverified sessions from protected views
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionError, retrySession, logout, cachedDisplayUser } = useAuth();
 
   if (loading) {
     return (
@@ -34,8 +34,56 @@ function ProtectedRoute({ children }) {
     );
   }
 
+  if (!user && sessionError?.type === "network") {
+    return (
+      <div className="min-h-screen bg-brand-page flex items-center justify-center p-4">
+        <div
+          role="alert"
+          className="max-w-md w-full bg-white border border-amber-200 rounded-2xl shadow-lg p-6 text-center space-y-4"
+        >
+          <div className="text-xs font-extrabold uppercase tracking-wider text-amber-700">
+            Session Verification Unavailable
+          </div>
+          <h1 className="text-lg font-black text-slate-900">
+            Unable to Verify Session
+          </h1>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {sessionError.message}
+          </p>
+          {cachedDisplayUser?.email && (
+            <p className="text-[11px] text-slate-400">
+              Cached local profile ({cachedDisplayUser.email}) cannot authorize access offline.
+            </p>
+          )}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={retrySession}
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 cursor-pointer"
+            >
+              Retry Connection
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+            >
+              Return to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={sessionError?.type === "auth" ? { authError: sessionError.message } : undefined}
+        replace
+      />
+    );
   }
 
   return children;

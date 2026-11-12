@@ -19,59 +19,6 @@ import {
   Layers,
 } from "lucide-react";
 
-const PREVIEW_LOGS = [
-  {
-    id: 1,
-    user_id: 1,
-    user_email: "admin@example.com",
-    action: "user_created",
-    entity_type: "user",
-    entity_id: 2,
-    details: { email: "new_trainer@example.com", role: "trainer" },
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: 2,
-    user_id: 1,
-    user_email: "admin@example.com",
-    action: "batch_created",
-    entity_type: "batch",
-    entity_id: 3,
-    details: { name: "Cohort Gamma (Cloud Architecture)", start_date: "2026-03-01", end_date: "2026-08-31" },
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: 3,
-    user_id: 1,
-    user_email: "admin@example.com",
-    action: "module_created",
-    entity_type: "module",
-    entity_id: 4,
-    details: { name: "React & State Engineering", max_score: 100.0 },
-    created_at: new Date(Date.now() - 14400000).toISOString(),
-  },
-  {
-    id: 4,
-    user_id: 1,
-    user_email: "admin@example.com",
-    action: "trainee_created",
-    entity_type: "trainee",
-    entity_id: 5,
-    details: { name: "Elena Rostova", email: "elena.r@example.com", batch_id: 1 },
-    created_at: new Date(Date.now() - 28800000).toISOString(),
-  },
-  {
-    id: 5,
-    user_id: 1,
-    user_email: "admin@example.com",
-    action: "password_reset",
-    entity_type: "user",
-    entity_id: 6,
-    details: { email: "inactive.trainer@example.com" },
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
 export function AuditLogs() {
   const [logs, setLogs] = useState([]);
   const [total, setTotal] = useState(0);
@@ -97,15 +44,9 @@ export function AuditLogs() {
       setLogs(res.data?.items || []);
       setTotal(res.data?.total || 0);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        let filtered = [...PREVIEW_LOGS];
-        if (actionFilter) filtered = filtered.filter((l) => l.action === actionFilter);
-        if (entityFilter) filtered = filtered.filter((l) => l.entity_type === entityFilter);
-        setLogs(filtered);
-        setTotal(filtered.length);
-      } else {
-        setError(err.message || "Failed to load audit logs");
-      }
+      setLogs([]);
+      setTotal(0);
+      setError(err.message || "Failed to load audit logs");
     } finally {
       setLoading(false);
     }

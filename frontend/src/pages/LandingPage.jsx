@@ -1,32 +1,132 @@
-// src/pages/LandingPage.jsx
-// Exact 1:1 editorial design matching the user's reference image (Pinterest/Freepik Hello People).
-// Uses authentic hand-drawn vector cohort illustration, yellow accent dot typography,
-// working smooth scroll navigation, NO portal access hanging tab, and an ANIMATED technical architecture pipeline (NO 3-CARD BOXES).
-
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
-  Search,
   ArrowRight,
-  TrendingUp,
-  AlertTriangle,
-  Award,
-  CheckCircle2,
-  Clock,
-  ShieldCheck,
   ChevronRight,
-  Database,
   Code2,
-  Cpu,
-  Radio,
+  Database,
   Layers,
+  Lock,
+  Radio,
+  ShieldCheck,
   Terminal,
+  Users,
+  BarChart3,
+  GraduationCap,
 } from "lucide-react";
+import "./../components/landing/landingAnimations.css";
+import { OrbitalRing } from "../components/landing/OrbitalRing.jsx";
+import { InteractiveRoleDeck } from "../components/landing/InteractiveRoleDeck.jsx";
+import { WorkflowPreviewSection } from "../components/landing/WorkflowPreviewSection.jsx";
+import { useRevealOnScroll } from "../components/landing/useRevealOnScroll.js";
+
+const IMPACT_CARDS = [
+  {
+    value: "3-Tier",
+    label: "Role-Scoped Access Control",
+    stepOffset: "lg:mt-0",
+    tone: "from-[#F2F1EE] to-[#ECEAE5]",
+    Icon: ShieldCheck,
+  },
+  {
+    value: "Live",
+    label: "WebSocket Cohort Stream",
+    stepOffset: "lg:mt-8",
+    tone: "from-[#ECEAE6] to-[#E4E1DB]",
+    Icon: Radio,
+  },
+  {
+    value: "0",
+    label: "Masked Error States",
+    stepOffset: "lg:mt-16",
+    tone: "from-[#E6E4DF] to-[#DCD9D2]",
+    Icon: Lock,
+  },
+  {
+    value: "100%",
+    label: "Audit-Logged Admin Actions",
+    stepOffset: "lg:mt-24",
+    tone: "from-[#DFDDD7] to-[#D4D1C9]",
+    Icon: Database,
+  },
+];
+
+const ARCH_STAGES = {
+  frontend: {
+    label: "Presentation Layer",
+    tech: "React 18 · Vite · Tailwind",
+    desc: "Modular dashboards with explicit loading, empty, and error contracts plus WebSocket sync.",
+    code: `// Real-time cohort assessment subscription
+const ws = new WebSocket(\`\${WS_BASE}/ws/live\`);
+ws.onmessage = (event) => {
+  const payload = JSON.parse(event.data);
+  if (payload.type === "session_recorded") refreshCohort();
+};`,
+  },
+  api: {
+    label: "Core API & Advisory ML",
+    tech: "FastAPI · Pydantic · Scikit-Learn",
+    desc: "Strict server-verified RBAC, rate-limited auth, and Random Forest risk prediction with explicit rule fallback.",
+    code: `@router.get("/batches/{batch_id}/summary")
+def get_batch_summary(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_staff)
+):
+    return AnalyticsService(db).get_batch_summary(batch_id)`,
+  },
+  database: {
+    label: "Relational Schema",
+    tech: "SQLAlchemy 2.0 · Postgres / SQLite",
+    desc: "Normalized 3NF tables with database check constraints, composite indexes, and Alembic tracking.",
+    code: `__table_args__ = (
+    CheckConstraint("score >= 0", name="chk_score_non_neg"),
+    CheckConstraint("errors >= 0", name="chk_errors_non_neg"),
+    CheckConstraint("time_seconds > 0", name="chk_time_pos"),
+    Index("ix_sessions_trainee_created", "trainee_id", "created_at"),
+)`,
+  },
+};
+
+const WORKSPACE_SHOWCASE = [
+  {
+    rolePill: "Learner Role",
+    title: "Trainee Portal",
+    subtitle: "Inspect personal assessment history, skill mastery gaps, and direct trainer feedback.",
+    highlights: ["Scoped self-only routes", "Private mentor & batch threads"],
+    gradient: "from-[#222B3A] via-[#1C2330] to-[#151A24]",
+    Icon: GraduationCap,
+  },
+  {
+    rolePill: "Staff Role",
+    title: "Trainer Console",
+    subtitle: "Review cohort readiness, module error hotspots, misconception clusters, and remediations.",
+    highlights: ["Live cohort leaderboard", "Guided intervention tracking"],
+    gradient: "from-[#2B2621] via-[#211E1A] to-[#181613]",
+    Icon: BarChart3,
+  },
+  {
+    rolePill: "Operations Role",
+    title: "Admin Governance",
+    subtitle: "Provision accounts safely, manage trainer batch staffing, and inspect full audit trails.",
+    highlights: ["Last-admin protection", "Service & ML health checks"],
+    gradient: "from-[#202938] via-[#1A212D] to-[#131821]",
+    Icon: Users,
+  },
+];
 
 export function LandingPage() {
   const { user, isAdmin, isStaff, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [portalEmail, setPortalEmail] = useState("");
   const [activeStage, setActiveStage] = useState("api");
+
+  const [impactRef, impactVisible] = useRevealOnScroll();
+  const [darkSplitRef, darkSplitVisible] = useRevealOnScroll();
+  const [aboutRef, aboutVisible] = useRevealOnScroll();
+  const [workspacesRef, workspacesVisible] = useRevealOnScroll();
 
   const dashboardPath = isAdmin
     ? "/admin"
@@ -38,501 +138,428 @@ export function LandingPage() {
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handlePortalForward = (e) => {
+    e.preventDefault();
+    if (user) {
+      navigate(dashboardPath);
+      return;
+    }
+    const cleanEmail = portalEmail.trim();
+    if (cleanEmail) {
+      navigate(`/login?email=${encodeURIComponent(cleanEmail)}`);
+    } else {
+      navigate("/login");
     }
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const stages = {
-    frontend: {
-      title: "Presentation & Live Stream",
-      tech: "React 18 + Vite + Tailwind CSS",
-      desc: "Component-driven dashboard with asynchronous widget loading, SVG gauges, and live WebSocket updates.",
-      features: [
-        "Recharts timeline progression and module error breakdowns",
-        "Role-guarded routes isolating Trainee, Trainer, and Admin views",
-        "LiveContext streaming with automatic 15s polling fallback",
-      ],
-      code: `// WebSocket Real-time Trainee Assessment Stream
-const ws = new WebSocket("ws://localhost:8000/ws/live");
-ws.onmessage = (event) => {
-  const session = JSON.parse(event.data);
-  updateLeaderboard(session);
-};`,
-    },
-    api: {
-      title: "Core Service & Inference Layer",
-      tech: "FastAPI + Pydantic v2 + Scikit-Learn",
-      desc: "Layered four-tier backend decoupling API routers, business logic services, data repositories, and ML predictive inference.",
-      features: [
-        "OAuth2 JWT authentication with bcrypt password hashing",
-        "SlowAPI rate-limiting protection against brute-force attacks",
-        "Scikit-Learn Random Forest early-warning predictor with cold-start rule fallback",
-      ],
-      code: `// FastAPI Analytical Route with Dependency Guards
-@router.get("/batches/{batch_id}/summary")
-def get_batch_summary(
-    batch_id: int, 
-    db: Session = Depends(get_db),
-    user: User = Depends(require_staff)
-):
-    return AnalyticsService(db).get_batch_summary(batch_id)`,
-    },
-    database: {
-      title: "Relational Storage & Schema Integrity",
-      tech: "SQLAlchemy 2.0 + PostgreSQL / SQLite",
-      desc: "Third Normal Form (3NF) relational design with database-level check constraints, composite indexes, and Alembic migrations.",
-      features: [
-        "CheckConstraints: score >= 0, errors >= 0, time_seconds > 0",
-        "Composite index ix_sessions_trainee_id_created_at for instant queries",
-        "SQL RANK() window functions calculating rankings in-database",
-      ],
-      code: `// SQLAlchemy 2.0 Model with Analytical Composite Indexing
-__table_args__ = (
-    CheckConstraint("score >= 0", name="chk_score_non_neg"),
-    CheckConstraint("errors >= 0", name="chk_errors_non_neg"),
-    CheckConstraint("time_seconds > 0", name="chk_time_pos"),
-    Index("ix_sessions_trainee_created", "trainee_id", "created_at"),
-)`,
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-[#FDF8F2] text-slate-900 font-sans selection:bg-[#F09A3E] selection:text-white flex flex-col justify-between relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#F3F1ED] text-[#1C1B17] font-sans selection:bg-[#E45826] selection:text-white overflow-x-hidden">
       {/* =========================================================================
-          KEYFRAME ANIMATIONS (FOR THE UNIQUE ARCHITECTURAL PIPELINE)
+          1. FLOATING FROSTED PILL NAVBAR (5U AI Reference Top Bar)
           ========================================================================= */}
-      <style>{`
-        @keyframes signalPulse {
-          0% { offset-distance: 0%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { offset-distance: 100%; opacity: 0; }
-        }
-        @keyframes flowSignal {
-          0% { stroke-dashoffset: 40; }
-          100% { stroke-dashoffset: 0; }
-        }
-        @keyframes nodeGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(240, 154, 62, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(240, 154, 62, 0); }
-        }
-        .anim-flow {
-          stroke-dasharray: 8 8;
-          animation: flowSignal 1.8s linear infinite;
-        }
-        .anim-pulse-glow {
-          animation: nodeGlow 2.5s infinite;
-        }
-      `}</style>
+      <div className="sticky top-4 z-50 px-4 sm:px-6 pointer-events-none">
+        <header className="pointer-events-auto max-w-5xl mx-auto rounded-full bg-[#ECEAE5]/85 backdrop-blur-md border border-black/[0.06] shadow-[0_10px_30px_-14px_rgba(28,27,23,0.22)] px-3 sm:px-4 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex items-center gap-2.5 group focus:outline-none"
+            >
+              <span className="w-8 h-8 rounded-full bg-[#1C2331] text-white text-[11px] font-black tracking-tight flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                TIQ
+              </span>
+            </button>
 
-      {/* Decorative Axtroid Amber Dot Clusters (Top-Right & Bottom-Left) */}
-      <div className="absolute top-6 right-10 flex space-x-2.5 pointer-events-none z-20">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-      </div>
-
-      <div className="absolute top-[490px] left-10 flex space-x-2.5 pointer-events-none z-20">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#F09A3E]"></span>
-      </div>
-
-      {/* =========================================================================
-          1. TOP NAVIGATION (WORKING HOME & SECTION SCROLL, NO PORTAL ACCESS TAB)
-          ========================================================================= */}
-      <header className="relative w-full max-w-7xl mx-auto px-6 sm:px-12 pt-7 pb-3 flex items-center justify-between z-30">
-        {/* Logo: Stacked with Warm Amber Accent (Matching Axtroid branding) */}
-        <button
-          onClick={scrollToTop}
-          className="flex flex-col text-left select-none cursor-pointer"
-        >
-          <div className="flex items-center space-x-1">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-[#1C1B17] uppercase leading-none">
-              TRAIN
-            </span>
-            <span className="relative inline-block text-xl sm:text-2xl font-black tracking-tight text-[#1C1B17] uppercase leading-none">
-              I
-              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#F09A3E]"></span>
-            </span>
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase leading-none">
-              NG
-            </span>
-          </div>
-          <span className="text-xs sm:text-sm font-black tracking-[0.25em] text-slate-800 uppercase mt-0.5">
-            PORTAL.
-          </span>
-        </button>
-
-        {/* Clean Navigation Items (NO "Portal Access" hanging tab) */}
-        <nav className="flex items-center space-x-8 sm:space-x-12 text-xs font-black uppercase tracking-wider text-slate-800">
-          <button
-            onClick={scrollToTop}
-            className="hover:text-black text-black transition-colors cursor-pointer"
-          >
-            Home
-          </button>
-
-          <Link
-            to="/trainee"
-            className="hover:text-blue-600 text-blue-600 font-black transition-colors cursor-pointer"
-          >
-            Trainee Portal
-          </Link>
-
-          <button
-            onClick={() => scrollToSection("analytics-console")}
-            className="hover:text-black text-slate-600 transition-colors cursor-pointer"
-          >
-            Analytics
-          </button>
-
-          <button
-            onClick={() => scrollToSection("architecture")}
-            className="hover:text-black text-slate-600 transition-colors cursor-pointer"
-          >
-            Architecture
-          </button>
-
-          {user ? (
-            <div className="flex items-center space-x-3">
-              <Link
-                to={dashboardPath}
-                className="px-3.5 py-1.5 rounded-full bg-black hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
-              >
-                Dashboard →
-              </Link>
+            <nav className="hidden md:flex items-center gap-5 text-[11px] font-bold uppercase tracking-wider text-[#5C5549]">
               <button
                 type="button"
-                onClick={logout}
-                className="text-slate-500 hover:text-black text-xs font-bold transition-colors cursor-pointer"
+                onClick={() => scrollToSection("impact")}
+                className="hover:text-[#1C1B17] transition-colors"
               >
-                Logout
+                Impact
               </button>
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              className="px-4 py-1.5 rounded-full bg-black hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
-            >
-              Sign In
-            </Link>
-          )}
-
-          <Link
-            to={user ? dashboardPath : "/login"}
-            aria-label="Search and Access"
-            className="text-black hover:text-amber-500 transition-colors"
-          >
-            <Search className="w-4 h-4 stroke-[3]" />
-          </Link>
-        </nav>
-      </header>
-
-      {/* =========================================================================
-          2. HERO SECTION (1:1 MATCH WITH REFERENCE IMAGE)
-          Left: Authentic Hand-Drawn Cohort Illustration bleeding to bottom.
-          Right: "HELLO PEOPLE!" with yellow dot counters, black bar, and "KNOW MORE" pill.
-          ========================================================================= */}
-      <section className="relative w-full max-w-7xl mx-auto px-6 sm:px-12 pt-6 sm:pt-10 pb-8 flex flex-col lg:flex-row items-end justify-between min-h-[520px] sm:min-h-[580px]">
-        {/* Left Column: Authentic Hand-Drawn Cohort Illustration */}
-        <div className="w-full lg:w-1/2 flex justify-start items-end select-none">
-          <div className="relative w-full max-w-md sm:max-w-lg">
-            <img
-              src="/cohort-illustration.png"
-              alt="Trainee Cohort Illustration"
-              className="w-full h-auto object-contain block drop-shadow-xs"
-              style={{ maxHeight: "500px" }}
-            />
-          </div>
-        </div>
-
-        {/* Right Column: Editorial Typography & Horizontal Black Rule */}
-        <div className="w-full lg:w-1/2 flex flex-col items-start pb-8 lg:pb-14 lg:pl-8">
-          {/* Main Title: HELLO PEOPLE! (with Yellow Dot Accents in Letter Counters) */}
-          <div className="w-full relative">
-            <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black text-black uppercase tracking-tight leading-[0.88] select-none">
-              HELLO <br />
-              <span className="relative inline-block mt-1">
-                {/* Yellow dot inside P */}
-                <span className="relative inline-block">
-                  P
-                  <span className="absolute top-[32%] left-[38%] w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-[#FACC15] -z-0"></span>
-                </span>
-                E
-                {/* Yellow dot inside O */}
-                <span className="relative inline-block">
-                  O
-                  <span className="absolute top-[32%] left-[30%] w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-[#FACC15] -z-0"></span>
-                </span>
-                PLE!
-              </span>
-            </h1>
-
-            {/* Thick Black Horizontal Graphic Bar (Extending across section) */}
-            <div className="mt-4 sm:mt-6 w-full flex items-center">
-              <div className="h-3 sm:h-3.5 w-48 sm:w-72 bg-black"></div>
-              <div className="h-1 flex-1 bg-black"></div>
-            </div>
+              <button
+                type="button"
+                onClick={() => scrollToSection("workflows")}
+                className="hover:text-[#1C1B17] transition-colors"
+              >
+                Workflows
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection("about")}
+                className="hover:text-[#1C1B17] transition-colors"
+              >
+                Platform
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection("architecture")}
+                className="hover:text-[#1C1B17] transition-colors"
+              >
+                Architecture
+              </button>
+            </nav>
           </div>
 
-          {/* Body Paragraph (Authentic description of the Training Analytics Portal) */}
-          <p className="mt-6 sm:mt-8 text-slate-700 text-xs sm:text-sm font-medium leading-relaxed max-w-lg">
-            A small web app that stores trainee session results: scores, errors, and completion time, and shows progress charts per trainee and per cohort batch. Designed with precision database check constraints, automated leaderboards, and early intervention alerts.
-          </p>
-
-          {/* Action Button: KNOW MORE Pill Outline Button & Direct Portal Access */}
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link
-              to="/trainee"
-              className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer"
-            >
-              <span>TRAINEEIQ DASHBOARD</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <button
-              onClick={() => scrollToSection("analytics-console")}
-              className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border-2 border-black bg-white hover:bg-black text-black hover:text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer"
+              type="button"
+              onClick={() => scrollToSection("architecture")}
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/75 border border-black/[0.06] text-[10px] font-bold uppercase tracking-wider text-[#1C1B17] hover:bg-white transition-colors"
             >
-              <span>KNOW MORE</span>
+              <span className="text-[#E45826]">ARCH</span>
+              <span>3NF + ML ADVISORY</span>
+              <ChevronRight className="w-3 h-3 text-[#787063]" />
             </button>
 
             {user ? (
-              <Link
-                to={dashboardPath}
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-black hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer"
-              >
-                <span>ENTER {isAdmin ? "ADMIN CONSOLE" : isStaff ? "TRAINER PORTAL" : "TRAINEE DOSSIER"}</span>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={dashboardPath}
+                  className="px-4 py-1.5 rounded-full bg-[#1C2331] hover:bg-[#111620] text-white text-[11px] font-bold uppercase tracking-wider transition-colors"
+                >
+                  Open Portal
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-[11px] font-bold uppercase tracking-wider text-[#5C5549] border border-black/[0.08] transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-black hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-[#E3E0D9] hover:bg-[#1C2331] hover:text-white text-[#1C1B17] text-[11px] font-bold uppercase tracking-wider transition-colors"
               >
-                <span>ACCESS PORTAL</span>
-                <ArrowRight className="w-4 h-4 ml-2" />
+                Sign In
               </Link>
             )}
           </div>
+        </header>
+      </div>
 
-          {/* Quick Demo Access Pills */}
-          {!user && (
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
-              <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Demo Credentials:</span>
-              <Link
-                to="/login?email=admin@example.com"
-                className="px-3 py-1 rounded-full bg-slate-200 hover:bg-black hover:text-white text-slate-800 border border-slate-300 transition-colors cursor-pointer"
-              >
-                Admin (admin@example.com)
-              </Link>
-              <Link
-                to="/login?email=trainer@example.com"
-                className="px-3 py-1 rounded-full bg-slate-200 hover:bg-black hover:text-white text-slate-800 border border-slate-300 transition-colors cursor-pointer"
-              >
-                Trainer (trainer@example.com)
-              </Link>
-              <Link
-                to="/login?email=trainee@example.com"
-                className="px-3 py-1 rounded-full bg-slate-200 hover:bg-black hover:text-white text-slate-800 border border-slate-300 transition-colors cursor-pointer"
-              >
-                Trainee (trainee@example.com)
-              </Link>
-            </div>
-          )}
-
-          {/* Social Icons & Signature (Bottom Right matching reference) */}
-          <div className="mt-10 sm:mt-12 flex items-center justify-between w-full pt-4 border-t border-slate-300/80">
-            <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-              Training Analytics Portal • Phase 1 Review
+      {/* =========================================================================
+          2. HERO SECTION (5U AI Warm Stone Surface + Orbital Integration Ring)
+          ========================================================================= */}
+      <section className="relative pt-10 sm:pt-14 pb-12 sm:pb-16 overflow-hidden border-b border-black/[0.05]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Left Hero Copy + Interactive Role Deck */}
+          <div className="lg:col-span-6 z-10 py-4">
+            <span className="inline-block px-3 py-1 rounded-md bg-[#FBEAE2] text-[10px] font-bold uppercase tracking-[0.14em] text-[#E45826] mb-5">
+              FROM DRILL TO MASTERY
             </span>
 
-            <div className="flex items-center space-x-3 text-black">
-              {/* Instagram Style Circle Icon */}
-              <div className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-black hover:text-white transition-colors">
-                IG
-              </div>
-              {/* Facebook / Web Style Circle Icon */}
-              <div className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-black hover:text-white transition-colors">
-                FB
-              </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold text-[#1C1B17] tracking-[-0.03em] leading-[1.06]">
+              Training Analytics.
+              <br />
+              Built for Tech Teams.
+            </h1>
+
+            <p className="mt-5 text-sm sm:text-base text-[#5C5549] max-w-md leading-relaxed">
+              Track assessment velocity, isolate skill hotspots, and guide trainer remediation
+              across every cohort without spreadsheets or guesswork.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link
+                to={user ? dashboardPath : "/login"}
+                className="px-6 py-3 rounded-lg bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-[0_12px_24px_-10px_rgba(228,88,38,0.65)] transition-all hover:-translate-y-0.5 inline-flex items-center gap-2"
+              >
+                <span>{user ? "Go to Workspace" : "Sign In to Portal"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => scrollToSection("workflows")}
+                className="px-5 py-3 rounded-lg bg-white/80 hover:bg-white border border-black/[0.08] text-xs font-bold uppercase tracking-wider text-[#1C1B17] transition-colors"
+              >
+                Explore Workflows
+              </button>
             </div>
+
+            <InteractiveRoleDeck />
+          </div>
+
+          {/* Right Orbital Integration Arc + Vertical Metric Strip */}
+          <div className="lg:col-span-6">
+            <OrbitalRing />
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          3. LIVE ANALYTICS CONSOLE (REAL PRODUCT DATA - NO 3-CARD SLOP!)
+          3. STEPPED WATERFALL IMPACT SECTION (Frame ~12s: "Scaling Without Hiring")
           ========================================================================= */}
-      <section id="analytics-console" className="w-full bg-white border-t-2 border-black py-20 px-6 sm:px-12">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 mb-12 border-b-2 border-black gap-6">
-            <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#FACC15] text-black font-black text-[10px] uppercase tracking-widest mb-3">
-                Illustrative Analytics Preview
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-black text-black uppercase tracking-tight">
-                Trainee Session Logging & Cohort Tracking
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md leading-relaxed">
-              Sample session records illustrating strict validation constraints: score limits, non-negative error counts, and positive duration in seconds.
+      <section id="impact" className="py-20 sm:py-28 px-6 sm:px-10 max-w-6xl mx-auto">
+        <div
+          ref={impactRef}
+          className={`tiq-reveal ${impactVisible ? "tiq-revealed" : ""}`}
+        >
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="inline-block px-3 py-1 rounded-md bg-[#EAE7E1] text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
+              OPERATIONAL DISCIPLINE
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-4xl lg:text-[2.6rem] font-semibold tracking-tight text-[#1C1B17]">
+              Cohort Clarity <span className="font-normal text-[#5C5549]">Without Guesswork</span>
+            </h2>
+            <p className="mt-3 text-sm text-[#787063]">
+              Every metric stays grounded in real recorded assessments, strict permissions, and explicit failure states.
             </p>
           </div>
 
-          {/* Two-Column Asymmetric Console (NOT 3 Cards) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left 7 Columns: Sample Sessions Table */}
-            <div className="lg:col-span-7 bg-[#F4F4F4] border-2 border-black p-6 sm:p-8">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-black">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">
-                    Data Access Layer (Illustrative Sample)
-                  </span>
-                  <h3 className="text-base font-black uppercase text-black">
-                    Sample Verified Assessment Sessions
-                  </h3>
+          {/* 4 Stepped Waterfall Cards */}
+          <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
+            {IMPACT_CARDS.map(({ value, label, stepOffset, tone, Icon }) => (
+              <div
+                key={label}
+                className={`${stepOffset} rounded-2xl bg-gradient-to-b ${tone} border border-black/[0.06] p-6 h-[240px] sm:h-[260px] flex flex-col justify-between shadow-[0_16px_32px_-24px_rgba(28,27,23,0.28)] hover:-translate-y-1.5 transition-transform duration-300`}
+              >
+                <div className="text-4xl sm:text-[2.6rem] font-semibold tracking-tight text-[#1C1B17]">
+                  {value}
                 </div>
-                <span className="px-2.5 py-1 bg-black text-[#FACC15] font-black text-[10px] uppercase tracking-wider">
-                  PostgreSQL / SQLite
-                </span>
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#5C5549]">
+                  <Icon className="w-3.5 h-3.5 text-[#1C1B17] shrink-0" />
+                  <span>{label}</span>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              {/* Data Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead>
-                    <tr className="border-b-2 border-black text-[11px] font-black uppercase text-slate-700">
-                      <th className="py-2.5">Trainee</th>
-                      <th className="py-2.5">Module</th>
-                      <th className="py-2.5 text-right">Score</th>
-                      <th className="py-2.5 text-right">Errors</th>
-                      <th className="py-2.5 text-right">Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-300 font-bold">
-                    <tr>
-                      <td className="py-3 text-black">Alice Walker</td>
-                      <td className="py-3 text-slate-600 font-medium">Mod 3: Circuit Assembly</td>
-                      <td className="py-3 text-right font-black text-black">94.0%</td>
-                      <td className="py-3 text-right text-emerald-700">1 error</td>
-                      <td className="py-3 text-right text-slate-600 font-medium">12m 40s</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 text-black">Bob Davis</td>
-                      <td className="py-3 text-slate-600 font-medium">Mod 2: Logic Systems</td>
-                      <td className="py-3 text-right font-black text-black">82.5%</td>
-                      <td className="py-3 text-right text-slate-700">2 errors</td>
-                      <td className="py-3 text-right text-slate-600 font-medium">15m 10s</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 text-black">Carol White</td>
-                      <td className="py-3 text-slate-600 font-medium">Mod 4: Precision Inspection</td>
-                      <td className="py-3 text-right font-black text-black">76.0%</td>
-                      <td className="py-3 text-right text-amber-700">4 errors</td>
-                      <td className="py-3 text-right text-slate-600 font-medium">18m 05s</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 text-black">David Miller</td>
-                      <td className="py-3 text-slate-600 font-medium">Mod 1: CAD Drafting</td>
-                      <td className="py-3 text-right font-black text-black">68.0%</td>
-                      <td className="py-3 text-right text-rose-700">6 errors</td>
-                      <td className="py-3 text-right text-slate-600 font-medium">21m 15s</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+      {/* =========================================================================
+          4. INTERACTIVE WORKFLOW & RULE PREVIEW (Frame ~15s)
+          ========================================================================= */}
+      <div className="border-t border-black/[0.05]">
+        <WorkflowPreviewSection onInspectArchitecture={() => scrollToSection("architecture")} />
+      </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-300 flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-600">CSV Bulk Drag-and-Drop & Single Entry Form</span>
-                <Link to="/login" className="text-black hover:text-amber-600 flex items-center font-black">
-                  <span>Log New Assessment</span>
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Link>
+      {/* =========================================================================
+          5. DARK SPLIT PORTAL ENTRY SHOWCASE (Frame ~6s: "Your Digital Workforce")
+          ========================================================================= */}
+      <section className="bg-[#232B3A] py-20 sm:py-24 px-6 sm:px-10">
+        <div
+          ref={darkSplitRef}
+          className={`tiq-reveal ${darkSplitVisible ? "tiq-revealed" : ""} max-w-5xl mx-auto rounded-3xl bg-[#181F2B] border border-white/10 p-5 sm:p-7 shadow-[0_32px_70px_-24px_rgba(0,0,0,0.65)] grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch`}
+        >
+          {/* Left Visual Telemetry Panel + Frosted Overlay Card */}
+          <div className="lg:col-span-6 rounded-2xl relative overflow-hidden min-h-[340px] flex flex-col justify-between p-6 bg-gradient-to-br from-[#2B4368] via-[#1C2A42] to-[#121926] border border-white/10">
+            {/* Subtle Architectural Grid Mesh */}
+            <div
+              className="absolute inset-0 opacity-20 pointer-events-none"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, rgba(255,255,255,0.16) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.16) 1px, transparent 1px)",
+                backgroundSize: "34px 34px",
+              }}
+            />
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-[#FBD1A7]">
+                LIVE COHORT TELEMETRY
+              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E45826] tiq-pulse-dot" />
+            </div>
+
+            {/* Central Abstract Analytics Rings */}
+            <div className="relative z-10 my-6 flex items-center justify-center">
+              <div className="w-40 h-40 rounded-full border border-white/15 flex items-center justify-center relative">
+                <div className="w-28 h-28 rounded-full border border-[#F09A3E]/40 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-[#1C2331]/90 border border-white/15 flex items-center justify-center shadow-lg">
+                    <Layers className="w-7 h-7 text-[#F09A3E]" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right 5 Columns: Cohort Leaderboard & ML Early Risk Alert */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Leaderboard Card */}
-              <div className="bg-[#F4F4F4] border-2 border-black p-6">
-                <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-black">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-black">
-                    Cohort Rankings (SQL RANK)
-                  </h4>
-                  <span className="text-[10px] font-bold text-slate-500">Batch 101</span>
-                </div>
+            {/* Frosted Glass Highlight Bottom Card */}
+            <div className="relative z-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 p-4 text-white">
+              <div className="text-sm font-semibold">Verified Sessions, Scoped By Role</div>
+              <p className="text-[11px] text-white/75 mt-1 leading-relaxed">
+                Trainers inspect cohort readiness and misconceptions, admins audit system health,
+                and learners track only their own verified progress.
+              </p>
+            </div>
+          </div>
 
-                <div className="space-y-2.5 text-xs font-bold">
-                  <div className="flex items-center justify-between p-2.5 bg-white border border-slate-300">
-                    <div className="flex items-center space-x-2.5">
-                      <span className="w-5 h-5 rounded-full bg-[#FACC15] text-black font-black flex items-center justify-center text-[10px]">
-                        1
-                      </span>
-                      <span className="text-black">Alice Walker</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-black font-black">94.8%</span>
-                      <span className="text-[10px] text-emerald-700 block">+8.2 pts trend</span>
-                    </div>
-                  </div>
+          {/* Right Sign-In Forwarder Panel */}
+          <div className="lg:col-span-6 p-3 sm:p-6 flex flex-col justify-center">
+            <span className="inline-block self-start px-3 py-1 rounded-md bg-white/10 text-[10px] font-bold uppercase tracking-[0.14em] text-white/75">
+              PORTAL ACCESS
+            </span>
+            <h2 className="mt-4 text-2xl sm:text-3xl font-semibold text-white tracking-tight leading-snug">
+              Your Unified Workspace for Engineering Cohorts
+            </h2>
+            <p className="mt-2.5 text-xs sm:text-sm text-white/65 leading-relaxed">
+              Enter your organization email to continue to the authenticated portal login—all
+              credentials are validated directly against the FastAPI auth service.
+            </p>
 
-                  <div className="flex items-center justify-between p-2.5 bg-white border border-slate-300">
-                    <div className="flex items-center space-x-2.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
-                        2
-                      </span>
-                      <span className="text-black">Bob Davis</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-black font-black">88.5%</span>
-                      <span className="text-[10px] text-emerald-700 block">+4.1 pts trend</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-2.5 bg-white border border-slate-300">
-                    <div className="flex items-center space-x-2.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
-                        3
-                      </span>
-                      <span className="text-black">Carol White</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-black font-black">81.0%</span>
-                      <span className="text-[10px] text-slate-500 block">0.0 pts trend</span>
-                    </div>
-                  </div>
-                </div>
+            <form onSubmit={handlePortalForward} className="mt-6 space-y-3.5">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1.5">
+                  WORK E-MAIL
+                </label>
+                <input
+                  type="email"
+                  value={portalEmail}
+                  onChange={(e) => setPortalEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/15 text-sm text-white placeholder-white/35 focus:outline-none focus:border-[#E45826] transition-colors"
+                />
               </div>
 
-              {/* Early Warning Risk Detection Card */}
-              <div className="bg-[#FFFBEB] border-2 border-black p-6">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-black text-amber-900 font-black text-xs uppercase tracking-wider">
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span>Early Intervention Detection</span>
-                  </div>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-amber-200 text-amber-950 font-black">Illustrative Sample</span>
-                </div>
-                <div className="text-xs font-bold text-black">
-                  Sample Flagged Trainee: David Miller
-                </div>
-                <p className="text-xs text-slate-700 font-medium mt-1.5 leading-relaxed">
-                  Declining score trajectory (-11.4 pts across 3 sessions). Random Forest risk classifier flagged timing constraint errors for proactive trainer support before summative exams.
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 min-w-[180px] py-3 px-5 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <span>{user ? "Open Active Dashboard" : "Continue to Sign In"}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6. ABOUT BANNER + 4-STAT STRIP + VALUES + CODE INSPECTOR (Frames ~18s–21s)
+          ========================================================================= */}
+      <section id="about" className="bg-[#DFDDD8]">
+        {/* Full-Bleed Architectural Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2536] via-[#263C52] to-[#1D283A] py-20 sm:py-24 px-6 sm:px-10 text-white">
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 72% 35%, rgba(240, 154, 62, 0.38), transparent 46%)",
+            }}
+          />
+          <div
+            ref={aboutRef}
+            className={`tiq-reveal ${aboutVisible ? "tiq-revealed" : ""} max-w-6xl mx-auto relative z-10`}
+          >
+            <span className="inline-block px-3 py-1 rounded bg-white/15 text-[10px] font-bold uppercase tracking-[0.14em] text-white/90">
+              PLATFORM ARCHITECTURE
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-5xl font-bold tracking-tight">ABOUT TRAINEEIQ</h2>
+            <p className="mt-3 text-sm sm:text-base text-white/80 max-w-xl leading-relaxed">
+              Designed to keep training operations verifiable—connecting drill ingestion, advisory ML risk scoring, and trainer-trainee remediation loops cleanly.
+            </p>
+          </div>
+        </div>
+
+        {/* 4-Column Stack Pillar Strip */}
+        <div className="max-w-6xl mx-auto px-6 sm:px-10 py-12 grid grid-cols-2 lg:grid-cols-4 gap-8 border-b border-black/[0.08]">
+          <div>
+            <div className="text-2xl sm:text-3xl font-semibold text-[#1C1B17]">FastAPI</div>
+            <div className="text-xs text-[#5C5549] mt-1 font-medium">Pydantic v2 Service Layer</div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-semibold text-[#1C1B17]">3NF SQL</div>
+            <div className="text-xs text-[#5C5549] mt-1 font-medium">Constraint-Enforced Storage</div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-semibold text-[#1C1B17]">Advisory ML</div>
+            <div className="text-xs text-[#5C5549] mt-1 font-medium">Random Forest + Rule Fallback</div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-semibold text-[#1C1B17]">WebSocket</div>
+            <div className="text-xs text-[#5C5549] mt-1 font-medium">Real-Time Event Broadcast</div>
+          </div>
+        </div>
+
+        {/* Values + Interactive Stack Stage Inspector */}
+        <div
+          id="architecture"
+          className="max-w-6xl mx-auto px-6 sm:px-10 py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start"
+        >
+          {/* Left Values Stack */}
+          <div className="lg:col-span-5 space-y-5">
+            <span className="inline-block px-3 py-1 rounded-md bg-white/60 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
+              CORE PRINCIPLES
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#1C1B17] leading-tight">
+              Built on Trust,
+              <br />
+              Driven by Clarity
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5C5549] leading-relaxed">
+              Every dashboard state distinguishes live records from empty cohorts and service outages—never inventing fallback data.
+            </p>
+
+            <div className="rounded-2xl bg-white/55 border border-black/[0.06] divide-y divide-black/[0.06]">
+              <div className="p-4">
+                <div className="text-xs font-bold text-[#1C1B17]">Honest Failure States</div>
+                <p className="text-[11px] text-[#5C5549] mt-1">
+                  Invalid tokens, server outages, and empty batches surface exact statuses rather than placeholders.
                 </p>
-                <div className="mt-4 pt-3 border-t border-amber-300/80 flex items-center justify-between text-xs font-black">
-                  <span className="text-amber-800 text-[11px]">Rule & ML Hybrid Fallback</span>
-                  <Link to="/login" className="text-black hover:text-amber-700">
-                    View Attention List →
-                  </Link>
+              </div>
+              <div className="p-4">
+                <div className="text-xs font-bold text-[#1C1B17]">Human-AI Partnership</div>
+                <p className="text-[11px] text-[#5C5549] mt-1">
+                  Advisory predictions assist trainers in spotting struggling trainees without automatic grading.
+                </p>
+              </div>
+              <div className="p-4">
+                <div className="text-xs font-bold text-[#1C1B17]">Scoped Privacy</div>
+                <p className="text-[11px] text-[#5C5549] mt-1">
+                  Role routes and backend guards isolate trainee assessments and private peer/mentor messaging.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Interactive Live Code / Architecture Inspector */}
+          <div className="lg:col-span-7">
+            <div className="rounded-3xl bg-[#1C2331] text-white p-5 sm:p-6 shadow-2xl border border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-[#F09A3E]" />
+                  <span className="text-xs font-bold tracking-wide">
+                    Three-Tier System Inspector
+                  </span>
                 </div>
+
+                <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl">
+                  {Object.entries(ARCH_STAGES).map(([key, item]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setActiveStage(key)}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                        activeStage === key
+                          ? "bg-[#E45826] text-white"
+                          : "text-white/65 hover:text-white"
+                      }`}
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{ARCH_STAGES[activeStage].label}</span>
+                  <span className="text-[11px] font-mono text-[#FBD1A7]">
+                    {ARCH_STAGES[activeStage].tech}
+                  </span>
+                </div>
+                <p className="text-xs text-white/70 mt-1.5 leading-relaxed">
+                  {ARCH_STAGES[activeStage].desc}
+                </p>
+
+                <pre className="mt-4 rounded-xl bg-[#121721] border border-white/10 p-4 text-[11px] font-mono text-[#E7E4DD] overflow-x-auto leading-relaxed">
+                  <code>{ARCH_STAGES[activeStage].code}</code>
+                </pre>
               </div>
             </div>
           </div>
@@ -540,222 +567,215 @@ __table_args__ = (
       </section>
 
       {/* =========================================================================
-          4. UNIQUE ANIMATED ARCHITECTURE PIPELINE (NO 3 CARDS!)
-          Interactive connected technical circuit blueprint with flowing data signals.
+          7. THREE WORKSPACES PORTRAIT CARDS (Frame ~24s: "People and AI Together")
           ========================================================================= */}
-      <section id="architecture" className="w-full bg-[#F4F4F4] border-t-2 border-black py-20 px-6 sm:px-12">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 mb-10 border-b-2 border-black gap-6">
-            <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-black text-[#FACC15] font-black text-[10px] uppercase tracking-widest mb-3">
-                Full-Stack Architecture Pipeline
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-black text-black uppercase tracking-tight">
-                Data Flow & System Topology
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md leading-relaxed">
-              An animated, connected pipeline illustrating how user assessments travel from the React interface through FastAPI security down to the relational database.
+      <section className="bg-[#ECEAE5] py-20 sm:py-28 px-6 sm:px-10">
+        <div
+          ref={workspacesRef}
+          className={`tiq-reveal ${workspacesVisible ? "tiq-revealed" : ""} max-w-5xl mx-auto`}
+        >
+          <div className="text-center max-w-xl mx-auto">
+            <span className="inline-block px-3 py-1 rounded-md bg-white/70 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
+              ROLE WORKSPACES
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-[#1C1B17]">
+              Three Workspaces, Built Around Real Accountability
+            </h2>
+            <p className="mt-3 text-xs sm:text-sm text-[#5C5549]">
+              Each authenticated user enters a tailored operational console scoped cleanly by role.
             </p>
           </div>
 
-          {/* Connected Technical Pipeline (Interactive Nodes & Flowing Circuit) */}
-          <div className="bg-white border-2 border-black p-6 sm:p-10 relative">
-            {/* Top Pipeline Circuit Strip */}
-            <div className="relative mb-10 select-none">
-              {/* Connecting animated circuit bus */}
-              <div className="hidden md:block absolute top-1/2 left-16 right-16 -translate-y-1/2 h-1 bg-black z-0">
-                <div className="absolute inset-0 bg-[#FACC15] w-full h-full opacity-60"></div>
-              </div>
-
-              {/* Connected Stage Nodes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                {/* Node 1: Frontend */}
-                <button
-                  type="button"
-                  onClick={() => setActiveStage("frontend")}
-                  className={`p-6 text-left border-2 border-black transition-all cursor-pointer ${
-                    activeStage === "frontend"
-                      ? "bg-[#FACC15] text-black shadow-md scale-[1.02] anim-pulse-glow"
-                      : "bg-[#F4F4F4] text-slate-800 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center">
-                      01
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">
-                      UI / Live WS
-                    </span>
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {WORKSPACE_SHOWCASE.map(({ rolePill, title, subtitle, highlights, gradient, Icon }) => (
+              <div
+                key={title}
+                className={`rounded-2xl bg-gradient-to-b ${gradient} text-white p-6 min-h-[340px] flex flex-col justify-between shadow-[0_20px_40px_-24px_rgba(28,27,23,0.45)] border border-white/10 hover:-translate-y-1.5 transition-transform duration-300`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-1 rounded-md bg-white/10 text-[10px] font-bold uppercase tracking-wider text-white/85">
+                    {rolePill}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#F09A3E]">
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <h4 className="text-base font-black uppercase tracking-tight">
-                    React 18 + Vite
-                  </h4>
-                  <p className="text-[11px] font-medium mt-1 text-slate-700">
-                    Client state, charts & WebSocket listener
-                  </p>
-                </button>
+                </div>
 
-                {/* Node 2: Core API (Default Active) */}
-                <button
-                  type="button"
-                  onClick={() => setActiveStage("api")}
-                  className={`p-6 text-left border-2 border-black transition-all cursor-pointer ${
-                    activeStage === "api"
-                      ? "bg-[#FACC15] text-black shadow-md scale-[1.02] anim-pulse-glow"
-                      : "bg-[#F4F4F4] text-slate-800 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center">
-                      02
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">
-                      FastAPI Backend
-                    </span>
-                  </div>
-                  <h4 className="text-base font-black uppercase tracking-tight">
-                    Pydantic v2 & ML
-                  </h4>
-                  <p className="text-[11px] font-medium mt-1 text-slate-700">
-                    JWT RBAC, rate-limiting & inference
-                  </p>
-                </button>
-
-                {/* Node 3: Database */}
-                <button
-                  type="button"
-                  onClick={() => setActiveStage("database")}
-                  className={`p-6 text-left border-2 border-black transition-all cursor-pointer ${
-                    activeStage === "database"
-                      ? "bg-[#FACC15] text-black shadow-md scale-[1.02] anim-pulse-glow"
-                      : "bg-[#F4F4F4] text-slate-800 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center">
-                      03
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">
-                      Relational DB
-                    </span>
-                  </div>
-                  <h4 className="text-base font-black uppercase tracking-tight">
-                    SQLAlchemy 2.0
-                  </h4>
-                  <p className="text-[11px] font-medium mt-1 text-slate-700">
-                    CheckConstraints & window queries
-                  </p>
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic Interactive Stage Inspector (Terminal & Details) */}
-            <div className="border-2 border-black bg-[#F8F9FA] p-6 sm:p-8">
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
-                {/* Details Left */}
-                <div className="lg:w-1/2">
-                  <div className="inline-block px-3 py-1 bg-black text-[#FACC15] font-black text-[10px] uppercase tracking-widest mb-3">
-                    Active Inspection: {stages[activeStage].tech}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-black text-black uppercase tracking-tight">
-                    {stages[activeStage].title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
-                    {stages[activeStage].desc}
-                  </p>
-
-                  <ul className="mt-5 space-y-2 text-xs font-bold text-slate-800">
-                    {stages[activeStage].features.map((feat, idx) => (
-                      <li key={idx} className="flex items-center space-x-2">
-                        <span className="w-2 h-2 rounded-full bg-[#FACC15] border border-black flex-shrink-0"></span>
-                        <span>{feat}</span>
+                <div className="space-y-3 mt-10">
+                  <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
+                  <p className="text-xs text-white/70 leading-relaxed">{subtitle}</p>
+                  <ul className="space-y-1.5 pt-2 border-t border-white/10">
+                    {highlights.map((item) => (
+                      <li key={item} className="text-[11px] text-white/85 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E45826]" />
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-
-                {/* Live Code Snippet Right */}
-                <div className="w-full lg:w-1/2 bg-black text-[#FACC15] border-2 border-black p-4 font-mono text-xs overflow-x-auto shadow-inner">
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800 text-slate-400 text-[10px] uppercase font-bold">
-                    <span>source_snippet.py</span>
-                    <span className="text-emerald-400">● LIVE RUNTIME</span>
-                  </div>
-                  <pre className="text-slate-200 text-[11px] leading-relaxed whitespace-pre font-mono">
-                    {stages[activeStage].code}
-                  </pre>
-                </div>
               </div>
-            </div>
-
-            {/* Live Operational Metric Strip Below Pipeline */}
-            <div className="mt-6 pt-4 border-t-2 border-black grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-black text-slate-800">
-              <div>
-                <span className="text-slate-400 text-[10px] block">THROUGHPUT</span>
-                <span>Live WebSocket Updates</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">SECURITY</span>
-                <span>JWT RBAC + SlowAPI</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">VALIDATION</span>
-                <span>Pydantic v2 Contracts</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">DATA INTEGRITY</span>
-                <span>CheckConstraints Active</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          5. CALL TO ACTION SECTION
+          8. CLOSING GRADIENT CTA + BENTO FOOTER + WATERMARK GRID (Frame ~9s)
           ========================================================================= */}
-      <section className="w-full bg-black text-white py-16 px-6 sm:px-12 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight leading-tight">
-            Ready to Explore the Training Portal?
+      <footer className="relative bg-gradient-to-b from-[#2A3343] via-[#3B4454] to-[#232A37] text-white pt-20 pb-10 px-6 sm:px-10 overflow-hidden">
+        {/* Top Centered CTA */}
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">
+            Let&apos;s Upgrade Your
+            <br />
+            Training Outcomes.
           </h2>
-          <p className="mt-4 text-xs sm:text-sm text-slate-300 font-medium max-w-lg mx-auto leading-relaxed">
-            Experience role-based access control with one-click test accounts for Trainers, Trainees, and Administrators.
+          <p className="mt-4 text-xs sm:text-sm text-white/75 max-w-md mx-auto leading-relaxed">
+            Inspect live cohorts, guide targeted remediation, and keep every assessment workflow transparent.
           </p>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-7">
             <Link
-              to="/login"
-              className="inline-flex items-center px-10 py-3.5 rounded-full bg-[#FACC15] hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest shadow-md transition-all cursor-pointer"
+              to={user ? dashboardPath : "/login"}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-lg transition-all hover:-translate-y-0.5"
             >
-              <span>Launch Portal Now</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <span>{user ? "Open Dashboard" : "Sign In to Portal"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
-      </section>
 
-      {/* =========================================================================
-          6. EDITORIAL FOOTER
-          ========================================================================= */}
-      <footer className="w-full bg-[#F4F4F4] border-t-2 border-black py-6 px-6 sm:px-12 text-xs text-slate-600 font-medium">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Stack Strip */}
+        <div className="max-w-5xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[11px] text-white/60">
           <div>
-            <span className="font-black text-black">TRAINING ANALYTICS PORTAL</span>
-            <span className="mx-2">•</span>
-            <span>Minor Project Assessment Review</span>
+            <div className="font-bold text-white/85">Core Technologies</div>
+            <div>Verified relational, API, and reactive UI modules.</div>
+          </div>
+          <div className="flex flex-wrap items-center gap-5 font-bold uppercase tracking-widest text-white/70 text-[10px]">
+            <span>React 18</span>
+            <span>FastAPI</span>
+            <span>SQLAlchemy</span>
+            <span>Scikit-Learn</span>
+            <span>WebSockets</span>
+            <span>Tailwind</span>
+          </div>
+        </div>
+
+        {/* 4-Card Bento Footer Grid */}
+        <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+          <div className="rounded-2xl bg-white/[0.08] border border-white/10 p-5 flex flex-col justify-between min-h-[160px]">
+            <div className="w-9 h-9 rounded-lg bg-white text-[#1C2331] text-xs font-black flex items-center justify-center">
+              TIQ
+            </div>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
+                PORTAL ENTRY
+              </div>
+              <Link
+                to={user ? dashboardPath : "/login"}
+                className="block w-full text-center py-2 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors"
+              >
+                {user ? "Go to Active Session" : "Authenticate Account"}
+              </Link>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-6 font-bold text-black">
-            <Link to="/login" className="hover:text-amber-600">Sign In</Link>
-            <Link to="/login" className="hover:text-amber-600">Trainer Portal</Link>
-            <Link to="/login" className="hover:text-amber-600">Admin Console</Link>
-            <span className="text-slate-400">© 2026</span>
+          <div className="rounded-2xl bg-white/[0.08] border border-white/10 p-5">
+            <div className="text-xs font-bold text-white/90 mb-3">Platform</div>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                  className="hover:text-white transition-colors"
+                >
+                  › Overview
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("impact")}
+                  className="hover:text-white transition-colors"
+                >
+                  › Operational Discipline
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("workflows")}
+                  className="hover:text-white transition-colors"
+                >
+                  › Remediation Flows
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("architecture")}
+                  className="hover:text-white transition-colors"
+                >
+                  › 3-Tier Architecture
+                </button>
+              </li>
+            </ul>
           </div>
+
+          <div className="rounded-2xl bg-white/[0.08] border border-white/10 p-5">
+            <div className="text-xs font-bold text-white/90 mb-3">Workspaces</div>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li>
+                <Link to="/dashboard" className="hover:text-white transition-colors">
+                  › Trainer Console
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin" className="hover:text-white transition-colors">
+                  › Admin Governance
+                </Link>
+              </li>
+              <li>
+                <Link to="/batches" className="hover:text-white transition-colors">
+                  › Batch Cohorts
+                </Link>
+              </li>
+              <li>
+                <Link to="/messages" className="hover:text-white transition-colors">
+                  › Intervention Channels
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl bg-white/[0.08] border border-white/10 p-3 flex flex-col justify-between">
+            <div className="h-20 rounded-xl bg-gradient-to-r from-[#1A2536] to-[#2B4368] border border-white/10 flex items-center justify-center">
+              <Code2 className="w-6 h-6 text-[#F09A3E]" />
+            </div>
+            <div className="p-2">
+              <div className="text-xs font-semibold text-white">
+                From Raw Drill Logs to Guided Action
+              </div>
+              <p className="text-[11px] text-white/60 mt-1 line-clamp-2">
+                Full audit logging, RBAC session checks, and live WebSocket assessment telemetry.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright Row */}
+        <div className="max-w-5xl mx-auto mt-10 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-white/50 relative z-10">
+          <span>© 2026 Training Analytics Portal</span>
+          <span>TraineeIQ Engineering Cohort System</span>
+        </div>
+
+        {/* Subtle Repeating Watermark Pattern Backdrop */}
+        <div
+          aria-hidden="true"
+          className="mt-8 select-none pointer-events-none text-center text-[10px] font-bold tracking-[0.55em] text-white/[0.06] leading-loose uppercase overflow-hidden whitespace-nowrap"
+        >
+          TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ
         </div>
       </footer>
     </div>
   );
 }
-
-export default LandingPage;

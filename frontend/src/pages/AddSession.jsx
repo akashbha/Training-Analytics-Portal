@@ -76,30 +76,9 @@ export function AddSession() {
           setFormData((prev) => ({ ...prev, module_id: String(mList[0].id) }));
         }
       } catch (err) {
-        if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-          const fallbackTrainees = [
-            { id: 1, name: "Alex Chen (Batch A - Web Core)" },
-            { id: 2, name: "Jordan Taylor (Batch A - Web Core)" },
-            { id: 3, name: "Samantha Reed (Batch A - Web Core)" },
-            { id: 4, name: "Elena Rostova (Batch A - Web Core)" },
-            { id: 7, name: "David Kim (Batch B - Data Systems)" },
-          ];
-          const fallbackModules = [
-            { id: 1, name: "Python Fundamentals", max_score: 100 },
-            { id: 2, name: "PostgreSQL & Schema Design", max_score: 100 },
-            { id: 3, name: "FastAPI REST Architecture", max_score: 100 },
-            { id: 4, name: "React & State Engineering", max_score: 100 },
-          ];
-          setTrainees(fallbackTrainees);
-          setModules(fallbackModules);
-          setFormData((prev) => ({
-            ...prev,
-            trainee_id: "1",
-            module_id: "1",
-          }));
-        } else {
-          setLoadError(err.message || "Failed to load curriculum modules and trainees.");
-        }
+        setTrainees([]);
+        setModules([]);
+        setLoadError(err.message || "Failed to load curriculum modules and trainees.");
       } finally {
         setLoadingData(false);
       }

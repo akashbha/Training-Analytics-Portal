@@ -5,58 +5,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "../api/client.js";
 
-const isNetworkFailure = (err) =>
-  !err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error");
-
-const PREVIEW_TRAINEE_PROFILE = {
-  id: 1,
-  name: "Alex Chen",
-  email: "alex.chen@example.com",
-  batch_id: 1,
-  batch_name: "Batch A - Web Core",
-  phone: "+1 (555) 234-8901",
-  bio: "Working through the full-stack engineering curriculum. Focusing on database indexing, backend reliability, and clean component architecture.",
-  specialization: "Full-Stack Web & Distributed Systems",
-  avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80",
-  github_url: "https://github.com/alexchen-dev",
-};
-
-const PREVIEW_TRAINEE_SUMMARY = {
-  latest_score_pct: 82.5,
-  best_score_pct: 94.0,
-  improvement_pct: 14.2,
-  session_count: 12,
-};
-
-const PREVIEW_TRAINEE_PROGRESS = [
-  { id: 1, module_id: 1, module_name: "Python Fundamentals", score_pct: 68.0, errors: 4, time_seconds: 1240, created_at: "2026-08-18T10:00:00Z" },
-  { id: 2, module_id: 1, module_name: "Python Fundamentals", score_pct: 72.5, errors: 3, time_seconds: 1100, created_at: "2026-08-25T11:00:00Z" },
-  { id: 3, module_id: 2, module_name: "PostgreSQL & Schema", score_pct: 65.0, errors: 6, time_seconds: 1800, created_at: "2026-09-02T14:30:00Z" },
-  { id: 4, module_id: 2, module_name: "PostgreSQL & Schema", score_pct: 76.0, errors: 2, time_seconds: 1450, created_at: "2026-09-10T09:15:00Z" },
-  { id: 5, module_id: 3, module_name: "FastAPI REST Architecture", score_pct: 81.0, errors: 2, time_seconds: 1320, created_at: "2026-09-17T16:00:00Z" },
-  { id: 6, module_id: 3, module_name: "FastAPI REST Architecture", score_pct: 88.0, errors: 1, time_seconds: 1190, created_at: "2026-09-24T13:45:00Z" },
-  { id: 7, module_id: 4, module_name: "React & State Engineering", score_pct: 79.5, errors: 3, time_seconds: 1540, created_at: "2026-10-01T10:20:00Z" },
-  { id: 8, module_id: 4, module_name: "React & State Engineering", score_pct: 82.5, errors: 2, time_seconds: 1280, created_at: "2026-10-06T15:10:00Z" },
-];
-
-const PREVIEW_TRAINEE_ERRORS = [
-  { module_id: 1, module_name: "Python Fundamentals", avg_errors: 3.5, session_count: 2 },
-  { module_id: 2, module_name: "PostgreSQL & Schema", avg_errors: 4.0, session_count: 2 },
-  { module_id: 3, module_name: "FastAPI REST", avg_errors: 1.5, session_count: 2 },
-  { module_id: 4, module_name: "React & State", avg_errors: 2.5, session_count: 2 },
-];
-
-const PREVIEW_TRAINEE_SESSIONS = [
-  { id: 8, module_id: 4, module_name: "React & State Engineering", score_pct: 82.5, errors: 2, time_seconds: 1280, created_at: "2026-10-06T15:10:00Z" },
-  { id: 7, module_id: 4, module_name: "React & State Engineering", score_pct: 79.5, errors: 3, time_seconds: 1540, created_at: "2026-10-01T10:20:00Z" },
-  { id: 6, module_id: 3, module_name: "FastAPI REST Architecture", score_pct: 88.0, errors: 1, time_seconds: 1190, created_at: "2026-09-24T13:45:00Z" },
-  { id: 5, module_id: 3, module_name: "FastAPI REST Architecture", score_pct: 81.0, errors: 2, time_seconds: 1320, created_at: "2026-09-17T16:00:00Z" },
-  { id: 4, module_id: 2, module_name: "PostgreSQL & Schema", score_pct: 76.0, errors: 2, time_seconds: 1450, created_at: "2026-09-10T09:15:00Z" },
-  { id: 3, module_id: 2, module_name: "PostgreSQL & Schema", score_pct: 65.0, errors: 6, time_seconds: 1800, created_at: "2026-09-02T14:30:00Z" },
-  { id: 2, module_id: 1, module_name: "Python Fundamentals", score_pct: 72.5, errors: 3, time_seconds: 1100, created_at: "2026-08-25T11:00:00Z" },
-  { id: 1, module_id: 1, module_name: "Python Fundamentals", score_pct: 68.0, errors: 4, time_seconds: 1240, created_at: "2026-08-18T10:00:00Z" },
-];
-
 /**
  * Hook to retrieve trainee profile metadata (name, email, cohort batch).
  */
@@ -77,9 +25,8 @@ export function useTraineeProfile(traineeId) {
     } catch (err) {
       if (err.status === 403 || err.response?.status === 403) {
         setIsForbidden(true);
-      } else if (isNetworkFailure(err)) {
-        setData({ ...PREVIEW_TRAINEE_PROFILE, id: Number(traineeId) || 1 });
       } else {
+        setData(null);
         setError(err.message || "Failed to load trainee profile");
       }
     } finally {
@@ -114,9 +61,8 @@ export function useTraineeSummary(traineeId) {
     } catch (err) {
       if (err.status === 403 || err.response?.status === 403) {
         setIsForbidden(true);
-      } else if (isNetworkFailure(err)) {
-        setData(PREVIEW_TRAINEE_SUMMARY);
       } else {
+        setData(null);
         setError(err.message || "Failed to load performance summary");
       }
     } finally {
@@ -151,9 +97,8 @@ export function useTraineeProgress(traineeId) {
     } catch (err) {
       if (err.status === 403 || err.response?.status === 403) {
         setIsForbidden(true);
-      } else if (isNetworkFailure(err)) {
-        setData(PREVIEW_TRAINEE_PROGRESS);
       } else {
+        setData(null);
         setError(err.message || "Failed to load progress timeline");
       }
     } finally {
@@ -188,9 +133,8 @@ export function useTraineeErrors(traineeId) {
     } catch (err) {
       if (err.status === 403 || err.response?.status === 403) {
         setIsForbidden(true);
-      } else if (isNetworkFailure(err)) {
-        setData(PREVIEW_TRAINEE_ERRORS);
       } else {
+        setData(null);
         setError(err.message || "Failed to load error breakdown");
       }
     } finally {
@@ -226,9 +170,8 @@ export function useTraineeSessions(traineeId) {
     } catch (err) {
       if (err.status === 403 || err.response?.status === 403) {
         setIsForbidden(true);
-      } else if (isNetworkFailure(err)) {
-        setData(PREVIEW_TRAINEE_SESSIONS);
       } else {
+        setData(null);
         setError(err.message || "Failed to load recent sessions");
       }
     } finally {
@@ -259,20 +202,8 @@ export function useTraineeStanding(traineeId) {
       const res = await apiClient.get(`/analytics/trainees/${traineeId}/standing`);
       setData(res.data);
     } catch (err) {
-      if (isNetworkFailure(err)) {
-        setData({
-          trainee_id: Number(traineeId),
-          batch_id: 1,
-          batch_name: "Batch A - Web Core",
-          rank: 4,
-          total_trainees: 9,
-          percentile: 66.7,
-          avg_score_pct: 71.7,
-          status: "on_track",
-        });
-      } else {
-        setError(err.message || "Failed to load cohort standing");
-      }
+      setData(null);
+      setError(err.message || "Failed to load cohort standing");
     } finally {
       setLoading(false);
     }

@@ -1813,7 +1813,7 @@ export function AdminDashboard() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-xs font-semibold text-slate-800">
-                      Core Database ({serviceHealth.data?.database?.engine?.toUpperCase() || "SQLite"})
+                      Core Database ({serviceHealth.data?.database?.engine?.toUpperCase() || "Unknown"})
                     </div>
                     <div className="text-[10px] text-slate-500 tabular-nums truncate">
                       {adminStats.overviewAvailable

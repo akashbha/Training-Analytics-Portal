@@ -63,21 +63,9 @@ export function Batches() {
       });
       setComparisons(compMap);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        const fallbackBatches = [
-          { id: 1, name: "Cohort Alpha (Core Full-Stack)", start_date: "2026-01-15", end_date: "2026-06-30" },
-          { id: 2, name: "Cohort Beta (AI & Data Systems)", start_date: "2026-02-01", end_date: "2026-07-31" },
-          { id: 3, name: "Cohort Gamma (Cloud Architecture)", start_date: "2026-03-01", end_date: "2026-08-31" },
-        ];
-        setBatches(fallbackBatches);
-        setComparisons({
-          1: { batch_id: 1, name: "Cohort Alpha", trainee_count: 24, avg_score_pct: 78.4 },
-          2: { batch_id: 2, name: "Cohort Beta", trainee_count: 18, avg_score_pct: 58.2 },
-          3: { batch_id: 3, name: "Cohort Gamma", trainee_count: 15, avg_score_pct: 84.0 },
-        });
-      } else {
-        setError(err.message || "Failed to load cohort batches");
-      }
+      setBatches([]);
+      setComparisons({});
+      setError(err.message || "Failed to load cohort batches");
     } finally {
       setLoading(false);
     }

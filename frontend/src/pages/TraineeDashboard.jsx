@@ -558,8 +558,8 @@ export function TraineeDashboard({ traineeId: propId }) {
   }
 
   const activeProfile = profile || {
-    name: user?.name || "Danielle Johnson",
-    email: user?.email || "trainee@example.com",
+    name: user?.name || "Trainee",
+    email: user?.email || "",
     avatar_url: "",
   };
 

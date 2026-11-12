@@ -19,15 +19,6 @@ import {
   Award,
 } from "lucide-react";
 
-const PREVIEW_MODULES = [
-  { id: 1, name: "Python Core & Data Structures", max_score: 100.0, session_count: 48 },
-  { id: 2, name: "Algorithms & Complexity", max_score: 50.0, session_count: 36 },
-  { id: 3, name: "SQL & Relational Schema Modeling", max_score: 100.0, session_count: 42 },
-  { id: 4, name: "FastAPI & REST Architecture", max_score: 20.0, session_count: 28 },
-  { id: 5, name: "React & State Engineering", max_score: 100.0, session_count: 54 },
-  { id: 6, name: "System Design & Cloud Deployment", max_score: 50.0, session_count: 22 },
-];
-
 export function Modules() {
   const { isAdmin } = useAuth();
 
@@ -58,12 +49,9 @@ export function Modules() {
       setModules(list);
       setTotal(res.data?.total || list.length);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setModules(PREVIEW_MODULES);
-        setTotal(PREVIEW_MODULES.length);
-      } else {
-        setError(err.message || "Failed to load curriculum modules");
-      }
+      setModules([]);
+      setTotal(0);
+      setError(err.message || "Failed to load curriculum modules");
     } finally {
       setLoading(false);
     }
@@ -128,27 +116,7 @@ export function Modules() {
       setModalOpen(false);
       fetchModules();
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        // Fallback demo update
-        if (editingModule) {
-          setModules((prev) =>
-            prev.map((m) =>
-              m.id === editingModule.id ? { ...m, name: formData.name, max_score: scoreNum } : m
-            )
-          );
-        } else {
-          const newMod = {
-            id: Date.now(),
-            name: formData.name.trim(),
-            max_score: scoreNum,
-            session_count: 0,
-          };
-          setModules((prev) => [newMod, ...prev]);
-        }
-        setModalOpen(false);
-      } else {
-        setFormError(err.response?.data?.error?.message || err.message || "Failed to save module");
-      }
+      setFormError(err.response?.data?.error?.message || err.message || "Failed to save module");
     } finally {
       setSubmitting(false);
     }
@@ -163,12 +131,7 @@ export function Modules() {
       setDeleteTarget(null);
       fetchModules();
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        setModules((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-        setDeleteTarget(null);
-      } else {
-        setDeleteError(err.response?.data?.error?.message || err.message || "Failed to delete module");
-      }
+      setDeleteError(err.response?.data?.error?.message || err.message || "Failed to delete module");
     } finally {
       setDeleting(false);
     }

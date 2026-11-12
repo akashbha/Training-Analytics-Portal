@@ -30,25 +30,43 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401 Unauthorized: Clear session and redirect to login
+    // 401 Unauthorized: Clear session and notify AuthContext cleanly (avoid duplicate events)
     if (error.response && error.response.status === 401) {
+      const hadToken = Boolean(localStorage.getItem("token"));
       localStorage.removeItem("token");
-      localStorage.setItem("user", "null");
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      localStorage.removeItem("user");
+      if (hadToken) {
+        window.dispatchEvent(
+          new CustomEvent("auth:unauthorized", {
+            detail: {
+              message:
+                error.response?.data?.error?.message ||
+                "Your session is invalid or has expired. Please sign in again.",
+            },
+          })
+        );
       }
     }
 
     // Normalize backend error structure: {"error": {"code": "...", "message": "..."}}
     const backendMessage = error.response?.data?.error?.message;
     const backendCode = error.response?.data?.error?.code;
+    const isNetworkError =
+      !error.response &&
+      (error.code === "ERR_NETWORK" ||
+        error.code === "ECONNABORTED" ||
+        error.message?.includes("Network Error"));
 
     const friendlyError = new Error(
-      backendMessage || error.message || "An unexpected error occurred"
+      backendMessage ||
+        (isNetworkError
+          ? "Unable to reach the authentication or API server. Check your connection and try again."
+          : error.message || "An unexpected error occurred")
     );
-    friendlyError.code = backendCode || "UNKNOWN_ERROR";
+    friendlyError.code = backendCode || error.code || "UNKNOWN_ERROR";
     friendlyError.status = error.response?.status;
     friendlyError.response = error.response;
+    friendlyError.isNetworkError = isNetworkError;
 
     return Promise.reject(friendlyError);
   }

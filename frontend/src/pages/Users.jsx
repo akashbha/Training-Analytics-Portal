@@ -25,15 +25,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const PREVIEW_USERS = [
-  { id: 1, email: "admin@example.com", role: "admin", is_active: true, trainee_id: null, trainee_name: null },
-  { id: 2, email: "trainer@example.com", role: "trainer", is_active: true, trainee_id: null, trainee_name: null },
-  { id: 3, email: "alex.chen@example.com", role: "trainee", is_active: true, trainee_id: 1, trainee_name: "Alex Chen" },
-  { id: 4, email: "jordan.t@example.com", role: "trainee", is_active: true, trainee_id: 2, trainee_name: "Jordan Taylor" },
-  { id: 5, email: "elena.r@example.com", role: "trainee", is_active: true, trainee_id: 4, trainee_name: "Elena Rostova" },
-  { id: 6, email: "inactive.trainer@example.com", role: "trainer", is_active: false, trainee_id: null, trainee_name: null },
-];
-
 export function Users() {
   const { user: currentAdmin } = useAuth();
 
@@ -45,6 +36,7 @@ export function Users() {
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   // Modal: Add User
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -70,12 +62,7 @@ export function Users() {
         setTraineeOptions(res.data?.items || res.data || []);
       })
       .catch(() => {
-        setTraineeOptions([
-          { id: 1, name: "Alex Chen", email: "alex.chen@example.com" },
-          { id: 2, name: "Jordan Taylor", email: "jordan.t@example.com" },
-          { id: 3, name: "Samantha Reed", email: "s.reed@example.com" },
-          { id: 4, name: "Elena Rostova", email: "elena.r@example.com" },
-        ]);
+        setTraineeOptions([]);
       });
   }, []);
 
@@ -93,21 +80,9 @@ export function Users() {
       setUsers(res.data?.items || []);
       setTotal(res.data?.total || 0);
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
-        // Fallback for preview mode
-        let filtered = [...PREVIEW_USERS];
-        if (roleFilter) filtered = filtered.filter((u) => u.role === roleFilter);
-        if (search.trim()) {
-          const s = search.toLowerCase();
-          filtered = filtered.filter(
-            (u) => u.email.toLowerCase().includes(s) || (u.trainee_name && u.trainee_name.toLowerCase().includes(s))
-          );
-        }
-        setUsers(filtered);
-        setTotal(filtered.length);
-      } else {
-        setError(err.message || "Failed to load user accounts");
-      }
+      setUsers([]);
+      setTotal(0);
+      setError(err.message || "Failed to load user accounts");
     } finally {
       setLoading(false);
     }
@@ -134,34 +109,17 @@ export function Users() {
       setAddForm({ email: "", role: "trainer", trainee_id: "", password: "" });
       fetchUsers();
 
-      // Show temporary password modal
-      setRevealModal({
-        title: "User Account Provisioned",
-        email: payload.email,
-        tempPassword: res.data?.temporary_password || payload.password || "GeneratedSecret@123",
-      });
-    } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK") {
-        // Preview mode mock create
-        const newMock = {
-          id: Date.now(),
-          email: addForm.email,
-          role: addForm.role,
-          is_active: true,
-          trainee_id: addForm.role === "trainee" ? Number(addForm.trainee_id) : null,
-          trainee_name: "Mock Trainee",
-        };
-        setUsers((prev) => [newMock, ...prev]);
-        setTotal((prev) => prev + 1);
-        setAddModalOpen(false);
+      // Show temporary password modal when returned or supplied
+      const revealedPassword = res.data?.temporary_password || payload.password || "";
+      if (revealedPassword) {
         setRevealModal({
-          title: "User Account Provisioned (Demo Preview)",
-          email: addForm.email,
-          tempPassword: addForm.password || "Temporary@123",
+          title: "User Account Provisioned",
+          email: payload.email,
+          tempPassword: revealedPassword,
         });
-      } else {
-        setAddError(err.message || "Failed to create user account");
       }
+    } catch (err) {
+      setAddError(err.message || "Failed to create user account");
     } finally {
       setAddSubmitting(false);
     }
@@ -170,43 +128,33 @@ export function Users() {
   const handleToggleActive = async (targetUser) => {
     const nextActive = !targetUser.is_active;
     if (targetUser.id === currentAdmin?.id && !nextActive) {
-      alert("You cannot deactivate your own administrative account.");
+      setActionError("You cannot deactivate your own administrative account.");
       return;
     }
+    setActionError("");
     try {
       await apiClient.patch(`/admin/users/${targetUser.id}`, { is_active: nextActive });
       setUsers((prev) =>
         prev.map((u) => (u.id === targetUser.id ? { ...u, is_active: nextActive } : u))
       );
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK") {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === targetUser.id ? { ...u, is_active: nextActive } : u))
-        );
-      } else {
-        alert(err.message || "Failed to update user status");
-      }
+      setActionError(err.message || "Failed to update user status");
     }
   };
 
   const handleRoleChange = async (targetUser, newRole) => {
     if (targetUser.id === currentAdmin?.id && newRole !== "admin") {
-      alert("You cannot demote your own administrative account.");
+      setActionError("You cannot demote your own administrative account.");
       return;
     }
+    setActionError("");
     try {
       await apiClient.patch(`/admin/users/${targetUser.id}`, { role: newRole });
       setUsers((prev) =>
         prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
       );
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK") {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
-        );
-      } else {
-        alert(err.message || "Failed to update user role");
-      }
+      setActionError(err.message || "Failed to update user role");
     }
   };
 
@@ -214,23 +162,20 @@ export function Users() {
     if (!window.confirm(`Reset password for ${targetUser.email}? A new temporary password will be generated.`)) {
       return;
     }
+    setActionError("");
     try {
       const res = await apiClient.post(`/admin/users/${targetUser.id}/reset-password`);
+      if (!res.data?.temporary_password) {
+        setActionError("Password reset succeeded on server, but no temporary password was returned.");
+        return;
+      }
       setRevealModal({
         title: "Password Reset Completed",
         email: targetUser.email,
-        tempPassword: res.data?.temporary_password || "ResetSecret@123",
+        tempPassword: res.data.temporary_password,
       });
     } catch (err) {
-      if (!err.response || err.code === "ERR_NETWORK") {
-        setRevealModal({
-          title: "Password Reset Completed (Demo Preview)",
-          email: targetUser.email,
-          tempPassword: "DemoReset@123",
-        });
-      } else {
-        alert(err.message || "Failed to reset password");
-      }
+      setActionError(err.message || "Failed to reset password");
     }
   };
 
@@ -313,6 +258,23 @@ export function Users() {
           </div>
         </div>
       </Card>
+
+      {/* Action Error Alert */}
+      {actionError && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center justify-between gap-3"
+        >
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError("")}
+            className="text-rose-700 hover:text-rose-900 font-bold cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Users Table */}
       <Card variant="white" className="border-slate-200 shadow-xs overflow-hidden">

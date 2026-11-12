@@ -287,6 +287,7 @@ export function Dashboard() {
   const {
     remediations: batchRemediations,
     loading: remediationsLoading,
+    error: remediationsError,
     refetch: refetchBatchRemediations,
   } = useBatchRemediations(selectedBatchId);
 
@@ -473,18 +474,52 @@ export function Dashboard() {
     );
   }, [effectiveLeaderboard, searchQuery]);
 
-  // Computed summary values
-  const enrolledCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.trainee_count ?? 24);
-  const avgScore = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "-" : summary?.avg_score_pct ? summary.avg_score_pct.toFixed(1) : "78.4";
-  const passRate = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? "-" : summary?.pass_rate_pct ? summary.pass_rate_pct.toFixed(1) : "87.5";
-  const sessionCount = isDemoLoading ? "..." : isDemoEmpty || isDemoError ? 0 : (summary?.session_count ?? 142);
-  const scoreChange = summary?.avg_score_change_pct ?? 5.2;
+  // Computed summary values (strictly distinguish loading, error, 0 records, and uncalculated metrics)
+  const isSummaryLoadingState = Boolean(isDemoLoading || summaryLoading);
+  const isSummaryFailedState = Boolean(isDemoError || summaryError);
+  const isSummaryReadyState = !isSummaryLoadingState && !isSummaryFailedState && !isDemoEmpty;
+  const hasEvaluations =
+    isSummaryReadyState &&
+    typeof summary?.session_count === "number" &&
+    summary.session_count > 0;
+
+  const enrolledCount = isSummaryLoadingState
+    ? "..."
+    : isSummaryFailedState
+    ? "—"
+    : isDemoEmpty
+    ? 0
+    : typeof summary?.trainee_count === "number"
+    ? summary.trainee_count
+    : "—";
+  const sessionCount = isSummaryLoadingState
+    ? "..."
+    : isSummaryFailedState
+    ? "—"
+    : isDemoEmpty
+    ? 0
+    : typeof summary?.session_count === "number"
+    ? summary.session_count
+    : "—";
+  const avgScoreDisplay = isSummaryLoadingState
+    ? "..."
+    : isSummaryFailedState || !hasEvaluations || typeof summary?.avg_score_pct !== "number"
+    ? "—"
+    : `${summary.avg_score_pct.toFixed(1)}%`;
+  const passRateDisplay = isSummaryLoadingState
+    ? "..."
+    : isSummaryFailedState || !hasEvaluations || typeof summary?.pass_rate_pct !== "number"
+    ? "—"
+    : `${summary.pass_rate_pct.toFixed(1)}%`;
+  const scoreChange =
+    hasEvaluations && typeof summary?.avg_score_change_pct === "number"
+      ? summary.avg_score_change_pct
+      : null;
 
   const passingEvaluations = useMemo(() => {
-    if (!summary || typeof summary.session_count !== "number" || summary.session_count === 0) return 0;
-    const rate = typeof summary.pass_rate_pct === "number" ? summary.pass_rate_pct : 87.5;
-    return Math.round((rate / 100) * summary.session_count);
-  }, [summary]);
+    if (!hasEvaluations || typeof summary?.pass_rate_pct !== "number") return null;
+    return Math.round((summary.pass_rate_pct / 100) * summary.session_count);
+  }, [hasEvaluations, summary]);
 
   // Ranked attention queue sorted by severity (critical first)
   const sortedAttentionQueue = useMemo(() => {
@@ -542,15 +577,24 @@ export function Dashboard() {
   // Arc length for r=70 is pi * 70 = 219.91
   const ARC_TOTAL = 219.91;
   const masteryArcProps = useMemo(() => {
-    const excellent = bands?.find((b) => b.label?.toLowerCase().includes("excellent"))?.percent || 45.8;
-    const average = bands?.find((b) => b.label?.toLowerCase().includes("competent") || b.label?.toLowerCase().includes("average"))?.percent || 41.7;
-    const struggling = bands?.find((b) => b.label?.toLowerCase().includes("struggling") || b.label?.toLowerCase().includes("remediation"))?.percent || 12.5;
+    const excellentRaw = effectiveBands?.find((b) => b.label?.toLowerCase().includes("excellent"))?.percent;
+    const averageRaw = effectiveBands?.find((b) => b.label?.toLowerCase().includes("competent") || b.label?.toLowerCase().includes("average"))?.percent;
+    const strugglingRaw = effectiveBands?.find((b) => b.label?.toLowerCase().includes("struggling") || b.label?.toLowerCase().includes("remediation"))?.percent;
+
+    const excellent = typeof excellentRaw === "number" ? excellentRaw : 0;
+    const average = typeof averageRaw === "number" ? averageRaw : 0;
+    const struggling = typeof strugglingRaw === "number" ? strugglingRaw : 0;
+    const hasCalculatedBands =
+      Array.isArray(effectiveBands) &&
+      effectiveBands.length > 0 &&
+      (excellent + average + struggling > 0 || effectiveBands.some((b) => (b.count ?? 0) > 0));
 
     const lenExc = (excellent / 100) * ARC_TOTAL;
     const lenAvg = (average / 100) * ARC_TOTAL;
     const lenStr = (struggling / 100) * ARC_TOTAL;
 
     return {
+      hasCalculatedBands,
       excellent,
       average,
       struggling,
@@ -558,7 +602,7 @@ export function Dashboard() {
       lenAvg,
       lenStr,
     };
-  }, [bands]);
+  }, [effectiveBands]);
 
   // Load curriculum modules for real remediation assignment
   useEffect(() => {
@@ -929,30 +973,59 @@ export function Dashboard() {
                 <Info className="w-3 h-3 text-[#A2998A]" />
               </div>
             </div>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-0.5 ${
-                scoreChange >= 0
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-rose-50 text-rose-700 border-rose-200"
-              }`}
-            >
-              {scoreChange >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-              {scoreChange >= 0 ? `+${scoreChange} pts` : `${scoreChange} pts`}
-            </span>
+            {isSummaryFailedState ? (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border bg-rose-50 text-rose-700 border-rose-200">
+                Unavailable
+              </span>
+            ) : scoreChange !== null ? (
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-0.5 ${
+                  scoreChange >= 0
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-rose-50 text-rose-700 border-rose-200"
+                }`}
+              >
+                {scoreChange >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                {scoreChange >= 0 ? `+${scoreChange} pts` : `${scoreChange} pts`}
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border bg-[#FEF4E8] text-[#787063] border-[#F0E3D5]">
+                {isSummaryLoadingState ? "Loading" : "No trend"}
+              </span>
+            )}
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-[#1C1B17]">
-              {summaryLoading ? "..." : `${avgScore}%`}
+              {avgScoreDisplay}
             </div>
             <div className="text-xs text-[#787063] font-medium mt-1.5 flex items-center gap-1.5">
-              <span>Sample size:</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
-                N = {sessionCount}
-              </span>
-              <span className="text-[#A2998A]">evaluations</span>
+              {isSummaryLoadingState ? (
+                <span className="text-[#A2998A]">Loading evaluations...</span>
+              ) : isSummaryFailedState ? (
+                <>
+                  <span className="text-rose-600 font-semibold">Metrics unavailable</span>
+                  <button
+                    type="button"
+                    onClick={() => refetchSummary()}
+                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>Sample size:</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                    N = {sessionCount}
+                  </span>
+                  <span className="text-[#A2998A]">evaluations</span>
+                </>
+              )}
             </div>
             <div className="text-[11px] text-[#A2998A] mt-0.5 font-normal truncate">
-              Cross-module normalized performance
+              {isSummaryReadyState && !hasEvaluations
+                ? "Cannot calculate without graded evaluations"
+                : "Cross-module normalized performance"}
             </div>
           </div>
         </div>
@@ -977,17 +1050,38 @@ export function Dashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-[#1C1B17]">
-              {summaryLoading ? "..." : `${passRate}%`}
+              {passRateDisplay}
             </div>
             <div className="text-xs text-[#787063] font-medium mt-1.5 flex items-center gap-1.5">
-              <span>Sample size:</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
-                {passingEvaluations} of {sessionCount}
-              </span>
-              <span className="text-[#A2998A]">(N = {sessionCount})</span>
+              {isSummaryLoadingState ? (
+                <span className="text-[#A2998A]">Loading evaluations...</span>
+              ) : isSummaryFailedState ? (
+                <>
+                  <span className="text-rose-600 font-semibold">Metrics unavailable</span>
+                  <button
+                    type="button"
+                    onClick={() => refetchSummary()}
+                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </>
+              ) : hasEvaluations ? (
+                <>
+                  <span>Sample size:</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                    {passingEvaluations} of {sessionCount}
+                  </span>
+                  <span className="text-[#A2998A]">(N = {sessionCount})</span>
+                </>
+              ) : (
+                <span className="text-[#A2998A]">No graded evaluations recorded (N = {sessionCount})</span>
+              )}
             </div>
             <div className="text-[11px] text-[#A2998A] mt-0.5 font-normal truncate">
-              Evaluations meeting 60% cutoff
+              {isSummaryReadyState && !hasEvaluations
+                ? "Requires >= 1 graded evaluation to compute rate"
+                : "Evaluations meeting 60% cutoff"}
             </div>
           </div>
         </div>
@@ -1012,14 +1106,31 @@ export function Dashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-[#1C1B17]">
-              {summaryLoading ? "..." : sessionCount}
+              {sessionCount}
             </div>
             <div className="text-xs text-[#787063] font-medium mt-1.5 flex items-center gap-1.5">
-              <span>Sample size:</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
-                N = {sessionCount}
-              </span>
-              <span className="text-[#A2998A]">graded sessions</span>
+              {isSummaryLoadingState ? (
+                <span className="text-[#A2998A]">Loading ledger...</span>
+              ) : isSummaryFailedState ? (
+                <>
+                  <span className="text-rose-600 font-semibold">Metrics unavailable</span>
+                  <button
+                    type="button"
+                    onClick={() => refetchSummary()}
+                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>Sample size:</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                    N = {sessionCount}
+                  </span>
+                  <span className="text-[#A2998A]">graded sessions</span>
+                </>
+              )}
             </div>
             <div className="text-[11px] text-[#A2998A] mt-0.5 font-normal truncate">
               Total session records on ledger
@@ -1047,14 +1158,31 @@ export function Dashboard() {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-extrabold tracking-tight text-[#1C1B17]">
-              {summaryLoading ? "..." : enrolledCount}
+              {enrolledCount}
             </div>
             <div className="text-xs text-[#787063] font-medium mt-1.5 flex items-center gap-1.5">
-              <span>Sample size:</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
-                N = {enrolledCount}
-              </span>
-              <span className="text-[#A2998A]">learners</span>
+              {isSummaryLoadingState ? (
+                <span className="text-[#A2998A]">Loading roster...</span>
+              ) : isSummaryFailedState ? (
+                <>
+                  <span className="text-rose-600 font-semibold">Metrics unavailable</span>
+                  <button
+                    type="button"
+                    onClick={() => refetchSummary()}
+                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>Sample size:</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                    N = {enrolledCount}
+                  </span>
+                  <span className="text-[#A2998A]">learners</span>
+                </>
+              )}
             </div>
             <div className="text-[11px] text-[#A2998A] mt-0.5 font-medium truncate">
               Enrolled in {activeBatch?.name?.split("(")[0]?.trim() || "Selected Cohort"}
@@ -1309,6 +1437,14 @@ export function Dashboard() {
             <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#D97718]" />
             <span>Loading cohort intervention records...</span>
           </div>
+        ) : remediationsError ? (
+          <ErrorState
+            title="Interventions Unavailable"
+            message={remediationsError}
+            onRetry={() => refetchBatchRemediations()}
+            compact
+            className="py-8"
+          />
         ) : displayedRemediations.length === 0 ? (
           <div className="py-10 text-center text-xs text-[#787063] bg-[#FDF8F2] rounded-xl border border-[#F0E3D5] p-6">
             <CheckCircle2 className="w-8 h-8 text-[#D97718] mx-auto mb-2 opacity-60" />
@@ -1880,7 +2016,7 @@ export function Dashboard() {
                 onRetry={() => refetchLeaderboard()}
                 className="py-12"
               />
-            ) : effectiveLeaderboard.length === 0 ? (
+            ) : !effectiveLeaderboard || effectiveLeaderboard.length === 0 ? (
               <EmptyState
                 title="No Trainee Rankings Available"
                 description="No completed drills found for the selected cohort."
@@ -2414,7 +2550,7 @@ export function Dashboard() {
                 compact
                 className="py-8"
               />
-            ) : !effectiveBands || effectiveBands.length === 0 ? (
+            ) : !effectiveBands || effectiveBands.length === 0 || !masteryArcProps.hasCalculatedBands ? (
               <EmptyState
                 title="No Distribution Data"
                 description="No evaluation data available to calculate competency bands."
@@ -2467,7 +2603,7 @@ export function Dashboard() {
 
                   {/* Center Gauge Telemetry */}
                   <text x="100" y="80" textAnchor="middle" className="text-3xl font-black fill-slate-900 tracking-tight">
-                    {passRate}%
+                    {passRateDisplay}
                   </text>
                   <text x="100" y="98" textAnchor="middle" className="text-[9px] font-bold fill-slate-400 uppercase tracking-wider">
                     Qualified Rate

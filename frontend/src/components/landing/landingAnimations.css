@@ -1,0 +1,105 @@
+/* Custom GPU-composited motion rules for the 5U-inspired Training Analytics Portal showcase */
+
+@keyframes tiqOrbitClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tiqOrbitCounter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes tiqOrbitReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes tiqSoftFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes tiqPulseRing {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(228, 88, 38, 0.35);
+  }
+  60% {
+    box-shadow: 0 0 0 10px rgba(228, 88, 38, 0);
+  }
+}
+
+.tiq-orbit-track {
+  animation: tiqOrbitClockwise 26s linear infinite;
+  will-change: transform;
+}
+
+.tiq-orbit-track-slow {
+  animation: tiqOrbitClockwise 38s linear infinite;
+  will-change: transform;
+}
+
+.tiq-orbit-badge-upright {
+  animation: tiqOrbitCounter 26s linear infinite;
+  will-change: transform;
+}
+
+.tiq-orbit-badge-upright-slow {
+  animation: tiqOrbitCounter 38s linear infinite;
+  will-change: transform;
+}
+
+.tiq-float-subtle {
+  animation: tiqSoftFloat 6s ease-in-out infinite;
+}
+
+.tiq-pulse-dot {
+  animation: tiqPulseRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.tiq-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tiq-reveal.tiq-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tiq-orbit-track,
+  .tiq-orbit-track-slow,
+  .tiq-orbit-badge-upright,
+  .tiq-orbit-badge-upright-slow,
+  .tiq-float-subtle,
+  .tiq-pulse-dot {
+    animation: none !important;
+  }
+
+  .tiq-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
