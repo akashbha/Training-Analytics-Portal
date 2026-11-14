@@ -28,7 +28,11 @@ class Settings(BaseSettings):
         default=os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
     )
     MEDIA_STORAGE_PATH: str = Field(
-        default=os.getenv("MEDIA_STORAGE_PATH", r"C:\Users\anmol\Downloads\devops shi\Docker Course")
+        default=os.getenv(
+            "MEDIA_STORAGE_PATH",
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "media", "Docker Course"))
+        ),
+        description="Directory containing course video and media assets"
     )
 
     @property
