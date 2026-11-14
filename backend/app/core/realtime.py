@@ -1,5 +1,6 @@
 """WebSocket real-time connection manager and role-based event broadcaster.
-Maintains active socket sessions, enforces 5-connection concurrency limits, and sanitizes payloads per role.
+Maintains active socket sessions, enforces 5-connection concurrency limits, cohort-scoped event routing,
+and instant connection severance upon user token revocation or deactivation.
 """
 
 # NOTE ON HORIZONTAL SCALING:
@@ -11,7 +12,7 @@ Maintains active socket sessions, enforces 5-connection concurrency limits, and 
 import asyncio
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import WebSocket, WebSocketDisconnect
@@ -23,16 +24,17 @@ HEARTBEAT_INTERVAL_SECONDS = 30
 
 @dataclass
 class ClientSession:
-    """Represents an active client WebSocket session with security context."""
+    """Represents an active client WebSocket session with security and cohort context."""
     websocket: WebSocket
     user_id: int
     role: str
     trainee_id: Optional[int]
     connected_at: datetime
+    assigned_batch_ids: List[int] = field(default_factory=list)
     ping_task: Optional[asyncio.Task] = None
 
 class ConnectionManager:
-    """Central WebSocket hub managing user sockets, pings, and role-filtered broadcasts."""
+    """Central WebSocket hub managing user sockets, pings, cohort-isolated routing, and revocation severance."""
     def __init__(self):
         self.active_sessions: List[ClientSession] = []
         self._lock = asyncio.Lock()
@@ -44,9 +46,10 @@ class ConnectionManager:
         websocket: WebSocket,
         user_id: int,
         role: str,
-        trainee_id: Optional[int]
+        trainee_id: Optional[int],
+        assigned_batch_ids: Optional[List[int]] = None
     ) -> ClientSession:
-        """Accepts verified WebSocket, enforces per-user concurrency limit, and starts heartbeat."""
+        """Accepts verified WebSocket, enforces per-user concurrency limit, binds cohort scope, and starts heartbeat."""
         async with self._lock:
             # Enforce max 5 connections per user: close oldest if limit reached
             user_sessions = [s for s in self.active_sessions if s.user_id == user_id]
@@ -69,12 +72,13 @@ class ConnectionManager:
                 user_id=user_id,
                 role=role,
                 trainee_id=trainee_id,
+                assigned_batch_ids=assigned_batch_ids or [],
                 connected_at=datetime.now(timezone.utc)
             )
             # Start background 30s heartbeat ping
             session.ping_task = asyncio.create_task(self._heartbeat_loop(session))
             self.active_sessions.append(session)
-            logger.info("WebSocket connected for user_id=%s, role=%s", user_id, role)
+            logger.info("WebSocket connected for user_id=%s, role=%s, batches=%s", user_id, role, session.assigned_batch_ids)
             return session
 
     async def disconnect(self, websocket: WebSocket) -> None:
@@ -87,20 +91,68 @@ class ConnectionManager:
                 self.active_sessions.remove(target)
                 logger.info("WebSocket disconnected for user_id=%s", target.user_id)
 
+    async def disconnect_user(
+        self,
+        user_id: int,
+        reason: str = "Session terminated",
+        close_code: int = 4401
+    ) -> None:
+        """Forcibly closes and evicts all active WebSocket connections for a revoked or deactivated user."""
+        async with self._lock:
+            to_close = [s for s in self.active_sessions if s.user_id == user_id]
+            for s in to_close:
+                try:
+                    if s.ping_task and not s.ping_task.done():
+                        s.ping_task.cancel()
+                    await s.websocket.close(code=close_code, reason=reason)
+                except Exception as exc:
+                    logger.warning("Error closing WebSocket for user_id=%s: %s", user_id, exc)
+                if s in self.active_sessions:
+                    self.active_sessions.remove(s)
+            if to_close:
+                logger.info("Severed %s active WebSocket session(s) for user_id=%s (%s)", len(to_close), user_id, reason)
+
     async def broadcast(self, event: Dict[str, Any]) -> None:
-        """Broadcasts event across active connections with role-scoped privacy filtering."""
+        """Broadcasts event across active connections with strict cohort and role-scoped privacy filtering."""
         dead_sessions: List[ClientSession] = []
 
         # Iterate over a snapshot of active connections
         for session in list(self.active_sessions):
             try:
-                # 1. Trainers and Admins receive all events unmodified
-                if session.role in ("trainer", "admin"):
+                # 1. Admins receive all events across the entire platform
+                if session.role == "admin":
                     await session.websocket.send_json(event)
                     self.messages_sent += 1
                     continue
 
-                # 2. Trainees receive ONLY events relevant to their own trainee_id
+                # 2. Trainers receive ONLY events originating from their assigned cohort batches
+                if session.role == "trainer":
+                    event_batch_id = event.get("batch_id")
+                    event_batch_ids = event.get("batch_ids")
+
+                    # Single-batch event (e.g. session_created, session_deleted)
+                    if event_batch_id is not None:
+                        if event_batch_id in session.assigned_batch_ids:
+                            await session.websocket.send_json(event)
+                            self.messages_sent += 1
+                        continue
+
+                    # Multi-batch event (e.g. sessions_bulk_created)
+                    if event_batch_ids is not None:
+                        common = [b for b in event_batch_ids if b in session.assigned_batch_ids]
+                        if common:
+                            scoped_event = dict(event)
+                            scoped_event["batch_ids"] = common
+                            await session.websocket.send_json(scoped_event)
+                            self.messages_sent += 1
+                        continue
+
+                    # System events without batch scoping delivered to trainers
+                    await session.websocket.send_json(event)
+                    self.messages_sent += 1
+                    continue
+
+                # 3. Trainees receive ONLY events relevant to their own individual trainee_id
                 if session.role == "trainee" and session.trainee_id is not None:
                     event_type = event.get("type")
 
@@ -163,3 +215,18 @@ class ConnectionManager:
         }
 
 manager = ConnectionManager()
+
+def disconnect_user_sync(user_id: int, reason: str = "Session terminated", close_code: int = 4401) -> None:
+    """Synchronous trigger to evict all WebSocket sessions for a user upon revocation or deactivation."""
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(manager.disconnect_user(user_id, reason, close_code))
+    except RuntimeError:
+        import threading
+        def _run():
+            try:
+                asyncio.run(manager.disconnect_user(user_id, reason, close_code))
+            except Exception:
+                pass
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()

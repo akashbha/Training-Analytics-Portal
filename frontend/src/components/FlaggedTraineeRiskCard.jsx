@@ -15,7 +15,7 @@ import {
 import { apiClient } from "../api/client.js";
 import { LoadingState } from "./states/LoadingState.jsx";
 import { ErrorState } from "./states/ErrorState.jsx";
-import { PASS_THRESHOLD, COLD_START_CUTOFF } from "../constants/thresholds.js";
+import { PASS_THRESHOLD, COLD_START_CUTOFF, ML_ADVISORY_DISCLAIMER } from "../constants/thresholds.js";
 
 export function formatThresholdWithUnit(risk) {
   if (!risk) return "";
@@ -83,7 +83,7 @@ function getRiskSeverity(item, riskData) {
 
   return {
     label: "Cold Start Watch",
-    bg: "bg-[#FEF4E8] text-[#D97718] border-[#FBD1A7]",
+    bg: "bg-[#FEF4E8] text-[#B45309] border-[#FBD1A7]",
     dot: "bg-[#F09A3E]",
   };
 }
@@ -134,6 +134,12 @@ export function FlaggedTraineeRiskCard({
   }, [traineeName]);
 
   const isMl = riskData?.method === "ml";
+  const isServiceUnavailable =
+    riskData?.service_status === "unavailable" ||
+    (riskData?.reason &&
+      (riskData.reason.toLowerCase().includes("unreachable") ||
+        riskData.reason.toLowerCase().includes("timed out") ||
+        riskData.reason.toLowerCase().includes("service returned status")));
   const sev = getRiskSeverity(trainee, riskData);
 
   const plainReason = useMemo(() => {
@@ -146,8 +152,11 @@ export function FlaggedTraineeRiskCard({
     if (isMl) {
       return "Flagged by Random Forest model v1.0 based on session trajectories and score variance.";
     }
+    if (isServiceUnavailable) {
+      return "Advisory ML service is unavailable. Evaluated using deterministic passing cutoff; model inference unavailable.";
+    }
     return `Trainee has ${sessionCountVal} session(s) logged (minimum 5 required for ML inference); evaluated using deterministic 60% passing cutoff.`;
-  }, [riskData, trainee, isMl, sessionCountVal]);
+  }, [riskData, trainee, isMl, isServiceUnavailable, sessionCountVal]);
 
   const handleRowClick = () => {
     if (traineeId) {
@@ -263,7 +272,7 @@ export function FlaggedTraineeRiskCard({
               <Link
                 to={`/trainees/${traineeId}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-base font-extrabold text-[#1C1B17] hover:text-[#D97718] transition-colors tracking-tight"
+                className="text-base font-extrabold text-[#1C1B17] hover:text-[#B45309] transition-colors tracking-tight"
               >
                 {traineeName}
               </Link>
@@ -276,7 +285,7 @@ export function FlaggedTraineeRiskCard({
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#787063] font-medium mt-1">
-              <span className="font-mono text-[11px] bg-[#FEF4E8] text-[#D97718] px-2 py-0.5 rounded-md border border-[#FBD1A7]/60 font-bold">
+              <span className="font-mono text-[11px] bg-[#FEF4E8] text-[#B45309] px-2 py-0.5 rounded-md border border-[#FBD1A7]/60 font-bold">
                 N = {sessionCountVal} sessions
               </span>
               {recentScore != null && (
@@ -322,7 +331,7 @@ export function FlaggedTraineeRiskCard({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FEF4E8] text-[#1C1B17] border border-[#F0E3D5] text-xs font-bold shadow-2xs transition-all cursor-pointer"
             title={`Direct message ${traineeName}`}
           >
-            <MessageSquare className="w-3.5 h-3.5 text-[#D97718]" />
+            <MessageSquare className="w-3.5 h-3.5 text-[#B45309]" />
             <span>Message</span>
           </button>
 
@@ -338,34 +347,61 @@ export function FlaggedTraineeRiskCard({
         </div>
       </div>
 
-      {/* 2. Method Badge and Honest Plain Reason Sentence */}
+      {/* 2. Method Badge, Advisory Governance Badge, and Honest Plain Reason Sentence */}
       <div className="mt-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isMl ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#1C1B17] text-white border border-[#272520] shadow-2xs">
               <BrainCircuit className="w-3.5 h-3.5 text-[#F09A3E]" />
               <span>ML Model (Random Forest v1.0)</span>
             </span>
+          ) : isServiceUnavailable ? (
+            <span
+              data-testid="service-unavailable-badge"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300 shadow-2xs"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+              <span>Advisory Service Unavailable — Heuristic Fallback</span>
+            </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FEF4E8] text-[#D97718] border border-[#FBD1A7]">
-              <ShieldAlert className="w-3.5 h-3.5 text-[#D97718]" />
-              <span>Rule Fallback (Cold Start)</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7]">
+              <ShieldAlert className="w-3.5 h-3.5 text-[#B45309]" />
+              <span>Rule Fallback (Cold Start: &lt; 5 Sessions)</span>
             </span>
           )}
+
+          <span
+            data-testid="advisory-badge"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs"
+            title="Non-autonomous decision support: all interventions require human trainer review and authorization"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+            <span>Advisory Only — Trainer Oversight Required</span>
+          </span>
 
           <span className="text-[11px] text-[#A2998A] font-medium hidden sm:inline">
             {isMl
               ? "Inference evaluated via dedicated ML microservice"
+              : isServiceUnavailable
+              ? "Advisory ML service offline; deterministic rule active"
               : "Rule fallback active: trainee has fewer than 5 evaluations"}
           </span>
         </div>
 
         {/* Plain Reason Sentence */}
         <div className="mt-2.5 p-3.5 bg-[#FDF8F2] rounded-xl border border-[#F0E3D5] flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-[#D97718] shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
           <p className="text-xs sm:text-sm text-[#4A443B] font-medium leading-relaxed">
             {plainReason}
           </p>
+        </div>
+
+        {/* Advisory Governance Notice Strip */}
+        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#8C8272] px-1 font-medium">
+          <Info className="w-3.5 h-3.5 text-[#B45309] shrink-0" />
+          <span>
+            {riskData?.advisory_disclaimer || ML_ADVISORY_DISCLAIMER}
+          </span>
         </div>
       </div>
 
@@ -376,7 +412,7 @@ export function FlaggedTraineeRiskCard({
           <div className="p-3.5 bg-[#FAF6F0] rounded-xl border border-[#F0E3D5] flex flex-col justify-between">
             <div className="text-[11px] font-semibold text-[#787063] uppercase tracking-wider flex items-center justify-between">
               <span>Model Probability</span>
-              <span className="text-[10px] text-[#D97718] font-bold uppercase tracking-wider">
+              <span className="text-[10px] text-[#B45309] font-bold uppercase tracking-wider">
                 ML Inference
               </span>
             </div>
@@ -460,7 +496,7 @@ export function FlaggedTraineeRiskCard({
                     </div>
                   </div>
                   <div className="text-right pl-3 shrink-0">
-                    <span className="text-xs font-extrabold text-[#D97718] font-mono">
+                    <span className="text-xs font-extrabold text-[#B45309] font-mono">
                       {importancePct}%
                     </span>
                     <span className="block text-[9px] uppercase tracking-wider text-[#A2998A] font-medium">

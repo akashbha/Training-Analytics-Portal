@@ -83,7 +83,7 @@ export function StatCard({
       </div>
 
       <div className="mt-3">
-        <div className="text-3xl font-extrabold tracking-tight transition-transform duration-300 text-slate-900">
+        <div className="text-3xl font-extrabold tracking-tight tabular-nums transition-transform duration-300 text-slate-900">
           {value !== null && value !== undefined ? value : "—"}
         </div>
         {subtext && (

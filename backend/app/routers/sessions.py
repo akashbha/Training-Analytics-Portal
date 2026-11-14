@@ -8,7 +8,13 @@ from fastapi import APIRouter, Depends, Query, UploadFile, File, status
 from fastapi.responses import Response, JSONResponse
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user, require_staff, verify_batch_access
+from app.core.deps import (
+    get_db,
+    get_current_user,
+    require_staff,
+    verify_batch_access,
+    verify_trainee_cohort_access,
+)
 from app.core.exceptions import AppException
 from app.schemas.session import (
     SessionCreate,
@@ -23,6 +29,7 @@ from app.services.audit_service import record_audit_log
 from app.models.user import User
 from app.models.session import Session as SessionModel
 from app.models.session_note import SessionNote
+from app.models.batch_trainer import BatchTrainer
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
@@ -51,10 +58,14 @@ def list_sessions(
     batch_id: Optional[int] = Query(None, description="Filter by batch ID"),
     from_date: Optional[date] = Query(None, alias="from", description="Filter from date (inclusive)"),
     to_date: Optional[date] = Query(None, alias="to", description="Filter to date (inclusive)"),
+    is_practice: Optional[bool] = Query(None, description="Filter by practice status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieves paginated sessions. Trainees are constrained strictly to their own session records."""
+    """Retrieves paginated sessions. Trainees are constrained strictly to their own session records.
+    Trainers are constrained strictly to cohorts they are assigned to.
+    """
+    batch_ids = None
     if current_user.role not in ("trainer", "admin"):
         if trainee_id is not None and trainee_id != current_user.trainee_id:
             raise AppException(
@@ -63,8 +74,28 @@ def list_sessions(
                 status_code=403
             )
         trainee_id = current_user.trainee_id
-    elif batch_id is not None and current_user.role == "trainer":
-        verify_batch_access(batch_id, current_user, db)
+        if batch_id is not None:
+            verify_batch_access(batch_id, current_user, db)
+    elif current_user.role == "trainer":
+        if trainee_id is not None:
+            verify_trainee_cohort_access(trainee_id, current_user, db)
+        assigned_ids = [
+            r[0] for r in db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == current_user.id).all()
+        ]
+        if batch_id is not None:
+            from app.models.batch import Batch
+            existing_batch = db.query(Batch).filter(Batch.id == batch_id).first()
+            if existing_batch and batch_id not in assigned_ids:
+                raise AppException(
+                    code="FORBIDDEN_COHORT_ACCESS",
+                    message="Trainers are restricted to viewing only their assigned cohort batches",
+                    status_code=403,
+                )
+            if not existing_batch:
+                service = SessionService(db)
+                return service.list_sessions(page=page, page_size=page_size, batch_ids=[])
+        else:
+            batch_ids = assigned_ids
 
     service = SessionService(db)
     return service.list_sessions(
@@ -73,8 +104,10 @@ def list_sessions(
         trainee_id=trainee_id,
         module_id=module_id,
         batch_id=batch_id,
+        batch_ids=batch_ids,
         from_date=from_date,
-        to_date=to_date
+        to_date=to_date,
+        is_practice=is_practice
     )
 
 @router.get("/{session_id}", response_model=SessionResponse)
@@ -83,17 +116,10 @@ def get_session(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieves single session details. Scoped to the session owner if requester is a trainee."""
+    """Retrieves single session details (enforcing trainee ownership or assigned trainer cohort access)."""
     service = SessionService(db)
     session = service.get_session(session_id)
-
-    if current_user.role not in ("trainer", "admin") and session.trainee_id != current_user.trainee_id:
-        raise AppException(
-            code="FORBIDDEN_RESOURCE_ACCESS",
-            message="Trainees are restricted to viewing only their own session records",
-            status_code=403
-        )
-
+    verify_trainee_cohort_access(session.trainee_id, current_user, db)
     return session
 
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
@@ -102,9 +128,12 @@ def create_session(
     db: Session = Depends(get_db),
     staff: User = Depends(require_staff)
 ):
-    """Submits a single assessment session. Enforces score <= module.max_score and sets created_by (Staff only)."""
+    """Submits a single assessment session (Staff only, scoped to assigned cohort for trainers).
+    Always creates an official graded session with is_practice=False.
+    """
+    verify_trainee_cohort_access(payload.trainee_id, staff, db)
     service = SessionService(db)
-    return service.create_session(payload, created_by=staff.id)
+    return service.create_session(payload, created_by=staff.id, is_practice=False)
 
 @router.post("/practice", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 def submit_practice_drill(
@@ -112,7 +141,9 @@ def submit_practice_drill(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Allows authenticated trainees to submit an interactive self-assessment practice drill."""
+    """Allows authenticated trainees to submit an interactive self-assessment practice drill.
+    Strictly isolated with is_practice=True so practice drills cannot contaminate official cohort analytics.
+    """
     if current_user.role == "trainee":
         if payload.trainee_id != current_user.trainee_id:
             raise AppException(
@@ -121,7 +152,7 @@ def submit_practice_drill(
                 status_code=403
             )
     service = SessionService(db)
-    return service.create_session(payload, created_by=current_user.id, check_db_duplicate=False)
+    return service.create_session(payload, created_by=current_user.id, check_db_duplicate=False, is_practice=True)
 
 @router.put("/{session_id}", response_model=SessionResponse)
 def update_session(
@@ -131,6 +162,13 @@ def update_session(
     staff: User = Depends(require_staff)
 ):
     """Updates an existing assessment session metrics and writes audit log (Staff only)."""
+    existing_session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not existing_session:
+        raise AppException(code="SESSION_NOT_FOUND", message=f"Session with ID {session_id} not found", status_code=404)
+    verify_trainee_cohort_access(existing_session.trainee_id, staff, db)
+    if payload.trainee_id != existing_session.trainee_id:
+        verify_trainee_cohort_access(payload.trainee_id, staff, db)
+
     service = SessionService(db)
     return service.update_session(session_id, payload, user=staff)
 
@@ -140,7 +178,12 @@ def delete_session(
     db: Session = Depends(get_db),
     staff: User = Depends(require_staff)
 ):
-    """Deletes session. Trainers can delete only sessions they created; Admins can delete any."""
+    """Deletes session. Trainers can delete only sessions they created in assigned cohorts; Admins can delete any."""
+    existing_session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not existing_session:
+        raise AppException(code="SESSION_NOT_FOUND", message=f"Session with ID {session_id} not found", status_code=404)
+    verify_trainee_cohort_access(existing_session.trainee_id, staff, db)
+
     service = SessionService(db)
     service.delete_session(session_id, user=staff)
     return None
@@ -256,6 +299,7 @@ def create_session_note(
             message=f"Session with ID {session_id} not found",
             status_code=404
         )
+    verify_trainee_cohort_access(session_obj.trainee_id, current_user, db)
 
     note = SessionNote(
         session_id=session_id,
@@ -314,14 +358,7 @@ def get_session_notes(
             status_code=404
         )
 
-    # Scoped visibility: Trainees can inspect only their own sessions
-    if current_user.role == "trainee":
-        if session_obj.trainee_id != current_user.trainee_id:
-            raise AppException(
-                code="FORBIDDEN_RESOURCE_ACCESS",
-                message="Trainees can view notes only for their own assessment sessions",
-                status_code=403
-            )
+    verify_trainee_cohort_access(session_obj.trainee_id, current_user, db)
 
     notes = (
         db.query(SessionNote)

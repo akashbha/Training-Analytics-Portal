@@ -2,6 +2,7 @@
 Provides bcrypt credential verification and signed JWT encoding/decoding with configurable expiration.
 """
 
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from jose import jwt, JWTError
@@ -22,12 +23,15 @@ def create_access_token(
     data: Dict[str, Any],
     expires_delta: Optional[timedelta] = None
 ) -> str:
-    """Encodes a signed JSON Web Token containing sub, role, trainee_id, and exp timestamp."""
+    """Encodes a signed JSON Web Token containing sub, role, trainee_id, jti, iat, and exp timestamp."""
     to_encode = data.copy()
+    now = datetime.now(timezone.utc)
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.setdefault("jti", str(uuid.uuid4()))
+    to_encode.setdefault("iat", now.timestamp())
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

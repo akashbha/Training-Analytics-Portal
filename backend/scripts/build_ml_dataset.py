@@ -138,6 +138,7 @@ def build_dataset(db: Any, output_path: Union[str, Path, None] = None) -> List[D
             db.query(AssessmentSession, Module.max_score)
             .join(Module, Module.id == AssessmentSession.module_id)
             .filter(AssessmentSession.trainee_id == trainee.id)
+            .filter((AssessmentSession.is_practice == False) | (AssessmentSession.is_practice.is_(None)))
             .order_by(AssessmentSession.created_at.asc(), AssessmentSession.id.asc())
             .all()
         )

@@ -2,16 +2,21 @@
 Applies IP rate limiting to login attempts and protects profile routes via JWT dependencies.
 """
 
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db, get_current_user, require_staff
+from app.core.deps import get_db, get_current_user, require_staff, bearer_scheme
 from app.core.rate_limit import limiter
-from app.core.security import verify_password, get_password_hash
+from app.core.security import verify_password, get_password_hash, decode_access_token
 from app.core.exceptions import AppException
+from app.core.ws_ticket import ws_tickets
+from app.core.realtime import disconnect_user_sync
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse, ChangePasswordRequest
 from app.services.auth_service import AuthService
 from app.services.audit_service import create_audit_log
+from app.services.revocation_service import revoke_token, revoke_all_user_tokens
 from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -35,6 +40,58 @@ def login(
         user=UserResponse.model_validate(user)
     )
 
+@router.post("/logout", status_code=status.HTTP_200_OK)
+def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Revokes the current JWT token via its JTI claim and severs live WebSocket sessions."""
+    raw_token = credentials.credentials
+    try:
+        payload = decode_access_token(raw_token)
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+        expires_at = datetime.fromtimestamp(exp, tz=timezone.utc) if exp else None
+    except Exception:
+        jti = None
+        expires_at = None
+
+    if jti:
+        revoke_token(
+            db=db,
+            jti=jti,
+            user_id=current_user.id,
+            expires_at=expires_at,
+            reason="logout"
+        )
+
+    disconnect_user_sync(current_user.id, reason="User logged out")
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="logout",
+        entity_type="auth",
+        entity_id=current_user.id,
+        details={"email": current_user.email, "jti": jti}
+    )
+    db.commit()
+
+    return {"message": "Logged out successfully"}
+
+@router.post("/ws-ticket", status_code=status.HTTP_200_OK)
+def get_websocket_ticket(
+    current_user: User = Depends(get_current_user)
+):
+    """Issues a short-lived (60s), single-use ticket for secure WebSocket connection without URL token leakage."""
+    ticket = ws_tickets.create_ticket(
+        user_id=current_user.id,
+        role=current_user.role,
+        trainee_id=current_user.trainee_id
+    )
+    return {"ticket": ticket, "expires_in": 60}
+
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     """Returns the authenticated user entity derived from the validated JWT token."""
@@ -43,6 +100,7 @@ def get_me(current_user: User = Depends(get_current_user)):
 @router.post("/change-password", status_code=status.HTTP_200_OK)
 def change_password(
     payload: ChangePasswordRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -63,6 +121,22 @@ def change_password(
     current_user.password_hash = get_password_hash(payload.new_password)
     db.commit()
 
+    # 1. Explicitly revoke the caller token's JTI
+    if credentials and credentials.credentials:
+        try:
+            p = decode_access_token(credentials.credentials)
+            caller_jti = p.get("jti")
+            exp = p.get("exp")
+            exp_dt = datetime.fromtimestamp(exp, tz=timezone.utc) if exp else None
+            if caller_jti:
+                revoke_token(db=db, jti=caller_jti, user_id=current_user.id, expires_at=exp_dt, reason="password_changed")
+        except Exception:
+            pass
+
+    # 2. Revoke all existing sessions for this user across all devices
+    revoke_all_user_tokens(db=db, user_id=current_user.id, reason="password_changed")
+    disconnect_user_sync(current_user.id, reason="Password changed")
+
     create_audit_log(
         db=db,
         user_id=current_user.id,
@@ -73,7 +147,7 @@ def change_password(
     )
     db.commit()
 
-    return {"message": "Password changed successfully"}
+    return {"message": "Password changed successfully. Existing sessions have been revoked."}
 
 @router.get("/trainer-only-ping")
 def trainer_only_ping(current_user: User = Depends(require_staff)):

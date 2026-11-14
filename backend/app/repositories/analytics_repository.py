@@ -5,7 +5,7 @@ Uses ANSI standard CAST() syntax to prevent SQLAlchemy bind parameter syntax col
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, or_
 from app.models.batch import Batch
 from app.models.trainee import Trainee
 from app.models.module import Module
@@ -64,6 +64,7 @@ class AnalyticsRepository:
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
                 WHERE s.trainee_id IN (SELECT id FROM cohort_trainees)
+                  AND (s.is_practice IS NULL OR s.is_practice = false)
                 {date_clauses}
             ),
             period_comparisons AS (
@@ -100,6 +101,7 @@ class AnalyticsRepository:
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
                 WHERE s.trainee_id IN (SELECT id FROM cohort_trainees)
+                  AND (s.is_practice IS NULL OR s.is_practice = 0)
                 {date_clauses}
             ),
             period_comparisons AS (
@@ -177,6 +179,7 @@ class AnalyticsRepository:
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
+                  AND (s.is_practice IS NULL OR s.is_practice = false)
             )
             SELECT 
                 to_char(series.week_start, 'YYYY-MM-DD') AS week_start_str,
@@ -210,6 +213,7 @@ class AnalyticsRepository:
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
+                  AND (s.is_practice IS NULL OR s.is_practice = 0)
             )
             SELECT 
                 ws.w_date AS week_start_str,
@@ -259,6 +263,7 @@ class AnalyticsRepository:
                     (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
+                WHERE (s.is_practice IS NULL OR s.is_practice = false)
             )
             SELECT 
                 to_char(series.week_start, 'YYYY-MM-DD') AS week_start_str,
@@ -289,6 +294,7 @@ class AnalyticsRepository:
                     (CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS score_pct
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
+                WHERE (s.is_practice IS NULL OR s.is_practice = 0)
             )
             SELECT 
                 ws.w_date AS week_start_str,
@@ -336,7 +342,7 @@ class AnalyticsRepository:
                     t.id AS trainee_id,
                     AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS avg_pct
                 FROM trainees t
-                JOIN sessions s ON s.trainee_id = t.id
+                JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = false)
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id
@@ -379,7 +385,7 @@ class AnalyticsRepository:
                     t.id AS trainee_id,
                     AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS avg_pct
                 FROM trainees t
-                JOIN sessions s ON s.trainee_id = t.id
+                JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = 0)
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id
@@ -449,7 +455,7 @@ class AnalyticsRepository:
                     ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
-                LEFT JOIN sessions s ON s.trainee_id = t.id
+                LEFT JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = false)
                 LEFT JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id, t.name
@@ -472,6 +478,7 @@ class AnalyticsRepository:
                     JOIN trainees tr ON tr.id = s.trainee_id
                     JOIN modules m ON m.id = s.module_id
                     WHERE tr.batch_id = :batch_id
+                      AND (s.is_practice IS NULL OR s.is_practice = false)
                 ) ranked_s ON ranked_s.trainee_id = t.id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id
@@ -533,7 +540,7 @@ class AnalyticsRepository:
                     ROUND(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
-                LEFT JOIN sessions s ON s.trainee_id = t.id
+                LEFT JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = 0)
                 LEFT JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id, t.name
@@ -556,6 +563,7 @@ class AnalyticsRepository:
                     JOIN trainees tr ON tr.id = s.trainee_id
                     JOIN modules m ON m.id = s.module_id
                     WHERE tr.batch_id = :batch_id
+                      AND (s.is_practice IS NULL OR s.is_practice = 0)
                 ) ranked_s ON ranked_s.trainee_id = t.id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id
@@ -651,7 +659,7 @@ class AnalyticsRepository:
                     ROUND(CAST(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)) AS NUMERIC), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
-                JOIN sessions s ON s.trainee_id = t.id
+                JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = false)
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id, t.name
@@ -669,6 +677,7 @@ class AnalyticsRepository:
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
+                  AND (s.is_practice IS NULL OR s.is_practice = false)
                 GROUP BY s.trainee_id, CAST(DATE_TRUNC('week', s.created_at) AS DATE)
             ),
             falling_check AS (
@@ -707,7 +716,7 @@ class AnalyticsRepository:
                     ROUND(AVG(CAST(s.score AS FLOAT) * 100.0 / CAST(m.max_score AS FLOAT)), 1) AS avg_score_pct,
                     COUNT(s.id) AS session_count
                 FROM trainees t
-                JOIN sessions s ON s.trainee_id = t.id
+                JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = 0)
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
                 GROUP BY t.id, t.name
@@ -725,6 +734,7 @@ class AnalyticsRepository:
                 JOIN trainees t ON t.id = s.trainee_id
                 JOIN modules m ON m.id = s.module_id
                 WHERE t.batch_id = :batch_id
+                  AND (s.is_practice IS NULL OR s.is_practice = 0)
                 GROUP BY s.trainee_id, wk
             ),
             falling_check AS (
@@ -810,6 +820,7 @@ class AnalyticsRepository:
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
                 WHERE s.trainee_id = :trainee_id
+                  AND (s.is_practice IS NULL OR s.is_practice = false)
                 {date_clauses}
             ),
             improvement_calc AS (
@@ -844,6 +855,7 @@ class AnalyticsRepository:
                 FROM sessions s
                 JOIN modules m ON m.id = s.module_id
                 WHERE s.trainee_id = :trainee_id
+                  AND (s.is_practice IS NULL OR s.is_practice = 0)
                 {date_clauses}
             ),
             improvement_calc AS (
@@ -910,6 +922,7 @@ class AnalyticsRepository:
             FROM sessions s
             JOIN modules m ON m.id = s.module_id
             WHERE s.trainee_id = :trainee_id
+              AND (s.is_practice IS NULL OR s.is_practice = false)
             {date_clauses}
             ORDER BY s.created_at ASC;
             """
@@ -924,6 +937,7 @@ class AnalyticsRepository:
             FROM sessions s
             JOIN modules m ON m.id = s.module_id
             WHERE s.trainee_id = :trainee_id
+              AND (s.is_practice IS NULL OR s.is_practice = 0)
             {date_clauses}
             ORDER BY s.created_at ASC;
             """
@@ -958,6 +972,7 @@ class AnalyticsRepository:
             FROM sessions s
             JOIN modules m ON m.id = s.module_id
             WHERE s.trainee_id = :trainee_id
+              AND (s.is_practice IS NULL OR s.is_practice = false)
             GROUP BY m.id, m.name
             ORDER BY avg_errors DESC, m.name ASC;
             """
@@ -970,6 +985,7 @@ class AnalyticsRepository:
             FROM sessions s
             JOIN modules m ON m.id = s.module_id
             WHERE s.trainee_id = :trainee_id
+              AND (s.is_practice IS NULL OR s.is_practice = 0)
             GROUP BY m.id, m.name
             ORDER BY avg_errors DESC, m.name ASC;
             """
@@ -1035,7 +1051,7 @@ class AnalyticsRepository:
                 COUNT(DISTINCT t.id) AS trainee_count
             FROM batches b
             LEFT JOIN trainees t ON t.batch_id = b.id
-            LEFT JOIN sessions s ON s.trainee_id = t.id
+            LEFT JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = false)
             LEFT JOIN modules m ON m.id = s.module_id
             GROUP BY b.id, b.name
             ORDER BY b.start_date DESC, b.name ASC;
@@ -1050,7 +1066,7 @@ class AnalyticsRepository:
                 COUNT(DISTINCT t.id) AS trainee_count
             FROM batches b
             LEFT JOIN trainees t ON t.batch_id = b.id
-            LEFT JOIN sessions s ON s.trainee_id = t.id
+            LEFT JOIN sessions s ON s.trainee_id = t.id AND (s.is_practice IS NULL OR s.is_practice = 0)
             LEFT JOIN modules m ON m.id = s.module_id
             GROUP BY b.id, b.name
             ORDER BY b.start_date DESC, b.name ASC;
@@ -1089,7 +1105,10 @@ class AnalyticsRepository:
             )
             .join(Module, Module.id == SessionModel.module_id)
             .join(Trainee, Trainee.id == SessionModel.trainee_id)
-            .filter(Trainee.batch_id == batch_id)
+            .filter(
+                Trainee.batch_id == batch_id,
+                or_(SessionModel.is_practice.is_(None), SessionModel.is_practice == False)
+            )
             .all()
         )
 
@@ -1149,7 +1168,10 @@ class AnalyticsRepository:
             sessions = (
                 self.db.query(SessionModel, Module.max_score)
                 .join(Module, Module.id == SessionModel.module_id)
-                .filter(SessionModel.trainee_id == t.id)
+                .filter(
+                    SessionModel.trainee_id == t.id,
+                    or_(SessionModel.is_practice.is_(None), SessionModel.is_practice == False)
+                )
                 .order_by(SessionModel.created_at.asc())
                 .all()
             )
@@ -1237,7 +1259,10 @@ class AnalyticsRepository:
             )
             .join(Module, Module.id == SessionModel.module_id)
             .join(Trainee, Trainee.id == SessionModel.trainee_id)
-            .filter(Trainee.batch_id == batch_id)
+            .filter(
+                Trainee.batch_id == batch_id,
+                or_(SessionModel.is_practice.is_(None), SessionModel.is_practice == False)
+            )
             .all()
         )
 

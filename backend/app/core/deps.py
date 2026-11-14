@@ -16,6 +16,7 @@ from app.models.trainee import Trainee
 from app.repositories.user_repository import UserRepository
 from app.core.security import decode_access_token
 from app.core.exceptions import AppException
+from app.services.revocation_service import is_token_revoked
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -54,10 +55,20 @@ def get_current_user(
                 headers=auth_header
             )
         user_id = int(user_id_str)
+        jti: str | None = payload.get("jti")
+        iat: int | None = payload.get("iat")
     except (JWTError, ValueError):
         raise AppException(
             code="INVALID_OR_EXPIRED_TOKEN",
             message="Authentication token is invalid or expired",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers=auth_header
+        )
+
+    if is_token_revoked(db, jti=jti, user_id=user_id, iat=iat):
+        raise AppException(
+            code="TOKEN_REVOKED",
+            message="Authentication token has been revoked",
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers=auth_header
         )

@@ -189,9 +189,9 @@ describe("Real apiClient interceptors, session lifecycle, 404 contract, and KPI 
     window.history.pushState({}, "", "/login");
     const { unmount } = render(<App />);
 
-    await user.type(screen.getByPlaceholderText("name@example.com"), TRAINER_USER.email);
-    await user.type(screen.getByPlaceholderText(/•+/), "ValidPass123!");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await user.type(screen.getByPlaceholderText(/email address|name@example\.com/i), TRAINER_USER.email);
+    await user.type(screen.getByPlaceholderText(/password|•+/i), "ValidPass123!");
+    await user.click(screen.getByRole("button", { name: /login|sign in/i }));
 
     await waitFor(() => {
       expect(localStorage.getItem("token")).toBe("live.trainer.jwt");

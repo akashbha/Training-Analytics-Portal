@@ -4,7 +4,7 @@ Records performance metrics with strict check constraints and composite indexing
 
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, Float, ForeignKey, DateTime, Index, CheckConstraint
+from sqlalchemy import Integer, Float, Boolean, ForeignKey, DateTime, Index, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
@@ -43,6 +43,12 @@ class Session(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
         index=True
+    )
+    is_practice: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        server_default=func.false()
     )
 
     trainee: Mapped["Trainee"] = relationship("Trainee", back_populates="sessions")

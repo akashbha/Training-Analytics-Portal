@@ -22,6 +22,7 @@ from app.schemas.session import (
 from app.schemas.common import PaginatedResponse
 from app.models.session import Session
 from app.models.user import User
+from app.models.batch_trainer import BatchTrainer
 from app.core.exceptions import AppException
 from app.core.constants import MAX_SESSION_TIME_SECONDS
 from app.services.notification_service import notify_session_created, notify_session_deleted
@@ -52,7 +53,8 @@ class SessionService:
             errors=s.errors,
             time_seconds=s.time_seconds,
             created_at=s.created_at,
-            created_by=s.created_by
+            created_by=s.created_by,
+            is_practice=getattr(s, "is_practice", False)
         )
 
     def list_sessions(
@@ -62,10 +64,12 @@ class SessionService:
         trainee_id: Optional[int] = None,
         module_id: Optional[int] = None,
         batch_id: Optional[int] = None,
+        batch_ids: Optional[list[int]] = None,
         from_date: Optional[date] = None,
-        to_date: Optional[date] = None
+        to_date: Optional[date] = None,
+        is_practice: Optional[bool] = None
     ) -> PaginatedResponse[SessionResponse]:
-        """Queries database for paginated sessions with relational filtering."""
+        """Queries database for paginated sessions with relational filtering and cohort scoping."""
         skip = (page - 1) * page_size
         sessions, total = self.repo.list(
             skip=skip,
@@ -73,8 +77,10 @@ class SessionService:
             trainee_id=trainee_id,
             module_id=module_id,
             batch_id=batch_id,
+            batch_ids=batch_ids,
             from_date=from_date,
-            to_date=to_date
+            to_date=to_date,
+            is_practice=is_practice
         )
         pages = (total + page_size - 1) // page_size if total > 0 else 1
         return PaginatedResponse(
@@ -135,7 +141,8 @@ class SessionService:
         self,
         session_in: SessionCreate,
         created_by: Optional[int] = None,
-        check_db_duplicate: bool = True
+        check_db_duplicate: bool = True,
+        is_practice: bool = False
     ) -> SessionResponse:
         """Validates trainee existence, module bounds, sets created_by, and enforces score <= max_score."""
         trainee = self.trainee_repo.get_by_id(session_in.trainee_id)
@@ -163,7 +170,8 @@ class SessionService:
             errors=session_in.errors,
             time_seconds=session_in.time_seconds,
             created_at=session_created_at,
-            created_by=created_by
+            created_by=created_by,
+            is_practice=is_practice
         )
         created = self.repo.create(session)
 
@@ -178,6 +186,7 @@ class SessionService:
             "score": fresh_session.score,
             "errors": fresh_session.errors,
             "time_seconds": fresh_session.time_seconds,
+            "is_practice": fresh_session.is_practice
         }
         record_audit_log(
             db=self.db,
@@ -328,6 +337,15 @@ class SessionService:
         row_errors: List[BulkRowError] = []
         valid_sessions: List[Session] = []
 
+        # Scope trainer uploads strictly to assigned cohorts
+        assigned_batch_ids = None
+        if created_by:
+            creator_user = self.db.query(User).filter(User.id == created_by).first()
+            if creator_user and creator_user.role == "trainer":
+                assigned_batch_ids = {
+                    r[0] for r in self.db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == creator_user.id).all()
+                }
+
         # Cache lookups for high ingestion performance
         trainee_cache = {}
         module_cache = {}
@@ -350,6 +368,10 @@ class SessionService:
             trainee = trainee_cache[trainee_email]
             if not trainee:
                 row_errors.append(BulkRowError(row=row_index, message=f"Trainee with email '{trainee_email}' not found"))
+                continue
+
+            if assigned_batch_ids is not None and trainee.batch_id not in assigned_batch_ids:
+                row_errors.append(BulkRowError(row=row_index, message=f"Trainer is not assigned to cohort for trainee '{trainee_email}'"))
                 continue
 
             # 2. Resolve Module
@@ -466,6 +488,15 @@ class SessionService:
         module_cache: Dict[str, Any] = {}
         file_seen_keys: Set[Tuple[int, int, date]] = set()
 
+        # Scope trainer imports strictly to assigned cohorts
+        assigned_batch_ids = None
+        if created_by:
+            creator_user = self.db.query(User).filter(User.id == created_by).first()
+            if creator_user and creator_user.role == "trainer":
+                assigned_batch_ids = {
+                    r[0] for r in self.db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == creator_user.id).all()
+                }
+
         detailed_rows: List[ImportRowDetail] = []
         error_rows: List[ImportRowDetail] = []
         sessions_to_insert: List[Session] = []
@@ -536,6 +567,8 @@ class SessionService:
                     trainee = trainee_cache[email_lower]
                     if not trainee:
                         row_error = f"Trainee with email '{trainee_email}' not found"
+                    elif assigned_batch_ids is not None and trainee.batch_id not in assigned_batch_ids:
+                        row_error = f"Trainer is not assigned to cohort for trainee '{trainee_email}'"
 
             # Resolve Module
             module = None

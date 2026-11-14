@@ -236,7 +236,7 @@ def test_session_audit_lifecycle(client, db_session):
         AuditLog.entity_type == "session",
         AuditLog.entity_id == session_id,
         AuditLog.action == "create"
-    ).first()
+    ).order_by(AuditLog.id.desc()).first()
     assert c_log is not None
     assert c_log.actor_id == 10
     assert c_log.before is None
@@ -259,7 +259,7 @@ def test_session_audit_lifecycle(client, db_session):
         AuditLog.entity_type == "session",
         AuditLog.entity_id == session_id,
         AuditLog.action == "update"
-    ).first()
+    ).order_by(AuditLog.id.desc()).first()
     assert u_log is not None
     assert u_log.actor_id == 10
     assert u_log.before is not None
@@ -275,7 +275,7 @@ def test_session_audit_lifecycle(client, db_session):
         AuditLog.entity_type == "session",
         AuditLog.entity_id == session_id,
         AuditLog.action == "delete"
-    ).first()
+    ).order_by(AuditLog.id.desc()).first()
     assert d_log is not None
     assert d_log.actor_id == 10
     assert d_log.before is not None

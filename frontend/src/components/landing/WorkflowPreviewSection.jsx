@@ -174,7 +174,7 @@ export function WorkflowPreviewSection({ onInspectArchitecture }) {
           <span className="inline-block px-3 py-1 rounded-md bg-[#EAE7E1] text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
             COHORT GOVERNANCE
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1C1B17] leading-tight">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#1C1B17] leading-tight">
             Configure Remediation Flows in Minutes
           </h2>
           <p className="text-sm sm:text-base text-[#5C5549] leading-relaxed max-w-lg">
@@ -193,7 +193,7 @@ export function WorkflowPreviewSection({ onInspectArchitecture }) {
           <span className="inline-block px-3 py-1 rounded-md bg-[#EAE7E1] text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
             SIGNAL PIPELINE
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1C1B17] leading-tight">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#1C1B17] leading-tight">
             Turn Raw Drills Into Guided Action
           </h2>
           <p className="text-sm sm:text-base text-[#5C5549] leading-relaxed">

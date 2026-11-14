@@ -45,6 +45,41 @@
   }
 }
 
+@keyframes tiqLaserBeam {
+  0% {
+    opacity: 0.35;
+    transform: scaleY(0.85);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scaleY(1.05);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scaleY(0.85);
+  }
+}
+
+@keyframes tiqGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(228, 88, 38, 0.65));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(228, 88, 38, 0.95));
+    transform: scale(1.06);
+  }
+}
+
+.tiq-laser-beam {
+  animation: tiqLaserBeam 2.2s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.tiq-glow-core {
+  animation: tiqGlowPulse 3s ease-in-out infinite;
+}
+
 .tiq-orbit-track {
   animation: tiqOrbitClockwise 26s linear infinite;
   will-change: transform;

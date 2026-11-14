@@ -13,6 +13,7 @@ from app.models.batch import Batch
 from app.models.trainee import Trainee
 from app.models.module import Module
 from app.models.user import User
+from app.models.batch_trainer import BatchTrainer
 
 @pytest.fixture
 def realtime_dataset(db_session):
@@ -49,6 +50,10 @@ def realtime_dataset(db_session):
         trainee_id=t_bob.id
     )
     db_session.add_all([u_trainer, u_alice, u_bob])
+    db_session.flush()
+
+    bt = BatchTrainer(batch_id=batch.id, trainer_id=u_trainer.id)
+    db_session.add(bt)
     db_session.commit()
 
     trainer_token = create_access_token(data={"sub": str(u_trainer.id), "role": "trainer", "trainee_id": None})
@@ -67,6 +72,10 @@ def realtime_dataset(db_session):
             "trainer_headers": {"Authorization": f"Bearer {trainer_token}"},
         }
     finally:
+        try:
+            db_session.delete(bt)
+        except Exception:
+            pass
         for u in [u_trainer, u_alice, u_bob]:
             try:
                 db_session.delete(u)

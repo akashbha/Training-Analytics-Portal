@@ -12,7 +12,7 @@ function getCategoryPill(name = "") {
     return { label: "DevOps & Infra", bg: "bg-[#1C1B17] text-[#F09A3E] border-[#272520]" };
   }
   if (n.includes("fastapi") || n.includes("rest") || n.includes("security") || n.includes("auth")) {
-    return { label: "Backend API", bg: "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]" };
+    return { label: "Backend API", bg: "bg-[#FEF0E1] text-[#B45309] border-[#FBD1A7]" };
   }
   if (n.includes("sql") || n.includes("postgres") || n.includes("data")) {
     return { label: "Data & Storage", bg: "bg-[#FEF4E8] text-[#1C1B17] border-[#F0E3D5]" };
@@ -216,7 +216,7 @@ export function ModuleDiagnosticLedger({
                         <span>Mastery</span>
                       </span>
                     ) : isCompetent ? (
-                      <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                      <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#F09A3E]"></span>
                         <span>Competent</span>
                       </span>
@@ -234,7 +234,7 @@ export function ModuleDiagnosticLedger({
                       <button
                         type="button"
                         onClick={() => onStartPractice && onStartPractice(mod.module_name)}
-                        className="px-2.5 py-1 rounded-md text-[11px] font-bold text-[#D97718] hover:text-white hover:bg-[#F09A3E] bg-[#FEF4E8] border border-[#FBD1A7] hover:border-[#F09A3E] transition-colors cursor-pointer shadow-2xs"
+                        className="px-2.5 py-1 rounded-md text-[11px] font-bold text-[#B45309] hover:text-white hover:bg-[#F09A3E] bg-[#FEF4E8] border border-[#FBD1A7] hover:border-[#F09A3E] transition-colors cursor-pointer shadow-2xs"
                       >
                         Practice Drill
                       </button>
@@ -242,7 +242,7 @@ export function ModuleDiagnosticLedger({
                         type="button"
                         onClick={() => onAskTutor && onAskTutor(mod.module_name)}
                         title={`Review ${mod.module_name} tutor notes`}
-                        className="p-1 rounded-md text-[#787063] hover:text-[#D97718] hover:bg-[#FEF4E8] border border-[#F0E3D5] transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-[#787063] hover:text-[#B45309] hover:bg-[#FEF4E8] border border-[#F0E3D5] transition-colors cursor-pointer"
                       >
                         <BookOpen className="w-3.5 h-3.5" />
                       </button>

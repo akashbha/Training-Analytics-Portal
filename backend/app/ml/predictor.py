@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models.trainee import Trainee
 from app.ml.feature_extractor import extract_trainee_features, FEATURE_COLUMNS
-from app.core.constants import PASS_THRESHOLD, COLD_START_CUTOFF, COLD_START_SESSIONS
+from app.core.constants import PASS_THRESHOLD, COLD_START_CUTOFF, COLD_START_SESSIONS, ML_ADVISORY_DISCLAIMER
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_FILE = os.path.join(MODEL_DIR, "model.joblib")
@@ -37,11 +37,16 @@ def get_metrics_summary() -> Dict[str, Any]:
     """Returns the evaluation metrics from metrics.json or a default payload."""
     if os.path.exists(METRICS_FILE):
         with open(METRICS_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            data["is_advisory"] = True
+            data["advisory_disclaimer"] = ML_ADVISORY_DISCLAIMER
+            return data
     return {
         "champion_model": "Random Forest Classifier",
         "evaluation_metrics": {"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1": 1.0},
-        "candidate_comparison": []
+        "candidate_comparison": [],
+        "is_advisory": True,
+        "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
     }
 
 
@@ -75,13 +80,16 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
             "trainee_name": trainee.name,
             "batch_id": trainee.batch_id,
             "is_cold_start": True,
+            "service_status": "cold_start",
             "session_count": session_count,
             "requires_attention": rule_attention,
             "confidence": 0.5 if session_count == 0 else 0.7,
             "risk_level": "Cold Start (Rule-Based)" if not rule_attention else "High (Rule-Based)",
             "top_risk_factors": risk_factors,
             "model_type": "Cold-Start Rule-Based Fallback",
-            "metrics": feat
+            "metrics": feat,
+            "is_advisory": True,
+            "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
         }
 
     # 2. ML Model Inference
@@ -96,13 +104,17 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
             "trainee_name": trainee.name,
             "batch_id": trainee.batch_id,
             "is_cold_start": False,
+            "service_status": "unavailable",
             "session_count": extracted["session_count"],
             "requires_attention": needs,
             "confidence": 0.85,
             "risk_level": "High" if needs else "Low",
             "top_risk_factors": ["Recent score below threshold"] if needs else ["Performance on track"],
-            "model_type": "Heuristic Rule",
-            "metrics": feat
+            "model_type": "Advisory Service Unavailable — Heuristic Fallback",
+            "reason": "Model artifact not loaded; evaluated using heuristic rule fallback.",
+            "metrics": feat,
+            "is_advisory": True,
+            "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
         }
 
     pipeline = model_data["pipeline"]
@@ -138,6 +150,7 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
         "trainee_name": trainee.name,
         "batch_id": trainee.batch_id,
         "is_cold_start": False,
+        "service_status": "available",
         "session_count": extracted["session_count"],
         "requires_attention": bool(prediction == 1),
         "attention_probability": round(prob_attention * 100, 1),
@@ -145,7 +158,9 @@ def predict_trainee_attention(db: Session, trainee_id: int) -> Dict[str, Any]:
         "risk_level": risk_level,
         "top_risk_factors": risk_factors,
         "model_type": model_data.get("model_name", "Random Forest Classifier"),
-        "metrics": feat
+        "metrics": feat,
+        "is_advisory": True,
+        "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
     }
 
 

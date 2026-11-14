@@ -29,6 +29,9 @@ def test_pagination_and_batches_crud(client):
     batch_data = create_res.json()
     assert batch_data["name"] == "Pagination Batch 2026"
 
+    # Assign trainer to the newly created batch so it is included in trainer's assigned cohorts
+    client.post(f"/batches/{batch_data['id']}/trainers", json={"trainer_id": 10}, headers=admin_headers)
+
     # Paginated List (accessible by staff)
     list_res = client.get("/batches?page=1&page_size=1", headers=trainer_headers)
     assert list_res.status_code == 200
@@ -55,6 +58,9 @@ def test_duplicate_conflicts_return_409(client):
     assert res2.json()["error"]["code"] == "BATCH_NAME_CONFLICT"
 
     # 2. Duplicate Trainee Email (Staff created)
+    # Assign trainer to the new batch so trainer is authorized to enroll trainees
+    client.post(f"/batches/{res1.json()['id']}/trainers", json={"trainer_id": 10}, headers=admin_headers)
+
     payload_trainee = {
         "name": "Original Student",
         "email": "unique.student@domain.com",

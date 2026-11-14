@@ -75,11 +75,11 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="inline-flex items-center gap-2 text-xs font-bold text-[#1C1B17] hover:text-[#D97718] bg-white hover:bg-[#FEF4E8] border border-[#F0E3D5] px-4 py-2 rounded-xl shadow-2xs transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 text-xs font-bold text-[#1C1B17] hover:text-[#B45309] bg-white hover:bg-[#FEF4E8] border border-[#F0E3D5] px-4 py-2 rounded-xl shadow-2xs transition-colors cursor-pointer"
         >
           <Bot className="w-4 h-4 text-[#F09A3E]" />
           <span>Trainer Copilot</span>
-          <span className="text-[10px] font-mono text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.2 rounded font-bold">
+          <span className="text-[10px] font-mono text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.2 rounded font-bold">
             Evidence-Backed
           </span>
         </button>
@@ -96,7 +96,7 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
                   <h3 className="text-sm font-bold text-[#1C1B17] tracking-tight">
                     Trainer Copilot
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                     Source-Cited Retrieval Guard
                   </span>
                 </div>
@@ -183,7 +183,7 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
           {/* Loading State */}
           {loading && (
             <div className="py-8 text-center text-xs text-[#787063]">
-              <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#D97718]" />
+              <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#B45309]" />
               <span>Querying database telemetry and curriculum rubrics...</span>
             </div>
           )}
@@ -205,7 +205,7 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
                 <div className="bg-[#FAFAF8] rounded-xl border border-[#F0E3D5] p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1C1B17] flex items-center gap-1.5">
-                      <Database className="w-3.5 h-3.5 text-[#D97718]" />
+                      <Database className="w-3.5 h-3.5 text-[#B45309]" />
                       Recorded Operational Facts
                     </span>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
@@ -222,12 +222,13 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
                 {copilotResponse.sufficient_evidence && copilotResponse.generated_suggestions && (
                   <div className="bg-[#FEF4E8] rounded-xl border border-[#FBD1A7] p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] flex items-center gap-1.5">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5" />
                         Generated Pedagogical Suggestions
                       </span>
-                      <span className="text-[10px] font-bold text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded-md">
-                        Requires Trainer Approval
+                      <span className="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-amber-600" />
+                        <span>Advisory Only — Trainer Approval Required</span>
                       </span>
                     </div>
                     <pre className="whitespace-pre-wrap font-sans text-xs text-[#4A453E] leading-relaxed select-text">
@@ -291,11 +292,11 @@ export function HelpAssistantPanel({ batchId, onAssignRemediation, onDirectMessa
                         className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border border-[#FBD1A7] bg-[#FEF4E8] text-[#1C1B17] hover:bg-[#FCECD8] transition-colors cursor-pointer shadow-2xs"
                       >
                         {act.action_type === "assign_remediation" ? (
-                          <Target className="w-3.5 h-3.5 text-[#D97718]" />
+                          <Target className="w-3.5 h-3.5 text-[#B45309]" />
                         ) : act.action_type === "direct_message" ? (
-                          <MessageSquare className="w-3.5 h-3.5 text-[#D97718]" />
+                          <MessageSquare className="w-3.5 h-3.5 text-[#B45309]" />
                         ) : (
-                          <BookOpen className="w-3.5 h-3.5 text-[#D97718]" />
+                          <BookOpen className="w-3.5 h-3.5 text-[#B45309]" />
                         )}
                         <span>{act.label}</span>
                       </button>

@@ -81,4 +81,12 @@ Thumbs.db
 scratch/
 backend/uploads/
 uploads/
+backend/media/
+media/
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.zip
+traineelq/
 

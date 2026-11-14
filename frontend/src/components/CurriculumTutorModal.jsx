@@ -138,7 +138,7 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
         <div className="p-4 sm:p-5 border-b border-[#F0E3D5] flex items-start justify-between gap-3 bg-[#FAF6F0]">
           <div>
             <div className="flex items-center space-x-2 mb-1">
-              <span className="text-[10px] font-bold text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md uppercase tracking-wider">
                 Curriculum Technical Tutor
               </span>
               <span className="text-[10px] font-medium text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded-md">
@@ -163,7 +163,7 @@ export function CurriculumTutorModal({ isOpen, moduleName, onClose }) {
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {/* Core Concept Box */}
           <div className="p-3.5 rounded-xl bg-[#FEF4E8] border border-[#FBD1A7] text-xs text-[#1C1B17] space-y-1">
-            <span className="font-bold block uppercase text-[10px] text-[#D97718]">
+            <span className="font-bold block uppercase text-[10px] text-[#B45309]">
               Curriculum Core Focus
             </span>
             <p className="leading-relaxed text-[#4A443B]">{data.coreConcept}</p>

@@ -16,5 +16,36 @@ from app.models.batch_trainer import BatchTrainer
 from app.models.message import Message
 from app.models.message_attachment import MessageAttachment
 from app.models.help_chunk import HelpChunk
+from app.models.revoked_token import RevokedToken
+from app.models.learning import (
+    LearningSubject,
+    LearningModule,
+    LearningLesson,
+    LearningProgress,
+    LearningAssignment,
+    LearningSubmission,
+)
 
-__all__ = ["Base", "Batch", "Trainee", "Module", "Session", "User", "AuditLog", "Remediation", "TraineeGoal", "SessionNote", "BatchTrainer", "Message", "MessageAttachment", "HelpChunk"]
+__all__ = [
+    "Base",
+    "Batch",
+    "Trainee",
+    "Module",
+    "Session",
+    "User",
+    "AuditLog",
+    "Remediation",
+    "TraineeGoal",
+    "SessionNote",
+    "BatchTrainer",
+    "Message",
+    "MessageAttachment",
+    "HelpChunk",
+    "RevokedToken",
+    "LearningSubject",
+    "LearningModule",
+    "LearningLesson",
+    "LearningProgress",
+    "LearningAssignment",
+    "LearningSubmission",
+]

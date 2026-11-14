@@ -20,12 +20,28 @@ from app.core.exceptions import (
     rate_limit_handler,
     unhandled_exception_handler
 )
-from app.routers import auth, batches, trainees, modules, sessions, analytics, realtime, admin, remediations, messages, help
+from app.routers import auth, batches, trainees, modules, sessions, analytics, realtime, admin, remediations, messages, help, learning
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Executes startup safety assertions and graceful shutdown actions."""
+    """Executes startup safety assertions, table creation, and graceful shutdown actions."""
     settings.validate_production_secret()
+    from app.db.base import Base
+    from app.db.session import sync_engine
+    from sqlalchemy import text
+    import app.models  # noqa: F401 - ensure all models registered
+    Base.metadata.create_all(bind=sync_engine)
+
+    # Idempotent schema migration for existing SQLite databases
+    with sync_engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(sessions)"))
+            cols = [row[1] for row in res.fetchall()]
+            if cols and "is_practice" not in cols:
+                conn.execute(text("ALTER TABLE sessions ADD COLUMN is_practice BOOLEAN NOT NULL DEFAULT 0"))
+                conn.commit()
+        except Exception:
+            pass
     yield
 
 app = FastAPI(
@@ -66,6 +82,7 @@ app.include_router(admin.router)
 app.include_router(remediations.router)
 app.include_router(messages.router)
 app.include_router(help.router)
+app.include_router(learning.router)
 
 @app.get("/health", tags=["System"])
 def health_check():

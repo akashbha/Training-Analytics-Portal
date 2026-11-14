@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = Field(
         default=os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
     )
+    MEDIA_STORAGE_PATH: str = Field(
+        default=os.getenv("MEDIA_STORAGE_PATH", r"C:\Users\anmol\Downloads\devops shi\Docker Course")
+    )
 
     @property
     def sync_database_url(self) -> str:

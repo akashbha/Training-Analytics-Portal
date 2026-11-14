@@ -25,6 +25,7 @@ from app.services.audit_service import record_audit_log, create_audit_log
 from app.models.user import User
 from app.models.batch import Batch
 from app.models.batch_trainer import BatchTrainer
+from app.models.trainee import Trainee
 
 router = APIRouter(prefix="/batches", tags=["Batches"])
 
@@ -35,9 +36,34 @@ def list_batches(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieves paginated batches with enrolled trainee counts."""
+    """Retrieves paginated batches with enrolled trainee counts.
+    Enforces object-level scoping:
+    - Admin: global visibility of all batches.
+    - Trainer: restricted strictly to cohorts assigned via batch_trainers.
+    - Trainee: restricted strictly to their enrolled cohort.
+    """
     service = BatchService(db)
-    return service.list_batches(page=page, page_size=page_size)
+    if current_user.role == "admin":
+        return service.list_batches(page=page, page_size=page_size)
+
+    if current_user.role == "trainer":
+        assigned_batch_ids = [
+            row[0] for row in db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == current_user.id).all()
+        ]
+        return service.list_batches(page=page, page_size=page_size, batch_ids=assigned_batch_ids)
+
+    if current_user.role == "trainee":
+        if current_user.trainee_id:
+            trainee = db.query(Trainee).filter(Trainee.id == current_user.trainee_id).first()
+            if trainee and trainee.batch_id:
+                return service.list_batches(page=page, page_size=page_size, batch_ids=[trainee.batch_id])
+        return service.list_batches(page=page, page_size=page_size, batch_ids=[])
+
+    raise AppException(
+        code="FORBIDDEN_ROLE",
+        message="Role not permitted to list batches",
+        status_code=status.HTTP_403_FORBIDDEN,
+    )
 
 @router.get("/{batch_id}", response_model=BatchResponse)
 def get_batch(

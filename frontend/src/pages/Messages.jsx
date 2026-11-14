@@ -390,7 +390,7 @@ export function Messages() {
               <h1 className="text-xl font-black text-[#1C1B17] tracking-tight">
                 Messages & Intervention Channels
               </h1>
-              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                 Live Chat
               </span>
             </div>
@@ -443,7 +443,7 @@ export function Messages() {
                   <span className="text-xs font-black text-[#1C1B17] uppercase tracking-wider">
                     {user?.role === "trainee" ? "Peers & Trainers" : "Eligible Contacts"}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                     {contacts.length} Available
                   </span>
                 </div>
@@ -566,7 +566,7 @@ export function Messages() {
                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 uppercase tracking-wider ${
                                 c.role === "trainer"
                                   ? "bg-[#1C1B17] text-[#F09A3E] border-[#272520]"
-                                  : "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]"
+                                  : "bg-[#FEF0E1] text-[#B45309] border-[#FBD1A7]"
                               }`}
                             >
                               {c.role}
@@ -587,7 +587,7 @@ export function Messages() {
             /* Batch Channel Info & Selection */
             <div className="p-5 space-y-4">
               <div className="bg-white border border-[#F0E3D5] rounded-xl p-4 shadow-2xs">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309]">
                   Cohort Broadcast Channel
                 </span>
                 <h2 className="text-sm font-extrabold text-[#1C1B17] mt-1">
@@ -713,7 +713,7 @@ export function Messages() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#F0E3D5] bg-white hover:bg-[#FEF4E8] text-[#1C1B17] text-xs font-bold transition-all shadow-2xs cursor-pointer"
               title="Refresh conversation feed"
             >
-              <RotateCw className="w-3.5 h-3.5 text-[#D97718]" />
+              <RotateCw className="w-3.5 h-3.5 text-[#B45309]" />
               <span>Refresh</span>
             </button>
           </div>
@@ -750,7 +750,7 @@ export function Messages() {
                   >
                     <div className="flex items-center gap-1.5 text-[11px] text-[#787063] font-medium mb-1">
                       <span className="font-bold text-[#1C1B17]">{m.sender_name}</span>
-                      <span className="text-[9px] uppercase px-1.5 py-0.2 rounded-md bg-[#FEF4E8] text-[#D97718] border border-[#FBD1A7] font-bold">
+                      <span className="text-[9px] uppercase px-1.5 py-0.2 rounded-md bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7] font-bold">
                         {m.sender_role || (isSelf ? user?.role : "Member")}
                       </span>
                       <span className="text-[#A2998A]">{formatTimestamp(m.created_at)}</span>
@@ -815,7 +815,7 @@ export function Messages() {
                   key={idx}
                   className="inline-flex items-center gap-2 bg-white border border-[#F0E3D5] rounded-xl px-3 py-1 text-xs text-[#1C1B17] shadow-2xs font-medium"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#D97718]" />
+                  <FileText className="w-3.5 h-3.5 text-[#B45309]" />
                   <span className="truncate max-w-[140px]">{f.name}</span>
                   <span className="text-[10px] text-[#A2998A] font-mono">
                     ({formatFileSize(f.size)})
@@ -889,7 +889,7 @@ export function Messages() {
                     selectedFiles.length >= MAX_ATTACHMENTS ? "opacity-50 pointer-events-none" : ""
                   }`}
                 >
-                  <Paperclip className="w-3.5 h-3.5 text-[#D97718]" />
+                  <Paperclip className="w-3.5 h-3.5 text-[#B45309]" />
                   <span>Attach ({selectedFiles.length}/{MAX_ATTACHMENTS})</span>
                 </label>
                 <span className="text-[11px] text-[#A2998A]">

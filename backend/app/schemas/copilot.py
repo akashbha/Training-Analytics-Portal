@@ -33,5 +33,10 @@ class CopilotQueryResponse(BaseModel):
     citations: List[CitationItem]
     draft_actions: List[DraftActionItem]
     sufficient_evidence: bool = True
+    is_advisory: bool = True
+    advisory_disclaimer: str = (
+        "Advisory only. Copilot suggestions are evidence-assisted pedagogical aids and require "
+        "trainer review before taking pedagogical or administrative action."
+    )
 
     model_config = ConfigDict(from_attributes=True)

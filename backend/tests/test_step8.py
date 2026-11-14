@@ -133,6 +133,9 @@ def test_goal_progress_capped_at_100_and_reads_zero_with_no_sessions(client, db_
     db_session.add(batch)
     db_session.commit()
 
+    db_session.add(BatchTrainer(batch_id=batch.id, trainer_id=10))
+    db_session.commit()
+
     mod1 = Module(name="Goal Mod 1", max_score=100.0)
     mod2 = Module(name="Goal Mod 2", max_score=100.0)
     db_session.add_all([mod1, mod2])

@@ -210,7 +210,7 @@ def test_admin_user_management_and_safety_rules(client, admin_headers, trainer_h
     assert res_reset.status_code == 200
     assert "temporary_password" in res_reset.json()
 
-def test_change_password_endpoint(client, trainer_headers):
+def test_change_password_endpoint(client, trainer_headers, db_session):
     """All roles can change their password at POST /auth/change-password."""
     # Wrong current password -> 400
     bad_curr = client.post(
@@ -237,13 +237,26 @@ def test_change_password_endpoint(client, trainer_headers):
     )
     assert ok.status_code == 200
 
+    # Login with new password to get fresh headers (old token was revoked on password change)
+    login_new = client.post(
+        "/auth/login",
+        json={"email": "test_trainer@example.com", "password": "NewTrainer@123"}
+    )
+    assert login_new.status_code == 200
+    fresh_headers = {"Authorization": f"Bearer {login_new.json()['access_token']}"}
+
     # Revert password back so subsequent test suites have consistent state
     revert = client.post(
         "/auth/change-password",
         json={"current_password": "NewTrainer@123", "new_password": "Trainer@123"},
-        headers=trainer_headers
+        headers=fresh_headers
     )
     assert revert.status_code == 200
+
+    # Clean up test_trainer revocations so session-scoped trainer_headers fixture remains valid for subsequent tests
+    from app.models.revoked_token import RevokedToken
+    db_session.query(RevokedToken).filter(RevokedToken.user_id == 10).delete()
+    db_session.commit()
 
 def test_audit_logs_written_and_queried(client, admin_headers, db_session):
     """Audit logs must be written for entity mutations and queryable at GET /admin/audit-logs."""

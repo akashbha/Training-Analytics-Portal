@@ -30,6 +30,7 @@ class SessionResponse(BaseModel):
     time_seconds: int
     created_at: datetime
     created_by: Optional[int] = None
+    is_practice: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

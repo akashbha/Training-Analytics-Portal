@@ -19,6 +19,7 @@ from app.schemas.remediation import (
     BatchRemediationItem,
 )
 from app.core.exceptions import AppException
+from app.core.constants import REMEDIATION_RESOLVE_THRESHOLD, ASSESSMENT_PASS_THRESHOLD
 from app.services.audit_service import record_audit_log
 
 class RemediationService:
@@ -87,6 +88,13 @@ class RemediationService:
                 code="FORBIDDEN_RESOURCE_ACCESS",
                 message="Trainees can only mark their own remediations as completed",
                 status_code=403
+            )
+
+        if remediation.status == "Resolved":
+            raise AppException(
+                code="INVALID_STATE_TRANSITION",
+                message="Cannot mark an already resolved remediation drill as completed",
+                status_code=400
             )
 
         before_state = {
@@ -172,9 +180,9 @@ class RemediationService:
                 self.db.add(new_session)
                 self.db.flush()
 
-        # Resolution rule: score >= 70.0 passes benchmark and resolves drill; below 70 remains In Progress
+        # Resolution rule: score >= REMEDIATION_RESOLVE_THRESHOLD passes benchmark and resolves drill; below threshold remains In Progress
         if score_val is not None:
-            if score_val >= 70.0:
+            if score_val >= REMEDIATION_RESOLVE_THRESHOLD:
                 remediation.status = "Resolved"
                 remediation.resolved_at = now_utc
                 remediation.resolved_by = caller.id
@@ -372,7 +380,7 @@ class RemediationService:
                 status_str = r.status
             elif not sessions_after and r.reassessment_score is None:
                 status_str = r.status or "Pending"
-            elif after_avg is not None and after_avg >= 70.0:
+            elif after_avg is not None and after_avg >= REMEDIATION_RESOLVE_THRESHOLD:
                 status_str = "Resolved"
             else:
                 status_str = "In Progress"

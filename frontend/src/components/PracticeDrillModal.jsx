@@ -142,7 +142,7 @@ export function PracticeDrillModal({ moduleName, isOpen, onClose, onComplete }) 
         <div className="p-4 sm:p-5 border-b border-[#F0E3D5] flex items-start justify-between gap-3 bg-[#FAF6F0]">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md uppercase tracking-wider">
                 Practice Drill
               </span>
               <span className="text-[10px] font-medium text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded-md">
@@ -256,7 +256,7 @@ export function PracticeDrillModal({ moduleName, isOpen, onClose, onComplete }) 
                       isMastery
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : isPass
-                        ? "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]"
+                        ? "bg-[#FEF0E1] text-[#B45309] border-[#FBD1A7]"
                         : "bg-rose-50 text-rose-700 border-rose-200"
                     }`}
                   >

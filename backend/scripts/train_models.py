@@ -1,5 +1,21 @@
 """Training and validation pipeline for trainee risk prediction models.
-Implements:
+
+CRITICAL GOVERNANCE & METHODOLOGY NOTICE:
+Synthetic Circularity & Small-Sample Overfitting Warning:
+1. Synthetic Generation Artifact: The dataset originates from synthetic student simulation scripts
+   where trainee abilities are assigned static proficiency tiers. Trainees generating scores < 60%
+   in early sessions are mathematically simulated to generate scores < 60% in future sessions.
+2. Shared 60% Cutoff: Because both features (last_3_mean_score, overall_mean_score) and target label
+   (mean(next 2 sessions) < 60%) evaluate against the identical PASS_THRESHOLD (60.0%), the ML models
+   learn an artificially deterministic proxy, resulting in near-perfect synthetic test metrics
+   (ROC-AUC = 1.000, F1 = 0.9697).
+3. Small-Sample Noise: The held-out test set comprises only 8 distinct trainees (155 decision rows,
+   32 positive cases). The difference between the simple rule baseline (5 FPs) and Random Forest (2 FPs)
+   is merely 3 student decisions, which is within statistical noise.
+4. Advisory Mandate: All model outputs must remain strictly advisory decision-support. No autonomous
+   interventions or predictive simulators may be deployed without clinical human cohort validation.
+
+Pipeline steps:
 1. Grouped train/test split (GroupShuffleSplit by trainee_id, test_size=0.2, random_state=42).
 2. Grouped 5-fold cross-validation on the training set (GroupKFold by trainee_id).
 3. Baseline models: Majority class and Rule-based (last_3_mean_score < PASS_THRESHOLD).

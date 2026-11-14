@@ -1,6 +1,7 @@
 import { PracticeDrillModal } from "../components/PracticeDrillModal.jsx";
 import { CurriculumTutorModal } from "../components/CurriculumTutorModal.jsx";
 import { Messages } from "./Messages.jsx";
+import { DevOpsLearningPath } from "../components/learning/DevOpsLearningPath.jsx";
 // src/pages/TraineeDashboard.jsx
 // Unified Warm Sand & Obsidian TraineeIQ Dashboard connected to real trainee analytics and messaging.
 
@@ -707,7 +708,7 @@ export function TraineeDashboard({ traineeId: propId }) {
             {!isAdmin && (
               <button
                 type="button"
-                className={`icon-button ${activeNav === "Messages" ? "bg-[#FEF4E8] text-[#D97718]" : ""}`}
+                className={`icon-button ${activeNav === "Messages" ? "bg-[#FEF4E8] text-[#B45309]" : ""}`}
                 onClick={() => setActiveNav("Messages")}
                 aria-label="Open messages"
                 title="Cohort & mentor messages"
@@ -760,7 +761,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                   </div>
                   <div className="space-y-2.5">
                     <div className="p-2.5 rounded-xl bg-[#FEF4E8] border border-[#FBD1A7] flex items-start space-x-2.5">
-                      <Sparkles className="w-4 h-4 text-[#D97718] shrink-0 mt-0.5" />
+                      <Sparkles className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
                       <div>
                         <div className="font-bold text-[#1C1B17]">Priya Sharma sent feedback</div>
                         <div className="text-[10px] text-[#787063] mt-0.5 leading-relaxed">
@@ -845,7 +846,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     <p className="text-[11px] text-[#787063] truncate">
                       {activeProfile?.email || user?.email}
                     </p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FEF4E8] text-[#D97718] border border-[#FBD1A7]">
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7]">
                       {user?.role || "trainee"}
                     </span>
                   </div>
@@ -859,7 +860,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold text-[#1C1B17] hover:bg-[#FEF4E8] flex items-center gap-2.5 cursor-pointer transition-colors"
                   >
-                    <Edit3 className="w-3.5 h-3.5 text-[#D97718]" />
+                    <Edit3 className="w-3.5 h-3.5 text-[#B45309]" />
                     <span>Edit Profile</span>
                   </button>
 
@@ -959,7 +960,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <article className="card next-action-card relative">
                   {actionDismissed ? (
                     <div className="p-6 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] text-center space-y-3 my-auto">
-                      <div className="w-10 h-10 rounded-full bg-[#FEF0E1] text-[#D97718] flex items-center justify-center mx-auto border border-[#FBD1A7]">
+                      <div className="w-10 h-10 rounded-full bg-[#FEF0E1] text-[#B45309] flex items-center justify-center mx-auto border border-[#FBD1A7]">
                         <Check className="w-5 h-5 stroke-[2.5]" />
                       </div>
                       <div>
@@ -1004,7 +1005,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-[#FEF4E8] font-medium text-[#1C1B17] flex items-center space-x-2"
                             >
-                              <ClipboardList className="w-3.5 h-3.5 text-[#D97718]" />
+                              <ClipboardList className="w-3.5 h-3.5 text-[#B45309]" />
                               <span>Start Practice Drill</span>
                             </button>
                             <button
@@ -1108,11 +1109,11 @@ export function TraineeDashboard({ traineeId: propId }) {
                     </div>
                     <div className="flex items-center gap-2 mt-2.5">
                       <div className="metric-value" style={{ marginTop: 0 }}>{avgAssessment}%</div>
-                      <svg className="w-10 h-4 text-[#d97718]" viewBox="0 0 48 20" fill="none">
+                      <svg className="w-10 h-4 text-[#B45309]" viewBox="0 0 48 20" fill="none">
                         <path d="M2,16 L14,14 L24,6 L34,10 L46,2" stroke="#f09a3e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       <div className="metric-caption--inline" style={{ marginTop: 0 }}>
-                        <span className="text-[#d97718] font-bold text-xs flex items-center">
+                        <span className="text-[#B45309] font-bold text-xs flex items-center">
                           <TrendingUp size={12} className="mr-0.5 inline" /> 8%
                         </span>
                         <span className="text-[10px] text-stone-500 block -mt-1">vs last attempt</span>
@@ -1146,7 +1147,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     <div className="flex items-center gap-3 mt-2.5">
                       <div className="metric-value" style={{ marginTop: 0 }}>96%</div>
                       <div className="metric-caption--inline" style={{ marginTop: 0 }}>
-                        <span className="text-[#d97718] font-bold text-xs flex items-center">
+                        <span className="text-[#B45309] font-bold text-xs flex items-center">
                           <TrendingUp size={12} className="mr-0.5 inline" /> 1%
                         </span>
                         <span className="text-[10px] text-stone-500 block -mt-1">vs last month</span>
@@ -1180,7 +1181,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
                   <article className="card risk-card">
                     <div className="risk-heading">
-                      <span className="risk-icon"><ShieldCheck size={18} className="text-[#D97718]" /></span>
+                      <span className="risk-icon"><ShieldCheck size={18} className="text-[#B45309]" /></span>
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h2>High risk of falling behind</h2>
@@ -1334,7 +1335,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                         <h2 className="text-base font-bold text-[#1C1B17] tracking-tight">
                           Assigned Remediation Drills & Practice
                         </h2>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                           {remediations.length} Assigned
                         </span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -1351,7 +1352,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="mt-4">
                   {remediationsLoading ? (
                     <div className="py-8 text-center text-xs text-[#787063]">
-                      <Spinner size={16} className="mx-auto mb-2 text-[#D97718]" />
+                      <Spinner size={16} className="mx-auto mb-2 text-[#B45309]" />
                       Loading your assigned practice drills...
                     </div>
                   ) : remediations.length === 0 ? (
@@ -1391,7 +1392,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                       : isCompleted
                                       ? "bg-[#1C1B17] text-[#F09A3E] border-[#272520]"
-                                      : "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]"
+                                      : "bg-[#FEF0E1] text-[#B45309] border-[#FBD1A7]"
                                   }`}
                                 >
                                   {isResolved
@@ -1413,7 +1414,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
                               {rem.completion_notes && (
                                 <div className="bg-[#FEF4E8] rounded-lg p-2.5 border border-[#FBD1A7] text-xs text-[#1C1B17] leading-relaxed">
-                                  <strong className="block font-bold text-[11px] text-[#D97718] mb-0.5">
+                                  <strong className="block font-bold text-[11px] text-[#B45309] mb-0.5">
                                     Your Submission Notes:
                                   </strong>
                                   "{rem.completion_notes}"
@@ -1457,154 +1458,11 @@ export function TraineeDashboard({ traineeId: propId }) {
           )}
 
           {/* =========================================================================
-              VIEW: LEARNING PATHS (6 Advanced Technology Tracks)
+              VIEW: LEARNING PATHS (DevOps & Containerization Curriculum)
               ========================================================================= */}
           {(activeNav === "Learning" || activeNav === "Learning Paths") && (
             <div className="space-y-6">
-              <div className="card p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0E3D5]">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
-                        Active Curriculum
-                      </span>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                        Illustrative Preview
-                      </span>
-                    </div>
-                    <h2 className="text-lg font-black text-[#1C1B17] mt-1">
-                      Additive Manufacturing &amp; Advanced Technologies
-                    </h2>
-                    <p className="text-xs text-[#787063] mt-0.5">
-                      Cohort Progress: 8 of 12 modules completed with 82% average assessment score
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDrillModuleName(priorityModuleData?.moduleName || "SQL");
-                        setDrillModalOpen(true);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <ClipboardList className="w-3.5 h-3.5" />
-                      <span>Launch Practice Drill</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTutorModuleName(priorityModuleData?.moduleName || "SQL");
-                        setTutorModalOpen(true);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-[#FEF4E8] hover:bg-[#FBD1A7]/60 text-[#D97718] border border-[#FBD1A7] font-bold text-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-[#F09A3E]" />
-                      <span>Ask Curriculum Tutor</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-5">
-                  {[
-                    {
-                      title: "Additive Manufacturing & 3D Printing",
-                      desc: "FDM, FFF, FGF, LPBF, slicing parameters, calibration, and industrial applications.",
-                      progress: 88,
-                      status: "Mastered",
-                      badgeColor: "bg-[#1C1B17] text-[#F09A3E] border-[#272520]",
-                      topics: "6 Topics",
-                    },
-                    {
-                      title: "CAD Design & Product Development",
-                      desc: "Engineering drawing, AutoCAD, Fusion 360, SolidWorks, CATIA, and DFM principles.",
-                      progress: 78,
-                      status: "In Progress",
-                      badgeColor: "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]",
-                      topics: "7 Topics",
-                    },
-                    {
-                      title: "3D Scanning & Reverse Engineering",
-                      desc: "Point cloud capture, mesh decimation, polygon repair, and GD&T quality inspection.",
-                      progress: 92,
-                      status: "Mastered",
-                      badgeColor: "bg-[#1C1B17] text-[#F09A3E] border-[#272520]",
-                      topics: "6 Topics",
-                    },
-                    {
-                      title: "XR / VR / AR & Animation",
-                      desc: "Unity, Unreal Engine, Blender 3D modeling, texturing, and immersive industrial simulation.",
-                      progress: 65,
-                      status: "In Progress",
-                      badgeColor: "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]",
-                      topics: "8 Topics",
-                    },
-                    {
-                      title: "AI, Machine Learning & Industry 4.0",
-                      desc: "Digital twin architectures, predictive maintenance, computer vision, and defect classification.",
-                      progress: 84,
-                      status: "Mastered",
-                      badgeColor: "bg-[#1C1B17] text-[#F09A3E] border-[#272520]",
-                      topics: "9 Topics",
-                    },
-                    {
-                      title: "Robotics, IoT & Drone Technology",
-                      desc: "PLC automation, SCADA, industrial IoT sensors, mapping, surveying, and ROS nodes.",
-                      progress: 70,
-                      status: "In Progress",
-                      badgeColor: "bg-[#FEF0E1] text-[#D97718] border-[#FBD1A7]",
-                      topics: "7 Topics",
-                    },
-                  ].map((track, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-[#F0E3D5] hover:border-[#F09A3E] transition-all bg-[#FAF6F0] flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${track.badgeColor}`}>
-                            {track.status}
-                          </span>
-                          <span className="text-[11px] font-bold text-[#787063]">{track.topics}</span>
-                        </div>
-                        <h3 className="text-xs font-bold text-[#1C1B17] leading-snug">{track.title}</h3>
-                        <p className="text-[11px] text-[#787063] mt-1 line-clamp-2 leading-relaxed">{track.desc}</p>
-                      </div>
-                      <div className="pt-3 mt-3 border-t border-[#F0E3D5]">
-                        <div className="flex items-center justify-between text-[11px] font-bold mb-1">
-                          <span className="text-[#787063]">Mastery</span>
-                          <span className="text-[#1C1B17]">{track.progress}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-[#F0E3D5] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#F09A3E] rounded-full"
-                            style={{ width: `${track.progress}%` }}
-                          />
-                        </div>
-                        <div className="flex items-center space-x-2 mt-3">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDrillModuleName(track.title.split("&")[0].trim());
-                              setDrillModalOpen(true);
-                            }}
-                            className="flex-1 py-1.5 rounded-lg bg-white border border-[#F0E3D5] hover:bg-[#FEF4E8] text-[#1C1B17] font-bold text-[11px] cursor-pointer text-center"
-                          >
-                            Practice Drill
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTutorModuleName(track.title.split("&")[0].trim());
-                              setTutorModalOpen(true);
-                            }}
-                            className="flex-1 py-1.5 rounded-lg bg-[#FEF0E1] hover:bg-[#FBD1A7]/70 text-[#D97718] border border-[#FBD1A7] font-bold text-[11px] cursor-pointer text-center"
-                          >
-                            Tutor Notes
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <DevOpsLearningPath showToast={showToast} />
             </div>
           )}
 
@@ -1616,7 +1474,7 @@ export function TraineeDashboard({ traineeId: propId }) {
               <div className="card p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-3 border-b border-[#F0E3D5] mb-4">
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Diagnostic Ledger
                     </span>
                     <h2 className="text-lg font-black text-[#1C1B17] mt-1">Assessment Performance History</h2>
@@ -1630,9 +1488,9 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <tr>
                         <th className="py-2.5 px-3">Session ID</th>
                         <th className="py-2.5 px-3">Module</th>
-                        <th className="py-2.5 px-3">Score %</th>
-                        <th className="py-2.5 px-3">Errors</th>
-                        <th className="py-2.5 px-3">Duration</th>
+                        <th className="py-2.5 px-3 text-right">Score %</th>
+                        <th className="py-2.5 px-3 text-right">Errors</th>
+                        <th className="py-2.5 px-3 text-right">Duration</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F0E3D5]/70">
@@ -1640,11 +1498,11 @@ export function TraineeDashboard({ traineeId: propId }) {
                         <tr key={idx} className="hover:bg-[#FEF4E8]/50 transition-colors">
                           <td className="py-2.5 px-3 font-mono text-[#787063]">#{s.id || idx + 1}</td>
                           <td className="py-2.5 px-3 font-bold text-[#1C1B17]">{s.module_name}</td>
-                          <td className="py-2.5 px-3 font-black text-[#1C1B17]">
+                          <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#1C1B17]">
                             {Number(s.score_percentage ?? s.score_pct ?? s.score).toFixed(1)}%
                           </td>
-                          <td className="py-2.5 px-3 text-rose-600 font-bold">{s.errors} errs</td>
-                          <td className="py-2.5 px-3 text-[#787063] font-mono">
+                          <td className="py-2.5 px-3 text-right tabular-nums text-rose-600 font-semibold">{s.errors} errs</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#787063]">
                             {Math.floor((s.time_seconds || 0) / 60)}m {(s.time_seconds || 0) % 60}s
                           </td>
                         </tr>
@@ -1664,7 +1522,7 @@ export function TraineeDashboard({ traineeId: propId }) {
               <div className="card p-6">
                 <div className="pb-4 border-b border-[#F0E3D5]">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Industrial Capstone
                     </span>
                     <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
@@ -1709,7 +1567,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     <div key={idx} className="p-5 rounded-2xl border border-[#F0E3D5] bg-[#FAF6F0] flex flex-col justify-between space-y-4">
                       <div>
                         <div className="flex items-center justify-between text-xs mb-2">
-                          <span className="text-[10px] font-bold text-[#D97718] bg-[#FEF0E1] px-2 py-0.5 rounded border border-[#FBD1A7]">
+                          <span className="text-[10px] font-bold text-[#B45309] bg-[#FEF0E1] px-2 py-0.5 rounded border border-[#FBD1A7]">
                             {proj.track}
                           </span>
                           <span className="font-semibold text-[#787063] text-[11px]">Due {proj.dueDate}</span>
@@ -1719,7 +1577,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                         <div className="mt-3">
                           <div className="flex justify-between text-[11px] font-bold mb-1">
                             <span className="text-[#787063]">Progress</span>
-                            <span className="text-[#D97718]">{proj.completion}%</span>
+                            <span className="text-[#B45309]">{proj.completion}%</span>
                           </div>
                           <div className="w-full h-2 bg-[#F0E3D5] rounded-full overflow-hidden">
                             <div className="h-full bg-[#F09A3E] rounded-full" style={{ width: `${proj.completion}%` }} />
@@ -1771,7 +1629,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0E3D5]">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                         Competency Radar
                       </span>
                       <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
@@ -1911,7 +1769,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                           &ldquo;{item.feedback}&rdquo;
                         </p>
                         <div className="pt-2 flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded">
+                          <span className="font-semibold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded">
                             {item.status}
                           </span>
                           <span className="text-[#A2998A]">Illustrative Log</span>
@@ -1977,7 +1835,7 @@ export function TraineeDashboard({ traineeId: propId }) {
               <div className="card p-6">
                 <div className="pb-4 border-b border-[#F0E3D5]">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Placement Pathway
                     </span>
                     <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
@@ -1994,10 +1852,10 @@ export function TraineeDashboard({ traineeId: propId }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-5">
                   {[
-                    { label: "Overall Placement Readiness", val: "84%", sub: "Top 15% of cohort", color: "text-[#D97718]" },
+                    { label: "Overall Placement Readiness", val: "84%", sub: "Top 15% of cohort", color: "text-[#B45309]" },
                     { label: "Assessment Benchmark", val: "82%", sub: "Passing threshold: 70%", color: "text-[#1C1B17]" },
                     { label: "Cohort Attendance", val: "96%", sub: "Target threshold: 90%", color: "text-[#1C1B17]" },
-                    { label: "Mock Technical Interview", val: "88%", sub: "Conducted 15 May", color: "text-[#D97718]" },
+                    { label: "Mock Technical Interview", val: "88%", sub: "Conducted 15 May", color: "text-[#B45309]" },
                   ].map((stat, i) => (
                     <div key={i} className="p-4 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0]">
                       <span className="text-[11px] font-bold text-[#787063]">{stat.label}</span>
@@ -2035,7 +1893,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <div key={jIdx} className="p-4 rounded-xl border border-[#F0E3D5] bg-white shadow-2xs flex flex-col justify-between">
                         <div>
                           <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="font-extrabold text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded text-[10px]">
+                            <span className="font-extrabold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded text-[10px]">
                               {job.match}
                             </span>
                             <span className="text-[10px] text-[#787063] font-semibold">{job.status}</span>
@@ -2101,7 +1959,7 @@ export function TraineeDashboard({ traineeId: propId }) {
           <div className="bg-white rounded-2xl border border-[#F0E3D5] max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#F0E3D5] pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#FEF0E1] text-[#D97718] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#FEF0E1] text-[#B45309] flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-bold text-[#1C1B17]">
@@ -2314,7 +2172,7 @@ export function TraineeDashboard({ traineeId: propId }) {
           <div className="bg-[#FDF8F2] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718] bg-[#FEF4E8] border border-[#F0E3D5] px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF4E8] border border-[#F0E3D5] px-2 py-0.5 rounded-md">
                   Mentor 1:1 Session
                 </span>
                 <h3 className="text-sm font-bold text-[#1C1B17] mt-1">Book Mentor Check-in</h3>
@@ -2415,7 +2273,7 @@ function SupportModal({ onClose }) {
       <div className="bg-[#FDF8F2] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
         <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg bg-[#FEF4E8] border border-[#F0E3D5] text-[#D97718] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#FEF4E8] border border-[#F0E3D5] text-[#B45309] flex items-center justify-center">
               <Headphones className="w-4 h-4" />
             </div>
             <div>
@@ -2438,7 +2296,7 @@ function SupportModal({ onClose }) {
             type="button"
             onClick={() => setActiveTab("faqs")}
             className={`pb-2 px-3 font-bold border-b-2 transition-colors cursor-pointer ${
-              activeTab === "faqs" ? "border-[#F09A3E] text-[#D97718]" : "border-transparent text-[#787063] hover:text-[#1C1B17]"
+              activeTab === "faqs" ? "border-[#F09A3E] text-[#B45309]" : "border-transparent text-[#787063] hover:text-[#1C1B17]"
             }`}
           >
             Frequently Asked Questions
@@ -2447,7 +2305,7 @@ function SupportModal({ onClose }) {
             type="button"
             onClick={() => setActiveTab("ticket")}
             className={`pb-2 px-3 font-bold border-b-2 transition-colors cursor-pointer ${
-              activeTab === "ticket" ? "border-[#F09A3E] text-[#D97718]" : "border-transparent text-[#787063] hover:text-[#1C1B17]"
+              activeTab === "ticket" ? "border-[#F09A3E] text-[#B45309]" : "border-transparent text-[#787063] hover:text-[#1C1B17]"
             }`}
           >
             Submit Support Ticket

@@ -13,9 +13,11 @@ class BatchRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def list(self, skip: int = 0, limit: int = 20) -> Tuple[List[Batch], int]:
-        """Returns paginated batches alongside the overall count."""
+    def list(self, skip: int = 0, limit: int = 20, batch_ids: Optional[List[int]] = None) -> Tuple[List[Batch], int]:
+        """Returns paginated batches alongside the overall count, with optional cohort ID scoping."""
         query = self.db.query(Batch)
+        if batch_ids is not None:
+            query = query.filter(Batch.id.in_(batch_ids))
         total = query.count()
         items = query.order_by(Batch.start_date.desc(), Batch.name.asc()).offset(skip).limit(limit).all()
         return items, total

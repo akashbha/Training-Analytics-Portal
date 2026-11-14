@@ -36,6 +36,7 @@ from app.models.batch_trainer import BatchTrainer
 from app.models.message import Message
 from app.models.message_attachment import MessageAttachment
 from app.db.curriculum import CURRICULUM_CATALOG
+from app.db.seed_learning import seed_devops_curriculum
 
 # Core tracks to seed modules and sessions for
 SEEDED_TRACKS = [
@@ -380,6 +381,11 @@ def seed_database(reset: bool = False) -> None:
         print(f"Empty-state Trainees: ID {trainees[43].id} & {trainees[44].id} (0 sessions)")
         print(f"Cold-start Trainees:  ID {trainees[41].id} (high) & {trainees[42].id} (low < 50%)")
         print(f"Dropout Trainees:     ID {trainees[38].id}, {trainees[39].id}, {trainees[40].id} (stopped early)")
+        print("-" * 64)
+
+        # Seed DevOps Learning Path
+        seed_devops_curriculum(db)
+        print("DevOps Learning Path & Module 1 seeded successfully.")
         print("-" * 64)
 
         # SQL aggregated batch performance

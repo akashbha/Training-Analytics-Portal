@@ -111,9 +111,9 @@ describe("Sprint 1A: Honest authentication & operational fallback removal", () =
 
     render(<App />);
 
-    await user.type(screen.getByPlaceholderText("name@example.com"), "trainer@example.com");
-    await user.type(screen.getByPlaceholderText(/•+/), "WrongPassword!");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await user.type(screen.getByPlaceholderText(/email address|name@example\.com/i), "trainer@example.com");
+    await user.type(screen.getByPlaceholderText(/password|•+/i), "WrongPassword!");
+    await user.click(screen.getByRole("button", { name: /login|sign in/i }));
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/invalid email or password/i);
@@ -129,9 +129,9 @@ describe("Sprint 1A: Honest authentication & operational fallback removal", () =
 
     render(<App />);
 
-    await user.type(screen.getByPlaceholderText("name@example.com"), "admin@example.com");
-    await user.type(screen.getByPlaceholderText(/•+/), "Admin123!");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await user.type(screen.getByPlaceholderText(/email address|name@example\.com/i), "admin@example.com");
+    await user.type(screen.getByPlaceholderText(/password|•+/i), "Admin123!");
+    await user.click(screen.getByRole("button", { name: /login|sign in/i }));
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/unable to reach the authentication server/i);

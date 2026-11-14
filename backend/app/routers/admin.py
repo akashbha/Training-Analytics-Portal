@@ -13,9 +13,10 @@ from sqlalchemy import or_, text
 
 from app.core.config import settings
 from app.core.deps import get_db, require_admin
-from app.core.realtime import manager
+from app.core.realtime import manager, disconnect_user_sync
 from app.core.security import get_password_hash
 from app.core.exceptions import AppException
+from app.services.revocation_service import revoke_all_user_tokens
 from app.models.user import User
 from app.models.trainee import Trainee
 from app.schemas.admin import (
@@ -226,8 +227,16 @@ def update_user(
                 )
 
     action = "user_updated"
-    if payload.is_active is False and target.is_active:
+    role_changed = payload.role is not None and payload.role != target.role
+    deactivated = payload.is_active is False and target.is_active
+
+    if deactivated:
         action = "user_deactivated"
+        revoke_all_user_tokens(db=db, user_id=target.id, reason="deactivation")
+        disconnect_user_sync(target.id, reason="Account deactivated")
+    elif role_changed:
+        revoke_all_user_tokens(db=db, user_id=target.id, reason="role_change")
+        disconnect_user_sync(target.id, reason="Role updated")
 
     if payload.role is not None:
         target.role = payload.role
@@ -270,6 +279,9 @@ def reset_password(
     temp_password = _generate_temporary_password()
     target.password_hash = get_password_hash(temp_password)
     db.commit()
+
+    revoke_all_user_tokens(db=db, user_id=target.id, reason="password_reset")
+    disconnect_user_sync(target.id, reason="Password reset by administrator")
 
     create_audit_log(
         db=db,

@@ -20,10 +20,12 @@ class SessionRepository:
         trainee_id: Optional[int] = None,
         module_id: Optional[int] = None,
         batch_id: Optional[int] = None,
+        batch_ids: Optional[List[int]] = None,
         from_date: Optional[date] = None,
-        to_date: Optional[date] = None
+        to_date: Optional[date] = None,
+        is_practice: Optional[bool] = None
     ) -> Tuple[List[Session], int]:
-        """Queries sessions sorted newest first with optional multi-attribute filters."""
+        """Queries sessions sorted newest first with optional multi-attribute filters and cohort ID scoping."""
         query = self.db.query(Session).options(
             joinedload(Session.trainee),
             joinedload(Session.module)
@@ -31,12 +33,19 @@ class SessionRepository:
 
         if batch_id is not None:
             query = query.join(Session.trainee).filter(Trainee.batch_id == batch_id)
+        elif batch_ids is not None:
+            query = query.join(Session.trainee).filter(Trainee.batch_id.in_(batch_ids))
 
         if trainee_id is not None:
             query = query.filter(Session.trainee_id == trainee_id)
 
         if module_id is not None:
             query = query.filter(Session.module_id == module_id)
+
+        if is_practice is True:
+            query = query.filter(Session.is_practice == True)
+        elif is_practice is False:
+            query = query.filter((Session.is_practice == False) | (Session.is_practice.is_(None)))
 
         if from_date is not None:
             dt_from = datetime.combine(from_date, time.min, tzinfo=timezone.utc)

@@ -16,13 +16,13 @@ class BatchService:
     def __init__(self, db: Session):
         self.repo = BatchRepository(db)
 
-    def list_batches(self, page: int = 1, page_size: int = 20) -> PaginatedResponse[BatchResponse]:
-        """Returns paginated cohorts decorated with enrolled trainee counts."""
+    def list_batches(self, page: int = 1, page_size: int = 20, batch_ids: Optional[list[int]] = None) -> PaginatedResponse[BatchResponse]:
+        """Returns paginated cohorts decorated with enrolled trainee counts, optionally scoped by cohort IDs."""
         page = max(1, page)
         page_size = min(100, max(1, page_size))
         skip = (page - 1) * page_size
 
-        items, total = self.repo.list(skip=skip, limit=page_size)
+        items, total = self.repo.list(skip=skip, limit=page_size, batch_ids=batch_ids)
         pages = math.ceil(total / page_size) if total > 0 else 1
 
         response_items = []

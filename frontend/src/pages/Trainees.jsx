@@ -394,7 +394,7 @@ export function Trainees() {
                       </td>
 
                       {/* Sessions count */}
-                      <td className="py-3.5 px-4 text-center font-bold text-slate-700">
+                      <td className="py-3.5 px-4 text-center font-bold text-slate-700 tabular-nums">
                         {trainee.session_count || 0}
                       </td>
 

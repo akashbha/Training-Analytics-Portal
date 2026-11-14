@@ -33,6 +33,7 @@ from app.services.misconception_service import MisconceptionService
 from app.services.analytics_service import AnalyticsService
 from app.repositories.trainee_repository import TraineeRepository
 from app.models.user import User
+from app.models.batch_trainer import BatchTrainer
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -241,18 +242,39 @@ def get_batches_compare(
     db: Session = Depends(get_db),
     staff: User = Depends(require_staff)
 ):
-    """Compares average scores and pass rates across all cohorts (Staff only)."""
+    """Compares average scores and pass rates across assigned cohorts for trainers, or all cohorts for admins (Staff only)."""
     service = AnalyticsService(db)
-    return service.get_batches_compare()
+    items = service.get_batches_compare()
+    if staff.role == "trainer":
+        assigned_batch_ids = {
+            r[0] for r in db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == staff.id).all()
+        }
+        return [b for b in items if b.batch_id in assigned_batch_ids]
+    return items
 
 @router.get("/overview")
 def get_analytics_overview(
     db: Session = Depends(get_db),
     staff: User = Depends(require_staff)
 ):
-    """Aggregates multi-batch performance, pass rates, and today's activity metrics (Staff only)."""
+    """Aggregates multi-batch performance, pass rates, and today's activity metrics scoped to assigned cohorts for trainers (Staff only)."""
     service = AnalyticsService(db)
-    return service.get_overview()
+    overview = service.get_overview()
+    if staff.role == "trainer":
+        assigned_batch_ids = {
+            r[0] for r in db.query(BatchTrainer.batch_id).filter(BatchTrainer.trainer_id == staff.id).all()
+        }
+        filtered_batches = [b for b in overview["batches"] if b["batch_id"] in assigned_batch_ids]
+        valid_passes = [b["pass_rate_pct"] for b in filtered_batches if b["pass_rate_pct"] is not None]
+        mean_pass = round(sum(valid_passes) / len(valid_passes), 1) if valid_passes else None
+        overview["batches"] = filtered_batches
+        overview["total_batches"] = len(filtered_batches)
+        overview["batches_below_target"] = sum(
+            1 for b in filtered_batches if b["avg_score_pct"] is not None and b["avg_score_pct"] < 60.0
+        )
+        overview["mean_cohort_pass_rate_pct"] = mean_pass
+        overview["overall_pass_rate_pct"] = mean_pass if mean_pass is not None else 0.0
+    return overview
 
 # =========================================================================
 # Machine Learning Early-Warning Prediction Endpoints (Synopsis Section 10)

@@ -17,14 +17,17 @@ class TraineeRepository:
         skip: int = 0,
         limit: int = 20,
         batch_id: Optional[int] = None,
+        batch_ids: Optional[List[int]] = None,
         search: Optional[str] = None,
         sort: Optional[str] = "name"
     ) -> Tuple[List[Trainee], int]:
-        """Queries trainees with optional batch filtering, search keywords, and sorting."""
+        """Queries trainees with optional batch filtering, cohort ID scoping, search keywords, and sorting."""
         query = self.db.query(Trainee).options(joinedload(Trainee.batch))
 
         if batch_id is not None:
             query = query.filter(Trainee.batch_id == batch_id)
+        elif batch_ids is not None:
+            query = query.filter(Trainee.batch_id.in_(batch_ids))
 
         if search:
             search_term = f"%{search.strip().lower()}%"

@@ -39,10 +39,11 @@ class TraineeService:
         page: int = 1,
         page_size: int = 20,
         batch_id: Optional[int] = None,
+        batch_ids: Optional[list[int]] = None,
         search: Optional[str] = None,
         sort: Optional[str] = "name"
     ) -> PaginatedResponse[TraineeResponse]:
-        """Returns paginated trainees filtered by cohort and search keyword."""
+        """Returns paginated trainees filtered by cohort, cohort ID scoping, and search keyword."""
         page = max(1, page)
         page_size = min(100, max(1, page_size))
         skip = (page - 1) * page_size
@@ -51,6 +52,7 @@ class TraineeService:
             skip=skip,
             limit=page_size,
             batch_id=batch_id,
+            batch_ids=batch_ids,
             search=search,
             sort=sort
         )

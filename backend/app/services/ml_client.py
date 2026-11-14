@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.models.session import Session as AssessmentSession
 from app.models.module import Module
-from app.core.constants import PASS_THRESHOLD
+from app.core.constants import PASS_THRESHOLD, ML_ADVISORY_DISCLAIMER
 from scripts.build_ml_dataset import compute_decision_features
 
 ML_SERVICE_URL = os.getenv("ML_SERVICE_URL", "http://127.0.0.1:8001")
@@ -46,11 +46,13 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
     """Evaluates risk of failing subsequent sessions for a given trainee.
     Returns ML prediction when >= 5 sessions and service is available;
     otherwise falls back to rule-based evaluation.
+    All outputs are strictly advisory with required governance notice.
     """
     sessions = (
         db.query(AssessmentSession, Module.max_score)
         .join(Module, Module.id == AssessmentSession.module_id)
         .filter(AssessmentSession.trainee_id == trainee_id)
+        .filter((AssessmentSession.is_practice == False) | (AssessmentSession.is_practice.is_(None)))
         .order_by(AssessmentSession.created_at.asc(), AssessmentSession.id.asc())
         .all()
     )
@@ -62,6 +64,7 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
         if session_count == 0:
             return {
                 "method": "rule",
+                "service_status": "cold_start",
                 "reason": "Trainee has no completed assessment sessions",
                 "label": 0,
                 "probability": None,
@@ -69,6 +72,8 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
                 "threshold_unit": "score_percentage",
                 "top_features": [],
                 "model_version": None,
+                "is_advisory": True,
+                "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
             }
 
         # Calculate average of available sessions
@@ -78,6 +83,7 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
 
         return {
             "method": "rule",
+            "service_status": "cold_start",
             "reason": (
                 f"Trainee has {session_count} session(s) (minimum 5 required for ML prediction); "
                 "evaluated using rule fallback"
@@ -88,6 +94,8 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
             "threshold_unit": "score_percentage",
             "top_features": [],
             "model_version": None,
+            "is_advisory": True,
+            "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
         }
 
     # 2. Extract features using identical logic from build_ml_dataset
@@ -105,6 +113,7 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
             data = response.json()
             return {
                 "method": "ml",
+                "service_status": "available",
                 "reason": None,
                 "label": data["label"],
                 "probability": data["probability"],
@@ -112,6 +121,8 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
                 "threshold_unit": data.get("threshold_unit", "probability"),
                 "top_features": data.get("top_features", []),
                 "model_version": data.get("model_version"),
+                "is_advisory": True,
+                "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
             }
         else:
             # Service error fallback
@@ -119,13 +130,16 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
             rule_label = 1 if features["last_3_mean_score"] < PASS_THRESHOLD else 0
             return {
                 "method": "rule",
-                "reason": f"ML service returned status {response.status_code}; evaluated using rule fallback",
+                "service_status": "unavailable",
+                "reason": f"Advisory ML service returned status {response.status_code}; evaluated using deterministic rule fallback (model inference unavailable)",
                 "label": rule_label,
                 "probability": None,
                 "threshold": PASS_THRESHOLD,
                 "threshold_unit": "score_percentage",
                 "top_features": [],
                 "model_version": None,
+                "is_advisory": True,
+                "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
             }
 
     except Exception:
@@ -134,11 +148,14 @@ def predict_trainee_risk(db: Session, trainee_id: int) -> Dict[str, Any]:
         rule_label = 1 if features["last_3_mean_score"] < PASS_THRESHOLD else 0
         return {
             "method": "rule",
-            "reason": "ML service is unreachable or timed out; evaluated using rule fallback",
+            "service_status": "unavailable",
+            "reason": "Advisory ML service is unreachable or timed out; evaluated using deterministic rule fallback (model inference unavailable)",
             "label": rule_label,
             "probability": None,
             "threshold": PASS_THRESHOLD,
             "threshold_unit": "score_percentage",
             "top_features": [],
             "model_version": None,
+            "is_advisory": True,
+            "advisory_disclaimer": ML_ADVISORY_DISCLAIMER,
         }

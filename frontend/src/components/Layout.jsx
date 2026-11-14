@@ -304,7 +304,7 @@ export function Layout({ children }) {
                   <strong className="text-xs font-bold text-[#1C1B17] leading-tight truncate max-w-[130px]">
                     {user?.email?.split("@")[0] || "Trainer"}
                   </strong>
-                  <small className="text-[10px] font-bold uppercase tracking-wider text-[#D97718]">
+                  <small className="text-[10px] font-bold uppercase tracking-wider text-[#B45309]">
                     {user?.role === "admin" ? "Admin" : "Trainer"}
                   </small>
                 </div>
@@ -333,7 +333,7 @@ export function Layout({ children }) {
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold text-[#1C1B17] hover:bg-[#FEF4E8] flex items-center space-x-2 cursor-pointer transition-colors"
                   >
-                    <KeyRound className="w-3.5 h-3.5 text-[#D97718]" />
+                    <KeyRound className="w-3.5 h-3.5 text-[#B45309]" />
                     <span>Change Password</span>
                   </button>
 

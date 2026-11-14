@@ -34,6 +34,7 @@ def extract_trainee_features(db: Session, trainee_id: int) -> Dict[str, Any]:
         db.query(AssessmentSession, Module.max_score)
         .join(Module, Module.id == AssessmentSession.module_id)
         .filter(AssessmentSession.trainee_id == trainee_id)
+        .filter((AssessmentSession.is_practice == False) | (AssessmentSession.is_practice.is_(None)))
         .order_by(AssessmentSession.created_at.asc())
         .all()
     )

@@ -5,13 +5,32 @@
 body {
   margin: 0;
   background-color: #F8FAFC;
-  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.011em;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+/* Marketing and Brand Display Headings (reserved for landing hero and major banners) */
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.025em;
+}
+
+/* Tabular numerals for analytics tables, KPI metrics, timers, and leaderboard points */
+.tabular-nums,
+.numeric-cell,
+.metric-value,
+.readiness-value,
+[data-tabular-nums] {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.numeric-cell {
+  text-align: right;
+}
+
+code, pre, kbd, samp {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
 @media print {
@@ -31,7 +50,7 @@ h1, h2, h3, h4, h5, h6 {
    TRAINEEIQ DESIGN SYSTEM CLASSES (from traineelq.zip)
    ========================================================================= */
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1c1b17;
   background: #fdf8f2;
   font-synthesis: none;
@@ -56,7 +75,7 @@ h1, h2, h3, h4, h5, h6 {
   --navy-soft: #272520;
   --ink: #1c1b17;
   --muted: #787063;
-  --muted-2: #a2998a;
+  --muted-2: #6f675b;
   --border: #f0e3d5;
   --workspace: #fdf8f2;
   --card: #ffffff;
@@ -527,7 +546,7 @@ h1 { margin: 0 0 4px; color: var(--ink); font-size: clamp(28px, 3vw, 39px); font
 .section-spark { color: #f09a3e; }
 .more-button { width: 26px; height: 26px; display: grid; place-items: center; margin-left: auto; border-radius: 7px; color: #a2998a; background: transparent; }
 .more-button:hover { background: #fef4e8; color: #1c1b17; }
-.text-button, .small-link { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: #d97718; background: transparent; font-size: 12px; font-weight: 600; }
+.text-button, .small-link { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: #b45309; background: transparent; font-size: 12px; font-weight: 600; }
 .text-button:hover, .small-link:hover { color: #f09a3e; }
 .card-footnote { margin: 14px 0 0; color: #787063; font-size: 11px; text-align: center; }
 
@@ -537,12 +556,12 @@ h1 { margin: 0 0 4px; color: var(--ink); font-size: clamp(28px, 3vw, 39px); font
 .readiness-value { color: var(--ink); font-size: 31px; font-weight: 650; letter-spacing: -1.2px; }
 .readiness-value span { margin-right: 3px; color: #787063; font-size: 18px; }
 .readiness-value small { margin-left: 2px; color: #a2998a; font-size: 12px; font-weight: 500; letter-spacing: 0; }
-.readiness-status { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #d97718; font-size: 11px; font-weight: 600; }
+.readiness-status { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #b45309; font-size: 11px; font-weight: 600; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #f09a3e; }
 
 .next-action-card { min-height: 260px; }
 .action-panel { display: flex; gap: 12px; margin-top: 14px; padding: 13px; border: 1px solid #f0e3d5; border-radius: 9px; background: #fef4e8; }
-.action-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; color: #d97718; background: #fef0e1; }
+.action-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; color: #b45309; background: #fef0e1; }
 .action-panel h3 { margin: 0 0 6px; color: var(--ink); font-size: 14px; font-weight: 600; }
 .action-panel p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .action-meta { display: flex; justify-content: space-between; gap: 12px; margin: 12px 3px; color: #787063; font-size: 11px; }
@@ -563,17 +582,17 @@ h1 { margin: 0 0 4px; color: var(--ink); font-size: clamp(28px, 3vw, 39px); font
 .metric-label { display: flex; align-items: center; gap: 7px; color: #787063; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .metric-label .info-icon { margin-left: auto; }
 .metric-icon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 50%; }
-.metric-icon--teal { color: #d97718; background: #fef0e1; }
+.metric-icon--teal { color: #b45309; background: #fef0e1; }
 .metric-icon--blue { color: #f09a3e; background: #fef4e8; }
 .metric-icon--purple { color: #b56c1d; background: #fae8d4; }
 .metric-icon--green { color: #1c1b17; background: #f5efe6; }
 .metric-value { display: flex; align-items: center; gap: 5px; margin-top: 11px; color: var(--ink); font-size: 28px; font-weight: 520; letter-spacing: -1.2px; }
 .metric-value > span { margin-left: 1px; color: #a2998a; font-size: 15px; letter-spacing: 0; }
-.trend-up { color: #d97718; }
+.trend-up { color: #b45309; }
 .metric-progress { width: calc(100% - 35px); height: 7px; overflow: hidden; margin-top: 9px; border-radius: 10px; background: #f0e3d5; }
-.metric-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f09a3e, #d97718); }
+.metric-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f09a3e, #b45309); }
 .metric-caption { position: absolute; right: 18px; bottom: 18px; color: #787063; font-size: 10px; }
-.metric-caption--inline { position: static; display: flex; align-items: center; gap: 3px; margin-top: 2px; color: #d97718; }
+.metric-caption--inline { position: static; display: flex; align-items: center; gap: 3px; margin-top: 2px; color: #b45309; }
 .metric-caption--inline span { margin-left: 3px; color: #787063; }
 .mini-bars { display: flex; align-items: flex-end; gap: 3px; height: 26px; margin-top: 7px; }
 .mini-bars i { width: 14px; border-radius: 5px 5px 1px 1px; background: #f09a3e; }
@@ -589,7 +608,7 @@ h1 { margin: 0 0 4px; color: var(--ink); font-size: clamp(28px, 3vw, 39px); font
 .radar-value { fill: rgba(240, 154, 62, 0.24); stroke: #f09a3e; stroke-width: 2; }
 .radar-point { fill: #f09a3e; stroke: #fff; stroke-width: 2; }
 .radar-label { position: absolute; display: flex; flex-direction: column; gap: 1px; color: #787063; font-size: 10px; font-weight: 500; line-height: 1.15; text-align: center; }
-.radar-label strong { color: #d97718; font-size: 10px; font-weight: 700; }
+.radar-label strong { color: #b45309; font-size: 10px; font-weight: 700; }
 .radar-label--top { top: 0; left: 50%; transform: translateX(-50%); } .radar-label--right { top: 62px; right: 4px; } .radar-label--bottom-right { right: 16px; bottom: 0; } .radar-label--bottom-left { left: 16px; bottom: 0; } .radar-label--left { top: 62px; left: 4px; }
 .skill-legend { display: flex; justify-content: center; gap: 12px; margin-top: 3px; color: #787063; font-size: 10px; }
 .skill-legend span { display: flex; align-items: center; gap: 4px; }

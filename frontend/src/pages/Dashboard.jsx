@@ -814,7 +814,7 @@ export function Dashboard() {
             <h1 className="text-2xl font-black text-[#1C1B17] tracking-tight">
               Trainer Console
             </h1>
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
               Triage Mode
             </span>
           </div>
@@ -875,7 +875,7 @@ export function Dashboard() {
 
           {/* Assigned Trainers Badge */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FEF4E8] border border-[#FBD1A7] rounded-xl text-xs">
-            <UserCheck className="w-3.5 h-3.5 text-[#D97718] shrink-0" />
+            <UserCheck className="w-3.5 h-3.5 text-[#B45309] shrink-0" />
             <span className="font-semibold text-[#787063]">Assigned:</span>
             {trainersLoading ? (
               <span
@@ -1007,7 +1007,7 @@ export function Dashboard() {
                   <button
                     type="button"
                     onClick={() => refetchSummary()}
-                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#B45309] hover:underline cursor-pointer"
                   >
                     Retry
                   </button>
@@ -1015,7 +1015,7 @@ export function Dashboard() {
               ) : (
                 <>
                   <span>Sample size:</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#B45309] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
                     N = {sessionCount}
                   </span>
                   <span className="text-[#A2998A]">evaluations</span>
@@ -1044,7 +1044,7 @@ export function Dashboard() {
                 <Info className="w-3 h-3 text-[#A2998A]" />
               </div>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
               ≥ {PASS_THRESHOLD.toFixed(0)}% Cutoff
             </span>
           </div>
@@ -1061,7 +1061,7 @@ export function Dashboard() {
                   <button
                     type="button"
                     onClick={() => refetchSummary()}
-                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#B45309] hover:underline cursor-pointer"
                   >
                     Retry
                   </button>
@@ -1069,7 +1069,7 @@ export function Dashboard() {
               ) : hasEvaluations ? (
                 <>
                   <span>Sample size:</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#B45309] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
                     {passingEvaluations} of {sessionCount}
                   </span>
                   <span className="text-[#A2998A]">(N = {sessionCount})</span>
@@ -1117,7 +1117,7 @@ export function Dashboard() {
                   <button
                     type="button"
                     onClick={() => refetchSummary()}
-                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#B45309] hover:underline cursor-pointer"
                   >
                     Retry
                   </button>
@@ -1125,7 +1125,7 @@ export function Dashboard() {
               ) : (
                 <>
                   <span>Sample size:</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#B45309] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
                     N = {sessionCount}
                   </span>
                   <span className="text-[#A2998A]">graded sessions</span>
@@ -1169,7 +1169,7 @@ export function Dashboard() {
                   <button
                     type="button"
                     onClick={() => refetchSummary()}
-                    className="text-[11px] font-bold text-[#D97718] hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#B45309] hover:underline cursor-pointer"
                   >
                     Retry
                   </button>
@@ -1177,7 +1177,7 @@ export function Dashboard() {
               ) : (
                 <>
                   <span>Sample size:</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#D97718] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#FEF4E8] text-[#B45309] font-mono text-[11px] font-bold border border-[#FBD1A7]/60">
                     N = {enrolledCount}
                   </span>
                   <span className="text-[#A2998A]">learners</span>
@@ -1201,14 +1201,17 @@ export function Dashboard() {
               <AlertTriangle className="w-4 h-4 text-[#F09A3E]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-sm font-black text-[#1C1B17] tracking-wider uppercase">
                   Needs Attention Queue
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                   {selectedHotspotModuleId
                     ? `${displayedAttentionQueue.length} of ${sortedAttentionQueue.length} Flagged`
                     : `${sortedAttentionQueue.length} Flagged`}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                  Advisory Decision-Support
                 </span>
               </div>
               <p className="text-xs text-[#787063] font-medium mt-0.5">
@@ -1225,7 +1228,7 @@ export function Dashboard() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FEF4E8] text-[#1C1B17] text-xs font-bold border border-[#F0E3D5] shadow-2xs transition-all cursor-pointer disabled:opacity-50"
               title="Export CSV of at-risk cohort trainees with ML and rule flag reasons"
             >
-              <Download className="w-3.5 h-3.5 text-[#D97718]" />
+              <Download className="w-3.5 h-3.5 text-[#B45309]" />
               <span>{exportingCsv ? "Exporting..." : "Export At-Risk CSV"}</span>
             </button>
 
@@ -1236,7 +1239,7 @@ export function Dashboard() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FEF4E8] text-[#1C1B17] text-xs font-bold border border-[#F0E3D5] shadow-2xs transition-all cursor-pointer disabled:opacity-50"
               title="Preview deterministic weekly summary built strictly from real metrics"
             >
-              <FileText className="w-3.5 h-3.5 text-[#D97718]" />
+              <FileText className="w-3.5 h-3.5 text-[#B45309]" />
               <span>Weekly Summary</span>
             </button>
           </div>
@@ -1246,7 +1249,7 @@ export function Dashboard() {
         {hotspots && hotspots.length > 0 && (
           <div className="pt-3 flex flex-wrap items-center gap-1.5 border-b border-[#F0E3D5] pb-3">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#787063] mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3 text-[#D97718]" />
+              <Filter className="w-3 h-3 text-[#B45309]" />
               <span>Hotspot Filters:</span>
             </span>
             {hotspots.slice(0, 4).map((h) => {
@@ -1259,7 +1262,7 @@ export function Dashboard() {
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     isActive
                       ? "bg-[#F09A3E] text-white shadow-xs"
-                      : "bg-[#FEF4E8] text-[#D97718] hover:bg-[#FBD1A7]/40 border border-[#FBD1A7]"
+                      : "bg-[#FEF4E8] text-[#B45309] hover:bg-[#FBD1A7]/40 border border-[#FBD1A7]"
                   }`}
                   title={`Filter queue by ${h.module_name} failures (${h.failed_attempts}/${h.total_attempts} attempts)`}
                 >
@@ -1291,11 +1294,11 @@ export function Dashboard() {
         {activeHotspot && (
           <div className="mt-3 p-3 bg-[#FEF4E8] rounded-xl border border-[#FBD1A7] flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-[#D97718]" />
+              <Filter className="w-4 h-4 text-[#B45309]" />
               <span className="text-xs font-bold text-[#1C1B17]">
                 Filtered by Hotspot Failure:
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-white border border-[#F0E3D5] text-xs font-extrabold text-[#D97718]">
+              <span className="px-2 py-0.5 rounded-md bg-white border border-[#F0E3D5] text-xs font-extrabold text-[#B45309]">
                 {activeHotspot.module_name}
               </span>
               <span className="text-[11px] font-medium text-[#787063]">
@@ -1330,7 +1333,7 @@ export function Dashboard() {
           />
         ) : displayedAttentionQueue.length === 0 ? (
           <div className="py-10 text-center space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FEF4E8] text-[#D97718] border border-[#FBD1A7] flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-2xl bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7] flex items-center justify-center mx-auto">
               <Info className="w-5 h-5" />
             </div>
             <div className="text-xs font-bold text-[#1C1B17]">
@@ -1384,7 +1387,7 @@ export function Dashboard() {
                 <h2 className="text-base font-bold text-[#1C1B17] tracking-tight">
                   Intervention Outcome Tracker
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                   {batchRemediations.length} Assigned
                 </span>
               </div>
@@ -1434,7 +1437,7 @@ export function Dashboard() {
         {/* Content Body */}
         {remediationsLoading ? (
           <div className="py-12 text-center text-xs text-[#787063]">
-            <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#D97718]" />
+            <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#B45309]" />
             <span>Loading cohort intervention records...</span>
           </div>
         ) : remediationsError ? (
@@ -1447,7 +1450,7 @@ export function Dashboard() {
           />
         ) : displayedRemediations.length === 0 ? (
           <div className="py-10 text-center text-xs text-[#787063] bg-[#FDF8F2] rounded-xl border border-[#F0E3D5] p-6">
-            <CheckCircle2 className="w-8 h-8 text-[#D97718] mx-auto mb-2 opacity-60" />
+            <CheckCircle2 className="w-8 h-8 text-[#B45309] mx-auto mb-2 opacity-60" />
             <p className="font-bold text-[#1C1B17]">No Interventions Found</p>
             <p className="mt-1 text-[#787063]">
               {remediationStatusFilter !== "all"
@@ -1597,7 +1600,7 @@ export function Dashboard() {
                             email: rem.trainee_email,
                           })
                         }
-                        className="inline-flex items-center gap-1 font-bold text-[#D97718] hover:text-[#1C1B17] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 font-bold text-[#B45309] hover:text-[#1C1B17] transition-colors cursor-pointer"
                       >
                         <MessageSquare className="w-3 h-3" />
                         <span>Message</span>
@@ -1678,7 +1681,7 @@ export function Dashboard() {
                 <span className="w-2 h-2 rounded-xs bg-rose-600"></span>
                 <span>Benchmark: <strong>{PASS_THRESHOLD.toFixed(1)}% Passing Cutoff</strong></span>
               </div>
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-[#FEF4E8] border border-[#FBD1A7] text-[#D97718] font-semibold">
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-[#FEF4E8] border border-[#FBD1A7] text-[#B45309] font-semibold">
                 <span>Peak Milestone: <strong>{highestWeeklyScore.toFixed(1)}%</strong></span>
               </div>
             </div>
@@ -1949,10 +1952,10 @@ export function Dashboard() {
                 <div className="pt-4 border-t border-[#F0E3D5] mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#787063] flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-[#D97718]" />
+                      <Layers className="w-3.5 h-3.5 text-[#B45309]" />
                       <span>Weekly Session Evaluation Volume</span>
                     </span>
-                    <span className="text-[11px] font-mono text-[#D97718] font-bold">
+                    <span className="text-[11px] font-mono text-[#B45309] font-bold">
                       N = {(effectiveWeekly || []).reduce((acc, w) => acc + (w.session_count || 0), 0)} evaluations
                     </span>
                   </div>
@@ -2099,7 +2102,7 @@ export function Dashboard() {
                               {/* Score Progress */}
                               <td className="py-3 px-3">
                                 <div className="flex items-center space-x-2">
-                                  <span className="font-black text-slate-900 w-12">{score}%</span>
+                                  <span className="font-bold text-slate-900 w-12 tabular-nums">{score}%</span>
                                   <div className="w-16 sm:w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
                                     <div
                                       style={{ width: `${Math.min(100, trainee.avg_score_pct || 0)}%` }}
@@ -2116,7 +2119,7 @@ export function Dashboard() {
                               </td>
 
                               {/* Completed Sessions */}
-                              <td className="py-3 px-3 font-semibold text-slate-600">
+                              <td className="py-3 px-3 font-semibold text-slate-600 tabular-nums">
                                 {trainee.session_count ?? 1} drills
                               </td>
 
@@ -2208,7 +2211,7 @@ export function Dashboard() {
             {activeHotspot && (
               <div className="mt-3 p-2.5 rounded-xl bg-[#FEF4E8] border border-[#FBD1A7] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5 truncate pr-1">
-                  <Filter className="w-3.5 h-3.5 text-[#D97718] shrink-0" />
+                  <Filter className="w-3.5 h-3.5 text-[#B45309] shrink-0" />
                   <span className="font-bold text-[#1C1B17] truncate">
                     Filtering queue: {activeHotspot.module_name}
                   </span>
@@ -2216,7 +2219,7 @@ export function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedHotspotModuleId(null)}
-                  className="text-[10px] font-extrabold text-[#D97718] hover:text-[#1C1B17] hover:underline cursor-pointer shrink-0"
+                  className="text-[10px] font-extrabold text-[#B45309] hover:text-[#1C1B17] hover:underline cursor-pointer shrink-0"
                 >
                   Clear
                 </button>
@@ -2300,7 +2303,7 @@ export function Dashboard() {
                       <div className="flex items-center justify-between text-[10px] text-[#A2998A] mt-1.5">
                         <span className="font-medium">
                           {isSelected ? (
-                            <span className="text-[#D97718] font-bold">Active filter (click to reset)</span>
+                            <span className="text-[#B45309] font-bold">Active filter (click to reset)</span>
                           ) : (
                             "Click to filter queue"
                           )}
@@ -2338,14 +2341,14 @@ export function Dashboard() {
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                 {misconceptionClusters.length} Themes
               </span>
             </div>
 
             {misconceptionsLoading ? (
               <div className="py-8 text-center text-xs text-[#787063]">
-                <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#D97718]" />
+                <RotateCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#B45309]" />
                 <span>Clustering recurring failure patterns...</span>
               </div>
             ) : misconceptionClusters.length === 0 ? (
@@ -2369,7 +2372,7 @@ export function Dashboard() {
                         <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787063] bg-white px-2 py-0.5 rounded border border-[#F0E3D5] truncate max-w-[60%]">
                           {cluster.domain}
                         </span>
-                        <span className="text-[10px] font-bold font-mono text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.5 rounded shrink-0">
+                        <span className="text-[10px] font-bold font-mono text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.5 rounded shrink-0">
                           {cluster.affected_trainee_count} learners ({cluster.cohort_prevalence_pct}%)
                         </span>
                       </div>
@@ -2393,7 +2396,7 @@ export function Dashboard() {
 
                       {/* Suggested Action Strip */}
                       <div className="bg-[#FDF8F2] rounded-lg border border-[#F0E3D5] p-2 text-[11px] text-[#4A453E] leading-relaxed">
-                        <strong className="text-[#1C1B17] font-semibold block text-[10px] uppercase tracking-wider text-[#D97718] mb-0.5">
+                        <strong className="text-[#1C1B17] font-semibold block text-[10px] uppercase tracking-wider text-[#B45309] mb-0.5">
                           Suggested Intervention
                         </strong>
                         {cluster.suggested_action}
@@ -2427,7 +2430,7 @@ export function Dashboard() {
                         <button
                           type="button"
                           onClick={() => setSelectedClusterForEvidence(cluster)}
-                          className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#D97718] hover:text-[#1C1B17] transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#B45309] hover:text-[#1C1B17] transition-colors cursor-pointer"
                         >
                           <span>Evidence ({cluster.evidence_count})</span>
                           <ChevronRight className="w-3 h-3" />
@@ -2662,7 +2665,7 @@ export function Dashboard() {
                 <h2 className="text-sm font-black text-[#1C1B17] tracking-wider uppercase">
                   Cohort Heatmap: Trainees × Modules
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#D97718] border border-[#FBD1A7]">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                   {effectiveHeatmapData?.rows?.length || 0} Learners × {effectiveHeatmapData?.modules?.length || 0} Modules
                 </span>
               </div>
@@ -2739,7 +2742,7 @@ export function Dashboard() {
                             alt=""
                             className="w-7 h-7 rounded-lg object-cover border border-[#F0E3D5]"
                           />
-                          <span className="font-bold text-[#1C1B17] group-hover:text-[#D97718] transition-colors truncate text-xs">
+                          <span className="font-bold text-[#1C1B17] group-hover:text-[#B45309] transition-colors truncate text-xs">
                             {row.trainee_name}
                           </span>
                         </Link>
@@ -2760,7 +2763,7 @@ export function Dashboard() {
                         return (
                           <td key={cell.module_id} className="py-2 px-2 text-center">
                             <div
-                              className={`py-1.5 px-2 rounded-lg border text-xs ${bandClass}`}
+                              className={`py-1.5 px-2 rounded-lg border text-xs tabular-nums ${bandClass}`}
                               title={
                                 hasScore
                                   ? `${cell.module_name}: ${cell.score_pct.toFixed(1)}% (${cell.session_count} session${cell.session_count === 1 ? "" : "s"})`
@@ -2798,7 +2801,7 @@ export function Dashboard() {
                     <h3 className="text-sm font-extrabold text-[#1C1B17]">
                       Assign Remediation Drill
                     </h3>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Audit-Logged
                     </span>
                   </div>
@@ -2896,7 +2899,7 @@ export function Dashboard() {
 
               {/* Audit Registry Notice */}
               <div className="p-3 rounded-xl bg-[#FEF4E8]/60 border border-[#FBD1A7]/60 flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-[#D97718] shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
                 <div className="text-[11px] text-[#787063] leading-relaxed">
                   This intervention writes directly to the remediations ledger and creates an immutable record in the audit log under{" "}
                   <strong className="text-[#1C1B17] font-semibold">
@@ -2910,7 +2913,7 @@ export function Dashboard() {
               {remediationHistory.length > 0 && (
                 <div className="pt-2 border-t border-[#F0E3D5]">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <History className="w-3.5 h-3.5 text-[#D97718]" />
+                    <History className="w-3.5 h-3.5 text-[#B45309]" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#787063]">
                       Previous Drill History ({remediationHistory.length})
                     </span>
@@ -2931,7 +2934,7 @@ export function Dashboard() {
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] font-mono text-[#D97718] shrink-0 font-bold bg-[#FEF0E1] px-1.5 py-0.5 rounded border border-[#FBD1A7]">
+                        <span className="text-[10px] font-mono text-[#B45309] shrink-0 font-bold bg-[#FEF0E1] px-1.5 py-0.5 rounded border border-[#FBD1A7]">
                           {item.assigned_at ? new Date(item.assigned_at).toLocaleDateString() : "Assigned"}
                         </span>
                       </div>
@@ -3121,7 +3124,7 @@ export function Dashboard() {
                     <h3 className="text-sm font-extrabold text-[#1C1B17]">
                       Direct Message Intervention
                     </h3>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Private Thread
                     </span>
                   </div>
@@ -3237,7 +3240,7 @@ export function Dashboard() {
                   }}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#1C1B17] hover:bg-[#FEF4E8] border border-[#F0E3D5] rounded-xl transition-all cursor-pointer shadow-2xs"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-[#D97718]" />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#B45309]" />
                   <span>Open Full Thread</span>
                 </button>
 
@@ -3298,7 +3301,7 @@ export function Dashboard() {
             <div className="p-6 overflow-y-auto flex-1 font-mono text-xs text-[#1C1B17] bg-[#FAFAF8]">
               {weeklySummaryLoading ? (
                 <div className="py-16 text-center text-[#787063]">
-                  <RotateCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#D97718]" />
+                  <RotateCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#B45309]" />
                   <span>Compiling deterministic cohort metrics...</span>
                 </div>
               ) : (
@@ -3365,7 +3368,7 @@ export function Dashboard() {
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787063] bg-white px-2 py-0.5 rounded border border-[#F0E3D5]">
                       {selectedClusterForEvidence.domain}
                     </span>
-                    <span className="text-[10px] font-bold font-mono text-[#D97718] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold font-mono text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-1.5 py-0.5 rounded">
                       {selectedClusterForEvidence.affected_trainee_count} Trainees Affected ({selectedClusterForEvidence.cohort_prevalence_pct}%)
                     </span>
                   </div>
@@ -3388,7 +3391,7 @@ export function Dashboard() {
               {/* Suggested Action Strip */}
               <div className="bg-[#FEF4E8] rounded-2xl border border-[#FBD1A7] p-3.5 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#D97718] flex items-center gap-1.5">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#B45309] flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5" />
                     Recommended Trainer Intervention
                   </span>
@@ -3515,7 +3518,7 @@ export function Dashboard() {
                           setSelectedModuleId(ev.module_name);
                           setRemediationModalOpen(true);
                         }}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#D97718] hover:text-[#1C1B17] px-2.5 py-1 rounded-lg border border-[#FBD1A7] bg-[#FEF4E8] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B45309] hover:text-[#1C1B17] px-2.5 py-1 rounded-lg border border-[#FBD1A7] bg-[#FEF4E8] transition-colors cursor-pointer"
                       >
                         <Target className="w-3 h-3" />
                         <span>Assign Targeted Practice</span>
