@@ -299,6 +299,16 @@ The machine learning models and baselines were evaluated on an isolated test par
 
 ---
 
+## DevOps Learning Path & Video Curriculum
+
+The portal includes an interactive DevOps & Containerization curriculum module with video streaming, interactive CLI playbooks, capstone assignments, and trainer grading workflows:
+- **Architecture**: Secure HTTP 206 Partial Content range streaming with canonical path traversal blocking (`os.path.commonpath`) and null-byte detection.
+- **Companion Materials**: All 29 slide presentations (PDFs) and CLI command cheatsheets (TXT) are tracked in `backend/resources/devops/`.
+- **Media Configuration**: See [MEDIA_SETUP.md](MEDIA_SETUP.md) for detailed instructions on configuring local and cloud video storage (`MEDIA_STORAGE_PATH`).
+- **Curriculum Licensing**: Full fair-use, educational, and non-commercial licensing attribution is documented in [CURRICULUM_LICENSING.md](CURRICULUM_LICENSING.md).
+
+---
+
 ## Model Card Limitations Reference
 Role tag: all
 
