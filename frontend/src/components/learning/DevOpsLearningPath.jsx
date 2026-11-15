@@ -245,7 +245,7 @@ export function DevOpsLearningPath({ showToast }) {
         </div>
         <button
           onClick={loadCurriculum}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 cursor-pointer"
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 cursor-pointer"
         >
           Try Again
         </button>
@@ -260,67 +260,51 @@ export function DevOpsLearningPath({ showToast }) {
   return (
     <div className="space-y-6">
       {/* =========================================================================
-          1. HERO HEADER & CURRICULUM TRACK OVERVIEW
+          1. CLEAN FLAT HEADER & CURRICULUM TRACK PROGRESSION
           ========================================================================= */}
-      <div className="card p-6 bg-gradient-to-r from-[#FAF6F0] via-[#FDF8F2] to-[#FAF6F0] border-[#F0E3D5] relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="space-y-5 pb-6 border-b border-[#F0E3D5]">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded flex items-center gap-1.5">
                 <Terminal className="w-3 h-3" />
                 DevOps Learning Path
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1C1B17] text-[#F09A3E]">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#1C1B17] text-[#F09A3E]">
                 Docker &amp; Containers
               </span>
-              <span className="text-[10px] font-bold text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-medium text-[#787063] bg-white border border-[#F0E3D5] px-2 py-0.5 rounded">
                 8 Core Lessons • 60 Mins
               </span>
             </div>
-            <h1 className="text-2xl font-black text-[#1C1B17] tracking-tight">{subject.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1B17] tracking-tight">{subject.title}</h1>
             <p className="text-xs text-[#787063] leading-relaxed">{subject.description}</p>
           </div>
 
-          {/* Progress Card */}
-          <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-[#F0E3D5] flex items-center gap-4 shrink-0 shadow-xs">
-            <div className="relative w-14 h-14 flex items-center justify-center">
-              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-[#F0E3D5]"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-[#F09A3E] transition-all duration-700 ease-out"
-                  strokeDasharray={`${currentModule.progress_pct}, 100`}
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <span className="absolute font-black text-xs text-[#1C1B17]">
-                {Math.round(currentModule.progress_pct)}%
-              </span>
+          {/* Crisp SaaS Progress Strip (Flat, No Bubble Curves) */}
+          <div className="bg-white p-3.5 rounded-lg border border-[#F0E3D5] flex flex-col gap-2 sm:min-w-[260px] shadow-xs">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#1C1B17]">Module 1 Progress</span>
+              <span className="font-extrabold text-[#B45309]">{Math.round(currentModule.progress_pct)}%</span>
             </div>
-            <div>
-              <div className="text-[11px] font-bold text-[#787063] uppercase tracking-wider">Module 1 Progress</div>
-              <div className="text-sm font-black text-[#1C1B17]">
-                {currentModule.completed_lessons} of {currentModule.total_lessons} Lessons
-              </div>
-              <div className="text-[10px] text-[#B45309] font-bold flex items-center gap-1 mt-0.5">
+            <div className="w-full h-2 bg-[#F0E3D5] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#F09A3E] transition-all duration-500 rounded-full"
+                style={{ width: `${currentModule.progress_pct}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#787063]">
+              <span>{currentModule.completed_lessons} of {currentModule.total_lessons} Lessons</span>
+              <span className="font-bold text-[#B45309] flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#F09A3E]" />
                 {latestSub?.status === "passed" ? "Capstone Passed" : "Capstone Pending"}
-              </div>
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Module Milestones Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-6 mt-6 border-t border-[#F0E3D5]">
+        {/* Module Milestones Bar (Crisp Segmented Tabs with rounded-lg) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-2">
           {subject.modules.map((mod, idx) => {
             const isActive = idx === activeModuleIndex;
             return (
@@ -337,16 +321,16 @@ export function DevOpsLearningPath({ showToast }) {
                     if (showToast) showToast(`Module ${idx + 1} unlocks after passing Module 1 Capstone!`);
                   }
                 }}
-                className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                className={`p-3 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
                   isActive
-                    ? "bg-white border-[#F09A3E] ring-2 ring-[#F09A3E]/20 shadow-xs"
+                    ? "bg-white border-[#F09A3E] ring-1 ring-[#F09A3E]/30 shadow-xs"
                     : mod.is_unlocked
-                    ? "bg-white/60 border-[#F0E3D5] hover:border-[#FBD1A7] hover:bg-white"
-                    : "bg-[#F5EFE6]/50 border-dashed border-[#E3D8CB] opacity-65 cursor-not-allowed"
+                    ? "bg-white border-[#F0E3D5] hover:border-[#FBD1A7]"
+                    : "bg-[#F5EFE6]/40 border-dashed border-[#E3D8CB] opacity-60 cursor-not-allowed"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#787063]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#787063]">
                     M0{mod.order_index}
                   </span>
                   {mod.is_unlocked ? (
@@ -359,8 +343,8 @@ export function DevOpsLearningPath({ showToast }) {
                     <Lock className="w-3 h-3 text-[#A2998A]" />
                   )}
                 </div>
-                <div className="text-xs font-bold text-[#1C1B17] mt-1 line-clamp-1">{mod.title}</div>
-                <div className="text-[10px] font-semibold text-[#787063] mt-0.5">
+                <div className="text-xs font-bold text-[#1C1B17] mt-1.5 line-clamp-1">{mod.title}</div>
+                <div className="text-[10px] text-[#787063] mt-0.5">
                   {mod.is_unlocked ? `${mod.total_lessons} Lessons` : "Locked Milestone"}
                 </div>
               </button>
@@ -521,7 +505,7 @@ export function DevOpsLearningPath({ showToast }) {
                   {activeLesson?.description ||
                     "In this lesson, you will master essential Docker commands, container process monitoring, and networking architecture."}
                 </p>
-                <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] space-y-1.5">
+                <div className="p-3.5 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5] space-y-1.5">
                   <div className="text-[11px] font-black text-[#1C1B17] uppercase tracking-wider">
                     Hands-On Learning Takeaways
                   </div>
@@ -547,7 +531,7 @@ export function DevOpsLearningPath({ showToast }) {
                     {commandsList.map((item, idx) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-xl bg-[#1C1B17] border border-[#272520] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                        className="p-3 rounded-lg bg-[#1C1B17] border border-[#272520] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="text-[10px] font-bold text-[#A2998A]">{item.desc}</div>
@@ -595,7 +579,7 @@ export function DevOpsLearningPath({ showToast }) {
                         href={learningApi.getCompanionFileUrl(activeLesson.id, idx)}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-3.5 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0] hover:bg-[#FEF4E8] hover:border-[#FBD1A7] transition-all flex items-center justify-between group"
+                        className="p-3.5 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] hover:bg-[#FEF4E8] hover:border-[#FBD1A7] transition-all flex items-center justify-between group"
                       >
                         <div className="flex items-center space-x-2.5 min-w-0">
                           <div className="p-2 rounded-lg bg-white border border-[#F0E3D5] text-[#F09A3E]">
@@ -646,7 +630,7 @@ export function DevOpsLearningPath({ showToast }) {
                     key={lesson.id}
                     type="button"
                     onClick={() => setActiveLesson(lesson)}
-                    className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                    className={`w-full p-2.5 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
                       isSelected
                         ? "bg-[#FEF4E8] border-[#F09A3E] ring-1 ring-[#F09A3E]/30"
                         : lesson.is_completed
@@ -739,7 +723,7 @@ export function DevOpsLearningPath({ showToast }) {
             {/* Trainer Feedback Banner if Needs Changes or Passed */}
             {latestSub?.trainer_feedback && (
               <div
-                className={`p-3 rounded-xl border text-xs space-y-1 ${
+                className={`p-3 rounded-lg border text-xs space-y-1 ${
                   latestSub.status === "passed"
                     ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                     : "bg-amber-50 border-amber-200 text-amber-900"
@@ -756,7 +740,7 @@ export function DevOpsLearningPath({ showToast }) {
             <button
               type="button"
               onClick={() => setAssignmentModalOpen(true)}
-              className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-all ${
+              className={`w-full py-2.5 rounded-lg font-bold text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-all ${
                 latestSub?.status === "passed"
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                   : latestSub?.status === "needs_changes"
@@ -784,11 +768,11 @@ export function DevOpsLearningPath({ showToast }) {
           ========================================================================= */}
       {assignmentModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl border border-[#F0E3D5] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg border border-[#F0E3D5] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="p-5 border-b border-[#F0E3D5] flex items-center justify-between bg-[#FAF6F0]">
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
+                <div className="p-2 rounded-lg bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
@@ -801,7 +785,7 @@ export function DevOpsLearningPath({ showToast }) {
               <button
                 type="button"
                 onClick={() => setAssignmentModalOpen(false)}
-                className="p-2 text-[#787063] hover:text-[#1C1B17] hover:bg-white rounded-xl transition-all cursor-pointer"
+                className="p-2 text-[#787063] hover:text-[#1C1B17] hover:bg-white rounded-lg transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -810,7 +794,7 @@ export function DevOpsLearningPath({ showToast }) {
             {/* Modal Scrollable Body */}
             <div className="p-6 overflow-y-auto space-y-5">
               {/* Instructions Box */}
-              <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] space-y-2">
+              <div className="p-4 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5] space-y-2">
                 <h4 className="text-xs font-black text-[#1C1B17] uppercase tracking-wider">Required Tasks:</h4>
                 <ol className="text-xs text-[#787063] space-y-1 list-decimal list-inside leading-relaxed">
                   <li>Create a user-defined bridge network named <code className="font-bold text-[#B45309]">devops-net</code>.</li>
@@ -822,7 +806,7 @@ export function DevOpsLearningPath({ showToast }) {
 
               {/* Revision Alert if Trainer Rejected */}
               {latestSub?.status === "needs_changes" && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs space-y-1">
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs space-y-1">
                   <div className="font-bold flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 text-red-600" />
                     Trainer Feedback on Previous Attempt:
@@ -842,7 +826,7 @@ export function DevOpsLearningPath({ showToast }) {
                     value={assignmentForm.commands_used}
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, commands_used: e.target.value })}
                     placeholder={`docker network create devops-net\ndocker run -d --name web-app --net devops-net -p 8080:80 nginx:alpine\ndocker run --rm --net devops-net curlimages/curl curl -s http://web-app`}
-                    className="w-full p-3 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0] text-xs font-mono focus:border-[#F09A3E] focus:outline-hidden leading-relaxed"
+                    className="w-full p-3 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] text-xs font-mono focus:border-[#F09A3E] focus:outline-hidden leading-relaxed"
                     required
                   />
                 </div>
@@ -857,7 +841,7 @@ export function DevOpsLearningPath({ showToast }) {
                     value={assignmentForm.explanation}
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, explanation: e.target.value })}
                     placeholder="Explain why Docker's internal 127.0.0.11 DNS resolver succeeded on user-defined networks while failing on the default bridge..."
-                    className="w-full p-3 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0] text-xs focus:border-[#F09A3E] focus:outline-hidden leading-relaxed"
+                    className="w-full p-3 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] text-xs focus:border-[#F09A3E] focus:outline-hidden leading-relaxed"
                     required
                   />
                 </div>
@@ -877,7 +861,7 @@ export function DevOpsLearningPath({ showToast }) {
                 type="submit"
                 form="capstone-form"
                 disabled={assignmentSubmitting}
-                className="px-5 py-2.5 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
               >
                 {assignmentSubmitting ? (
                   <>

@@ -10,7 +10,13 @@ engine_kwargs = {"echo": False}
 if "sqlite" in settings.sync_database_url:
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
-    engine_kwargs["pool_pre_ping"] = True
+    engine_kwargs.update({
+        "pool_size": settings.DB_POOL_SIZE,
+        "max_overflow": settings.DB_MAX_OVERFLOW,
+        "pool_timeout": settings.DB_POOL_TIMEOUT,
+        "pool_recycle": settings.DB_POOL_RECYCLE,
+        "pool_pre_ping": settings.DB_POOL_PRE_PING,
+    })
 
 sync_engine = create_engine(
     settings.sync_database_url,

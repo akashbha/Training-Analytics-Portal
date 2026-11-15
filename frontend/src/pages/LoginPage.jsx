@@ -1,13 +1,21 @@
 // src/pages/LoginPage.jsx
-// Exact replica of the user's reference design (tangerine orange 3D character card on left,
-// modern pill login form on right) styled for the TraineeIQ Training Analytics Portal.
+// Clean, modern authentication portal for the Training Analytics Portal.
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Spinner } from "../components/Spinner.jsx";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import loginIllustration from "../assets/login-illustration.jpg";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  BarChart3,
+  ShieldCheck,
+  Cpu,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+import loginCharacters from "../assets/login-characters.png";
 
 export function LoginPage() {
   const { login, sessionError, clearSessionError } = useAuth();
@@ -43,7 +51,10 @@ export function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
       setErrorKind("auth");
       setErrorMessage("Please enter both email and password.");
       return;
@@ -53,7 +64,7 @@ export function LoginPage() {
     setErrorMessage("");
     clearSessionError?.();
     try {
-      const loggedUser = await login(email, password);
+      const loggedUser = await login(cleanEmail, cleanPassword);
       // Route based on role
       if (loggedUser.role === "trainee" && loggedUser.trainee_id) {
         navigate(`/trainees/${loggedUser.trainee_id}`);
@@ -72,10 +83,10 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#EF641F] selection:text-white">
-      {/* Centered White Master Container Matching Reference Image */}
+      {/* Centered White Master Container */}
       <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.06)] border border-slate-100 p-5 sm:p-7 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
         {/* =========================================================================
-            LEFT COLUMN: TANGERINE ORANGE 3D CHARACTER CARD (Matching Reference Image)
+            LEFT COLUMN: TANGERINE ORANGE 3D CHARACTER CARD
             ========================================================================= */}
         <div className="hidden md:flex md:col-span-6 rounded-[2rem] bg-[#EF641F] text-white p-8 sm:p-10 flex-col justify-between relative overflow-hidden min-h-[580px] shadow-sm">
           {/* Top Promotional Headline & Subtitle */}
@@ -109,10 +120,10 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* 3D Character Illustration positioned cleanly with ample breathing room and ZERO overlap */}
+          {/* 3D Character Illustration (Seamless Transparent PNG, Zero Glitches) */}
           <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none select-none overflow-hidden">
             <img
-              src={loginIllustration}
+              src={loginCharacters}
               alt="Trainer and Trainee Performance Mentors"
               className="w-[82%] max-w-[340px] h-auto object-bottom select-none translate-y-2"
             />
@@ -120,17 +131,17 @@ export function LoginPage() {
         </div>
 
         {/* =========================================================================
-            RIGHT COLUMN: MODERN PILL AUTHENTICATION FORM (Matching Reference Image)
+            RIGHT COLUMN: MODERN PILL AUTHENTICATION FORM
             ========================================================================= */}
         <div className="md:col-span-6 p-4 sm:p-6 lg:p-8 flex flex-col justify-between">
           <div className="flex-1 flex flex-col justify-center">
             {/* Top Brand Pill Header */}
             <div className="flex items-center justify-center gap-2.5 mb-6">
               <span className="w-9 h-9 rounded-full bg-[#EF641F] text-white flex items-center justify-center font-black text-xs shadow-sm shadow-[#EF641F]/30">
-                TIQ
+                TAP
               </span>
               <span className="text-lg font-bold tracking-tight text-neutral-900">
-                TraineeIQ
+                Training Analytics Portal
               </span>
             </div>
 
@@ -208,7 +219,7 @@ export function LoginPage() {
                 </button>
               </div>
 
-              {/* Utility Row: Forgot Password (Right-aligned, matching reference image) */}
+              {/* Utility Row: Forgot Password */}
               <div className="flex items-center justify-end text-xs pt-0.5">
                 <button
                   type="button"
@@ -221,7 +232,7 @@ export function LoginPage() {
                 </button>
               </div>
 
-              {/* Full-Width Orange Pill Submit Button (Matching Reference Image) */}
+              {/* Full-Width Orange Pill Submit Button */}
               <div className="pt-2">
                 <button
                   type="submit"
@@ -239,10 +250,10 @@ export function LoginPage() {
 
             {/* Bottom Account Notice */}
             <div className="mt-7 text-center text-xs text-neutral-400 font-normal">
-              Don&apos;t have an account?{" "}
-              <Link to="/#about" className="font-semibold text-[#EF641F] hover:underline">
-                Signup
-              </Link>
+              Need account access?{" "}
+              <span className="font-semibold text-neutral-600">
+                Contact your workspace administrator
+              </span>
             </div>
 
             {/* Quick Demo Credentials (tree-shaken unless VITE_DEMO_MODE==="true") */}
@@ -299,7 +310,7 @@ export function LoginPage() {
               <ArrowLeft className="w-3.5 h-3.5 mr-1" />
               <span>Back to Portal Overview</span>
             </Link>
-            <span className="text-neutral-300">© 2026 TraineeIQ</span>
+            <span className="text-neutral-300">© 2026 Training Analytics Portal</span>
           </div>
         </div>
       </div>

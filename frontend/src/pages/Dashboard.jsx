@@ -960,7 +960,7 @@ export function Dashboard() {
           ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Mean Score */}
-        <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
+        <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1031,7 +1031,7 @@ export function Dashboard() {
         </div>
 
         {/* Metric 2: Pass Rate at 60% Cutoff */}
-        <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
+        <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1087,7 +1087,7 @@ export function Dashboard() {
         </div>
 
         {/* Metric 3: Sessions Evaluated */}
-        <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
+        <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1139,7 +1139,7 @@ export function Dashboard() {
         </div>
 
         {/* Metric 4: Enrolled Trainees */}
-        <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
+        <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,27,23,0.08)] cursor-default">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1194,7 +1194,7 @@ export function Dashboard() {
       {/* =========================================================================
           3. NEEDS ATTENTION QUEUE (Trainer Home Priority Workflow)
           ========================================================================= */}
-      <section className="bg-white rounded-2xl border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
+      <section className="bg-white rounded-lg border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0E3D5]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1333,7 +1333,7 @@ export function Dashboard() {
           />
         ) : displayedAttentionQueue.length === 0 ? (
           <div className="py-10 text-center space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7] flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-lg bg-[#FEF4E8] text-[#B45309] border border-[#FBD1A7] flex items-center justify-center mx-auto">
               <Info className="w-5 h-5" />
             </div>
             <div className="text-xs font-bold text-[#1C1B17]">
@@ -1376,7 +1376,7 @@ export function Dashboard() {
       </section>
 
       {/* Intervention Outcome Tracker (Enhancement 1) */}
-      <section className="bg-white rounded-2xl border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)] space-y-5">
+      <section className="bg-white rounded-lg border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)] space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0E3D5] pb-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs">
@@ -1628,7 +1628,7 @@ export function Dashboard() {
               ITEM 7: SCORE TREND FOR THE BATCH
               Weekly mean line with 60% reference line and number of sessions per week caption.
               ========================================================================= */}
-          <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
+          <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1984,7 +1984,7 @@ export function Dashboard() {
           </div>
 
           {/* Widget 2: Cohort Leaderboard (SQL Window Rank with REAL Photo Avatars) */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -2187,7 +2187,7 @@ export function Dashboard() {
               Ranks modules by share of attempts below 60%, computed from real session records.
               Clicking a module filters the triage queue to trainees who failed it.
               ========================================================================= */}
-          <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
+          <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -2326,7 +2326,7 @@ export function Dashboard() {
               ENHANCEMENT 2: CURRICULUM MISCONCEPTION & ERROR CLUSTERING
               Groups recurring failure patterns across cohort attempts into actionable misconception themes.
               ========================================================================= */}
-          <div className="bg-white rounded-2xl border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] space-y-4">
+          <div className="bg-white rounded-lg border border-[#F0E3D5] p-5 shadow-[0_2px_12px_rgba(28,27,23,0.03)] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -2447,7 +2447,7 @@ export function Dashboard() {
           </div>
 
           {/* Widget 3: Featured Top Performer with Portrait Photo */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Cohort Leading Performer
@@ -2484,11 +2484,11 @@ export function Dashboard() {
                       "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
                     }
                     alt={effectiveTopPerformer?.name || "Top Performer"}
-                    className="w-14 h-14 rounded-2xl object-cover ring-2 ring-amber-400/50 shadow-sm shrink-0"
+                    className="w-14 h-14 rounded-lg object-cover ring-2 ring-amber-400/50 shadow-sm shrink-0"
                   />
                   <div className="min-w-0">
                     <h4 className="text-base font-bold text-slate-900 leading-tight truncate">
-                      {effectiveTopPerformer?.name || "Elena Rostova"}
+                      {effectiveTopPerformer?.name || "Top Performer"}
                     </h4>
                     <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
                       {activeBatch?.name || "Active Batch"}
@@ -2532,7 +2532,7 @@ export function Dashboard() {
           </div>
 
           {/* Widget 4: UNIQUE Semicircle Competency Arc Gauge (Inspired by Reference Image 2) */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
+          <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Curriculum Competency Arc
@@ -2654,7 +2654,7 @@ export function Dashboard() {
       {/* =========================================================================
           6. COHORT HEATMAP: TRAINEES BY MODULES (Item 6)
           ========================================================================= */}
-      <section className="bg-white rounded-2xl border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
+      <section className="bg-white rounded-lg border border-[#F0E3D5] p-5 sm:p-6 shadow-[0_2px_12px_rgba(28,27,23,0.03)]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-[#F0E3D5] gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -2789,7 +2789,7 @@ export function Dashboard() {
           ========================================================================= */}
       {remediationTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
@@ -2987,7 +2987,7 @@ export function Dashboard() {
           ========================================================================= */}
       {resolutionTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
@@ -3113,7 +3113,7 @@ export function Dashboard() {
           ========================================================================= */}
       {messagingTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -3272,7 +3272,7 @@ export function Dashboard() {
       {/* Weekly Summary Modal (Item 8) */}
       {weeklySummaryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1B17]/60 backdrop-blur-xs">
-          <div className="relative w-full max-w-3xl max-h-[88vh] bg-white rounded-2xl border border-[#F0E3D5] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-3xl max-h-[88vh] bg-white rounded-lg border border-[#F0E3D5] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
             <div className="px-6 py-4 border-b border-[#F0E3D5] flex items-center justify-between bg-[#FDF8F2]">
               <div className="flex items-center gap-3">
@@ -3389,7 +3389,7 @@ export function Dashboard() {
             {/* Modal Content */}
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
               {/* Suggested Action Strip */}
-              <div className="bg-[#FEF4E8] rounded-2xl border border-[#FBD1A7] p-3.5 space-y-1">
+              <div className="bg-[#FEF4E8] rounded-lg border border-[#FBD1A7] p-3.5 space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#B45309] flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5" />

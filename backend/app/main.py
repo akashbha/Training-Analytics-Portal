@@ -24,24 +24,30 @@ from app.routers import auth, batches, trainees, modules, sessions, analytics, r
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Executes startup safety assertions, table creation, and graceful shutdown actions."""
-    settings.validate_production_secret()
-    from app.db.base import Base
-    from app.db.session import sync_engine
-    from sqlalchemy import text
-    import app.models  # noqa: F401 - ensure all models registered
-    Base.metadata.create_all(bind=sync_engine)
+    """Executes startup safety assertions and lifecycle initialization.
+    
+    In production and staging, runtime DDL (create_all and raw SQL schema patches) is
+    strictly disabled. Database schemas are managed exclusively via Alembic migrations.
+    """
+    settings.validate_production_configuration()
 
-    # Idempotent schema migration for existing SQLite databases
-    with sync_engine.connect() as conn:
-        try:
-            res = conn.execute(text("PRAGMA table_info(sessions)"))
-            cols = [row[1] for row in res.fetchall()]
-            if cols and "is_practice" not in cols:
-                conn.execute(text("ALTER TABLE sessions ADD COLUMN is_practice BOOLEAN NOT NULL DEFAULT 0"))
-                conn.commit()
-        except Exception:
-            pass
+    if settings.ENVIRONMENT.lower() == "development":
+        from app.db.base import Base
+        from app.db.session import sync_engine
+        from sqlalchemy import text
+        import app.models  # noqa: F401 - ensure all models registered
+        Base.metadata.create_all(bind=sync_engine)
+
+        # Idempotent schema migration for legacy SQLite local development databases
+        with sync_engine.connect() as conn:
+            try:
+                res = conn.execute(text("PRAGMA table_info(sessions)"))
+                cols = [row[1] for row in res.fetchall()]
+                if cols and "is_practice" not in cols:
+                    conn.execute(text("ALTER TABLE sessions ADD COLUMN is_practice BOOLEAN NOT NULL DEFAULT 0"))
+                    conn.commit()
+            except Exception:
+                pass
     yield
 
 app = FastAPI(

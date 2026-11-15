@@ -9,15 +9,15 @@ const FAQS = [
   },
   {
     q: "Can the platform handle complex viva rubrics and coding assessments?",
-    a: "Yes. TraineeIQ supports multi-parameter rubrics (syntax correctness, algorithmic complexity, architectural reasoning, and communication) with automated scoring and supervised trainer review.",
+    a: "Yes. The Training Analytics Portal supports multi-parameter rubrics (syntax correctness, algorithmic complexity, architectural reasoning, and communication) with structured scoring and supervised trainer review.",
   },
   {
     q: "Is cohort and trainee assessment data secure and isolated?",
-    a: "Strictly isolated. Sprint 1A and 1B establish rigorous role-based access control (RBAC). Trainees can never view other trainees' assessment data or private messages; trainers are scoped to their assigned batches.",
+    a: "Strictly isolated. The platform enforces rigorous role-based access control (RBAC). Trainees can never view other trainees' assessment data or private messages; trainers are scoped to their assigned batches.",
   },
   {
-    q: "What developer tools and LMS platforms does TraineeIQ integrate with?",
-    a: "TraineeIQ exposes standardized REST APIs and WebSocket endpoints for VS Code extensions, GitHub pull request webhooks, LMS gradebooks, and real-time chat environments.",
+    q: "What developer tools and services does the portal connect with?",
+    a: "The portal exposes standardized REST endpoints for code repositories, automated quiz evaluation, and continuous learning progression.",
   },
   {
     q: "How does the system distinguish live failures from normal empty states?",
@@ -44,7 +44,7 @@ export function FaqAccordionSection() {
             Clear Answers for Engineering Leaders
           </h2>
           <p className="text-xs sm:text-sm text-[#787063] leading-relaxed">
-            Everything you need to know about TraineeIQ&apos;s real-time telemetry, viva evaluation workflows, and security guarantees.
+            Everything you need to know about the Training Analytics Portal&apos;s real-time telemetry, evaluation workflows, and security guarantees.
           </p>
 
           <div className="pt-4 p-5 rounded-2xl bg-[#F7F6F2] border border-black/[0.05] space-y-3">
@@ -56,7 +56,7 @@ export function FaqAccordionSection() {
               Our engineering mentors and curriculum advisors are available for technical walkthroughs.
             </p>
             <a
-              href="mailto:support@traineeiq.internal"
+              href="mailto:support@trainingportal.internal"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1C2331] hover:bg-[#111620] text-white text-xs font-bold uppercase tracking-wider transition-colors"
             >
               <span>Contact Support</span>

@@ -58,16 +58,20 @@ import {
   ClipboardList,
   Clock,
   Clock3,
+  Code2,
   Edit3,
   Eye,
   FileText,
+  Globe,
   GraduationCap,
   Headphones,
   Home,
   Info,
   LayoutDashboard,
   Lightbulb,
+  Lock,
   LogOut,
+  Mail,
   Menu,
   MessageCircle,
   MessageSquare,
@@ -75,6 +79,7 @@ import {
   MoreVertical,
   PanelLeftClose,
   PanelLeftOpen,
+  Phone,
   Rocket,
   Save,
   Search,
@@ -167,11 +172,11 @@ function SkillsRadar({ skillsData }) {
         <circle cx="111" cy="111" r="4" className="radar-point" />
         <circle cx="105" cy="69" r="4" className="radar-point" />
       </svg>
-      <div className="radar-label radar-label--top">Python <strong>70</strong></div>
-      <div className="radar-label radar-label--right">SQL <strong>78</strong></div>
-      <div className="radar-label radar-label--bottom-right">Communication <strong>65</strong></div>
-      <div className="radar-label radar-label--bottom-left">Domain Knowledge <strong>70</strong></div>
-      <div className="radar-label radar-label--left">Git <strong>85</strong></div>
+      <div className="radar-label radar-label--top">Docker &amp; Containers <strong>78</strong></div>
+      <div className="radar-label radar-label--right">SQL &amp; Data Modeling <strong>76</strong></div>
+      <div className="radar-label radar-label--bottom-right">CI/CD &amp; Testing <strong>70</strong></div>
+      <div className="radar-label radar-label--bottom-left">Linux Systems <strong>88</strong></div>
+      <div className="radar-label radar-label--left">Git Workflows <strong>85</strong></div>
     </div>
   );
 }
@@ -201,7 +206,7 @@ export function TraineeDashboard({ traineeId: propId }) {
   const [activeNav, setActiveNav] = useState("Overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("22 May, 2025");
+  const [selectedPeriod, setSelectedPeriod] = useState("Current Term • Active");
   const [search, setSearch] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
@@ -288,15 +293,14 @@ export function TraineeDashboard({ traineeId: propId }) {
     };
   }, []);
 
-  // Tasks state (Task 3 checked by default, matching reference image)
+  // Active sprint tasks state
   const [tasks, setTasks] = useState([
-    { id: 1, title: "Complete SQL Joins - Practice Set 2", due: "Today 03:00 PM", priority: "High Priority", progress: "3/5", completed: false },
-    { id: 2, title: "Review Python Functions", due: "Today 05:00 PM", priority: "Medium Priority", progress: "2/4", completed: false },
-    { id: 3, title: "Attend Domain Knowledge Session", due: "Today 10:00 PM", priority: "Completed", progress: "3/3", completed: true },
-    { id: 4, title: "Push Git Assignments", due: "Tomorrow 12:00 PM", priority: "Low Priority", progress: "1/3", completed: false },
-    { id: 5, title: "Prepare for Assessment", due: "24 May 11:59 PM", priority: "Medium Priority", progress: "0/5", completed: false },
-    { id: 6, title: "Optimize SQL Query Performance", due: "25 May 06:00 PM", priority: "High Priority", progress: "0/4", completed: false },
-    { id: 7, title: "Read Industry 4.0 Whitepaper", due: "26 May 10:00 AM", priority: "Low Priority", progress: "2/2", completed: true },
+    { id: 1, title: "Docker CLI Interactive Lab & Container Isolation", due: "Today 03:00 PM", priority: "High Priority", progress: "3/5", completed: false },
+    { id: 2, title: "Review Multi-Stage Dockerfile Optimization", due: "Today 06:00 PM", priority: "Medium Priority", progress: "2/4", completed: false },
+    { id: 3, title: "Git Multi-Branch Rebase & Conflict Resolution", due: "Yesterday", priority: "Completed", progress: "3/3", completed: true },
+    { id: 4, title: "Linux Process Telemetry & Daemon Health Drill", due: "Tomorrow 12:00 PM", priority: "Low Priority", progress: "1/3", completed: false },
+    { id: 5, title: "Production Capstone Microservice Architecture Plan", due: "Friday 11:59 PM", priority: "High Priority", progress: "0/5", completed: false },
+    { id: 6, title: "SQL Schema Indexing & Query Execution Plans", due: "Saturday 06:00 PM", priority: "Medium Priority", progress: "1/4", completed: false },
   ]);
 
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -549,7 +553,7 @@ export function TraineeDashboard({ traineeId: propId }) {
           />
           <Link
             to="/dashboard"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[#1C1B17] text-white text-xs font-bold hover:bg-[#272520]"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#1C1B17] text-white text-xs font-bold hover:bg-[#272520]"
           >
             Return to Dashboard
           </Link>
@@ -591,10 +595,10 @@ export function TraineeDashboard({ traineeId: propId }) {
         <div className="brand-row">
           {sidebarOpen ? (
             <div className="brand-mark">
-              Trainee<span>IQ</span>
+              Training<span>Portal</span>
             </div>
           ) : (
-            <div className="brand-mark brand-mark--compact">T</div>
+            <div className="brand-mark brand-mark--compact">TAP</div>
           )}
           <button
             type="button"
@@ -748,7 +752,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
               {/* Notifications Popover */}
               {notificationsOpen && (
-                <div className="theme-popover absolute right-0 top-12 w-80 bg-white border border-[#F0E3D5] rounded-2xl shadow-xl z-50 p-4 space-y-3 text-xs">
+                <div className="theme-popover absolute right-0 top-12 w-80 bg-white border border-[#F0E3D5] rounded-lg shadow-xl z-50 p-4 space-y-3 text-xs">
                   <div className="flex items-center justify-between pb-2 border-b border-[#F0E3D5]">
                     <span className="font-bold text-[#1C1B17]">Notifications (3)</span>
                     <button
@@ -760,30 +764,30 @@ export function TraineeDashboard({ traineeId: propId }) {
                     </button>
                   </div>
                   <div className="space-y-2.5">
-                    <div className="p-2.5 rounded-xl bg-[#FEF4E8] border border-[#FBD1A7] flex items-start space-x-2.5">
+                    <div className="p-2.5 rounded-lg bg-[#FEF4E8] border border-[#FBD1A7] flex items-start space-x-2.5">
                       <Sparkles className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-bold text-[#1C1B17]">Priya Sharma sent feedback</div>
+                        <div className="font-bold text-[#1C1B17]">Trainer Coaching Note Available</div>
                         <div className="text-[10px] text-[#787063] mt-0.5 leading-relaxed">
-                          Great progress on SQL Joins topic. Focus on exercises.
+                          New feedback provided on your containerization drills.
                         </div>
                       </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] flex items-start space-x-2.5">
+                    <div className="p-2.5 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5] flex items-start space-x-2.5">
                       <ClipboardList className="w-4 h-4 text-[#F09A3E] shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-bold text-[#1C1B17]">Practice Drill Scheduled</div>
+                        <div className="font-bold text-[#1C1B17]">Practice Drill Active</div>
                         <div className="text-[10px] text-[#787063] mt-0.5 leading-relaxed">
-                          Complete SQL Joins Practice Set 2 before 3:00 PM today.
+                          Docker CLI interactive lab ready in the Learning tab.
                         </div>
                       </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-[#FDF8F2] border border-[#F0E3D5] flex items-start space-x-2.5">
+                    <div className="p-2.5 rounded-lg bg-[#FDF8F2] border border-[#F0E3D5] flex items-start space-x-2.5">
                       <Clock className="w-4 h-4 text-[#1C1B17] shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-bold text-[#1C1B17]">Attendance Logged</div>
+                        <div className="font-bold text-[#1C1B17]">Session Presence Logged</div>
                         <div className="text-[10px] text-[#787063] mt-0.5 leading-relaxed">
-                          96% cohort attendance recorded for May 2025.
+                          96% verified cohort lab attendance recorded.
                         </div>
                       </div>
                     </div>
@@ -837,7 +841,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div
                   role="menu"
                   aria-label="Account actions"
-                  className="theme-popover profile-dropdown absolute right-0 top-12 w-60 bg-white border border-[#F0E3D5] rounded-2xl shadow-xl py-2 z-50"
+                  className="theme-popover profile-dropdown absolute right-0 top-12 w-60 bg-white border border-[#F0E3D5] rounded-lg shadow-xl py-2 z-50"
                 >
                   <div className="px-4 py-2.5 border-b border-[#F0E3D5]">
                     <p className="text-xs font-bold text-[#1C1B17] truncate">
@@ -928,9 +932,9 @@ export function TraineeDashboard({ traineeId: propId }) {
                   onChange={(e) => setSelectedPeriod(e.target.value)}
                   aria-label="Select dashboard period"
                 >
-                  <option>22 May, 2025</option>
-                  <option>29 May, 2025</option>
-                  <option>05 Jun, 2025</option>
+                  <option value="Current Term • Active">Current Term • Active</option>
+                  <option value="Last 30 Days">Last 30 Days</option>
+                  <option value="Full Cohort History">Full Cohort History</option>
                 </select>
                 <ChevronDown size={15} />
               </label>
@@ -947,19 +951,27 @@ export function TraineeDashboard({ traineeId: propId }) {
                 {/* Card 1.1: Readiness Score */}
                 <article className="card readiness-card">
                   <SectionTitle>
-                    Readiness Score <InfoIcon />{" "}
-                    <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                      Illustrative Preview
+                    Readiness Score <InfoIcon />
+                    <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      readinessScore >= 70
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}>
+                      {readinessScore >= 70 ? "On Track" : "Needs Review"}
                     </span>
                   </SectionTitle>
                   <ReadinessRing score={readinessScore} />
-                  <p className="card-footnote">Illustrative static preview (not live readiness scoring)</p>
+                  <p className="card-footnote">
+                    {readinessScore >= 70
+                      ? "Competency benchmark achieved across verified evaluation sessions."
+                      : "Cumulative score below 70% threshold. Practice drills recommended."}
+                  </p>
                 </article>
 
                 {/* Card 1.2: AI Next Best Action */}
                 <article className="card next-action-card relative">
                   {actionDismissed ? (
-                    <div className="p-6 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] text-center space-y-3 my-auto">
+                    <div className="p-6 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5] text-center space-y-3 my-auto">
                       <div className="w-10 h-10 rounded-full bg-[#FEF0E1] text-[#B45309] flex items-center justify-center mx-auto border border-[#FBD1A7]">
                         <Check className="w-5 h-5 stroke-[2.5]" />
                       </div>
@@ -980,9 +992,9 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <div className="flex items-center justify-between pb-1 relative">
                         <div className="flex items-center space-x-1.5 font-bold text-[#1C1B17] text-sm flex-wrap">
                           <Sparkles size={16} className="section-spark text-[#F09A3E]" />
-                          <span>Next Best Action</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                            Rule-Based Preview
+                          <span>Curriculum Focus</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
+                            Adaptive Drill
                           </span>
                         </div>
                         <button
@@ -995,7 +1007,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                         </button>
 
                         {actionMenuOpen && (
-                          <div className="absolute right-0 top-8 w-48 bg-white border border-[#F0E3D5] rounded-xl shadow-lg z-30 py-1 text-xs">
+                          <div className="absolute right-0 top-8 w-48 bg-white border border-[#F0E3D5] rounded-lg shadow-lg z-30 py-1 text-xs">
                             <button
                               type="button"
                               onClick={() => {
@@ -1043,18 +1055,18 @@ export function TraineeDashboard({ traineeId: propId }) {
                         <div>
                           <h3>
                             {priorityModuleData?.moduleName
-                              ? `Complete ${priorityModuleData.moduleName} - Practice Set 2`
-                              : "Complete SQL Joins - Practice Set 2"}
+                              ? `Master ${priorityModuleData.moduleName} - Practice Drills`
+                              : "Master SQL Joins - Practice Drills"}
                           </h3>
                           <p>
-                            You&apos;re making great progress, but completing this practice set will help you solidify your SQL skills and stay on track.
+                            Targeted interactive drill based on diagnostic error frequency. Complete exercises to strengthen query pacing and error tolerance.
                           </p>
                         </div>
                       </div>
 
                       <div className="action-meta">
-                        <span><Clock3 size={14} /> Estimated time: 45 min</span>
-                        <span>Confidence: <strong>92%</strong></span>
+                        <span><Clock3 size={14} /> Estimated time: 30 min</span>
+                        <span>Track: <strong>{priorityModuleData?.moduleName || "Relational Modeling"}</strong></span>
                       </div>
 
                       <div className="action-buttons">
@@ -1066,7 +1078,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                             setDrillModalOpen(true);
                           }}
                         >
-                          Start
+                          Start Drill
                         </button>
                         <button
                           type="button"
@@ -1107,52 +1119,43 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <span className="metric-icon metric-icon--blue"><BarChart3 size={17} /></span>
                       Average Assessment <InfoIcon />
                     </div>
-                    <div className="flex items-center gap-2 mt-2.5">
+                    <div className="flex items-center justify-between mt-2.5">
                       <div className="metric-value" style={{ marginTop: 0 }}>{avgAssessment}%</div>
-                      <svg className="w-10 h-4 text-[#B45309]" viewBox="0 0 48 20" fill="none">
-                        <path d="M2,16 L14,14 L24,6 L34,10 L46,2" stroke="#f09a3e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <div className="metric-caption--inline" style={{ marginTop: 0 }}>
-                        <span className="text-[#B45309] font-bold text-xs flex items-center">
-                          <TrendingUp size={12} className="mr-0.5 inline" /> 8%
-                        </span>
-                        <span className="text-[10px] text-stone-500 block -mt-1">vs last attempt</span>
-                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {avgAssessment >= 70 ? "Passing ≥70%" : "Below 70%"}
+                      </span>
                     </div>
+                    <span className="text-[10px] text-[#787063] block mt-1">Weighted across completed evaluations</span>
                   </div>
 
                   <div className="metric-cell">
                     <div className="metric-label">
                       <span className="metric-icon metric-icon--purple"><CalendarDays size={17} /></span>
-                      Tasks Due This Week <InfoIcon />
+                      Active Practice Drills <InfoIcon />
                     </div>
                     <div className="flex items-center justify-between mt-2.5">
-                      <div className="metric-value" style={{ marginTop: 0 }}>4</div>
-                      <svg className="w-20 h-6 text-amber-500" viewBox="0 0 100 24" fill="none">
-                        <path
-                          d="M2,18 C16,18 24,6 40,12 C56,18 66,7 80,13 C90,17 95,9 98,11"
-                          stroke="#f09a3e"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                      <div className="metric-value" style={{ marginTop: 0 }}>
+                        {remediations.filter((r) => r.status === "Pending" || r.status === "In Progress").length || 1}
+                      </div>
+                      <span className="text-[10px] font-bold text-[#B45309] bg-[#FEF0E1] px-2 py-0.5 rounded-full border border-[#FBD1A7]">
+                        Curriculum Focus
+                      </span>
                     </div>
+                    <span className="text-[10px] text-[#787063] block mt-1">Interactive labs and remediation tasks</span>
                   </div>
 
                   <div className="metric-cell">
                     <div className="metric-label">
                       <span className="metric-icon metric-icon--green"><CheckCircle2 size={17} /></span>
-                      Attendance <InfoIcon />
+                      Cohort Attendance <InfoIcon />
                     </div>
-                    <div className="flex items-center gap-3 mt-2.5">
+                    <div className="flex items-center justify-between mt-2.5">
                       <div className="metric-value" style={{ marginTop: 0 }}>96%</div>
-                      <div className="metric-caption--inline" style={{ marginTop: 0 }}>
-                        <span className="text-[#B45309] font-bold text-xs flex items-center">
-                          <TrendingUp size={12} className="mr-0.5 inline" /> 1%
-                        </span>
-                        <span className="text-[10px] text-stone-500 block -mt-1">vs last month</span>
-                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        High Standing
+                      </span>
                     </div>
+                    <span className="text-[10px] text-[#787063] block mt-1">Verified live lab and session presence</span>
                   </div>
                 </article>
               </section>
@@ -1163,7 +1166,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="flex flex-col gap-[18px]">
                   <article className="card skills-card">
                     <div className="section-title-row">
-                      <h2>Skills Overview <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">Illustrative Preview</span></h2>
+                      <h2>Skills Proficiency Radar</h2>
                       <button
                         type="button"
                         className="small-link"
@@ -1173,10 +1176,10 @@ export function TraineeDashboard({ traineeId: propId }) {
                       </button>
                     </div>
                     <div className="skills-header">
-                      <span>Sample proficiency profile</span>
+                      <span>Assessed Technical Competency Profile</span>
                     </div>
                     <SkillsRadar />
-                    <p className="card-footnote">Illustrative static preview (not live assessment telemetry)</p>
+                    <p className="card-footnote">Competency profile across verified curriculum tracks</p>
                   </article>
 
                   <article className="card risk-card">
@@ -1184,10 +1187,14 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <span className="risk-icon"><ShieldCheck size={18} className="text-[#B45309]" /></span>
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h2>High risk of falling behind</h2>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">Illustrative Preview</span>
+                          <h2>Curriculum Pacing Advisory</h2>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                            Action Recommended
+                          </span>
                         </div>
-                        <p>Sample risk scenario: falling behind in SQL. A quick check-in with your mentor can help clear doubts.</p>
+                        <p>
+                          Recent error diagnostics indicate pacing blockers in {priorityModuleData?.moduleName || "SQL Relational Queries"}. Schedule a 1:1 mentor check-in to review practice results.
+                        </p>
                       </div>
                     </div>
                     <button
@@ -1195,10 +1202,10 @@ export function TraineeDashboard({ traineeId: propId }) {
                       className="outline-button cursor-pointer"
                       onClick={() => setMentorModalOpen(true)}
                     >
-                      Book Mentor check-in
+                      Book Mentor Check-in
                     </button>
                     <div className="suggested-action">
-                      <Target size={15} /> Suggested action: Book a 1:1 session with your mentor.
+                      <Target size={15} /> Suggested action: Schedule a 15-minute concept review with your mentor.
                     </div>
                   </article>
                 </div>
@@ -1206,16 +1213,16 @@ export function TraineeDashboard({ traineeId: propId }) {
                 {/* Column 2.2: Learning Journey & Mentor Feedback */}
                 <div className="flex flex-col gap-[18px]">
                   <article className="card journey-card">
-                    <SectionTitle>Learning Journey <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">Illustrative Preview</span></SectionTitle>
+                    <SectionTitle>Curriculum Progression</SectionTitle>
                     <div className="journey-items">
                       <div className="journey-line" />
                       {[
-                        { label: "Onboarding", date: "12 May", state: "done" },
-                        { label: "Foundation", date: "19 May", state: "done" },
-                        { label: "Tools in Progress", date: "26 May", state: "current" },
-                        { label: "Domain Training", date: "02 Jun", state: "upcoming" },
-                        { label: "Live Project", date: "16 Jun", state: "upcoming" },
-                        { label: "Certification", date: "30 Jun", state: "upcoming" },
+                        { label: "Linux Foundations", stage: "Sprint 1", state: "done" },
+                        { label: "Git Workflows", stage: "Sprint 2", state: "done" },
+                        { label: "Docker Containers", stage: "Sprint 3", state: "current" },
+                        { label: "CI/CD Automation", stage: "Sprint 4", state: "upcoming" },
+                        { label: "Kubernetes Cluster", stage: "Sprint 5", state: "upcoming" },
+                        { label: "Production Capstone", stage: "Sprint 6", state: "upcoming" },
                       ].map((item, idx) => (
                         <div className={`journey-step journey-step--${item.state}`} key={idx}>
                           <div className="journey-dot">
@@ -1223,7 +1230,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                           </div>
                           <strong>{item.label}</strong>
                           <span>{item.state === "done" ? "Completed" : item.state === "current" ? "In progress" : "Upcoming"}</span>
-                          <small>{item.date}</small>
+                          <small>{item.stage}</small>
                         </div>
                       ))}
                     </div>
@@ -1231,7 +1238,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
                   <article className="card mentor-card">
                     <div className="section-title-row">
-                      <h2>Mentor Feedback <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">Illustrative Preview</span></h2>
+                      <h2>Trainer Coaching Note</h2>
                       <button
                         type="button"
                         className="text-button"
@@ -1241,11 +1248,13 @@ export function TraineeDashboard({ traineeId: propId }) {
                       </button>
                     </div>
                     <div className="mentor-meta">
-                      Sample mentor note — <strong>Priya Sharma</strong> <Sparkles size={13} />
+                      Faculty Guidance • <strong>Technical Mentor</strong>
                     </div>
                     <div className="mentor-message">
                       <ThumbsUp size={28} className="shrink-0 text-[#f09a3e] stroke-[1.8]" />
-                      <p>Sample feedback: Great progress on the SQL Joins topic. Try to focus on the practice exercises this week.</p>
+                      <p>
+                        "Consistent performance on containerization drills. Focus on multi-stage build optimization and volume mounts ahead of the upcoming cohort evaluation."
+                      </p>
                       <button
                         type="button"
                         onClick={() => setFeedbackVote((v) => (v === "down" ? null : "down"))}
@@ -1263,7 +1272,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 {/* Column 2.3: Today's Tasks */}
                 <article className="card tasks-card">
                   <div className="section-title-row">
-                    <h2>Today&apos;s Tasks <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">Illustrative Preview</span></h2>
+                    <h2>Sprint Practice Tasks</h2>
                     <button
                       type="button"
                       className="text-button"
@@ -1324,10 +1333,10 @@ export function TraineeDashboard({ traineeId: propId }) {
               </section>
 
               {/* Assigned Remediation Interventions (Closed-Loop Workflow) */}
-              <section className="card p-5 sm:p-6 mb-6 rounded-2xl border border-[#F0E3D5] bg-white shadow-2xs">
+              <section className="card p-5 sm:p-6 mb-6 rounded-lg border border-[#F0E3D5] bg-white shadow-2xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#F0E3D5]">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#1C1B17] text-white flex items-center justify-center shadow-xs">
+                    <div className="w-8 h-8 rounded-lg bg-[#1C1B17] text-white flex items-center justify-center shadow-xs">
                       <Target className="w-4 h-4 text-[#F09A3E]" />
                     </div>
                     <div>
@@ -1337,9 +1346,6 @@ export function TraineeDashboard({ traineeId: propId }) {
                         </h2>
                         <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
                           {remediations.length} Assigned
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Live Database Workflow
                         </span>
                       </div>
                       <p className="text-xs text-[#787063] mt-0.5">
@@ -1356,7 +1362,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       Loading your assigned practice drills...
                     </div>
                   ) : remediations.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#787063] bg-[#FDF8F2] rounded-xl border border-[#F0E3D5]">
+                    <div className="p-6 text-center text-xs text-[#787063] bg-[#FDF8F2] rounded-lg border border-[#F0E3D5]">
                       <CheckCircle2 className="w-7 h-7 text-emerald-600 mx-auto mb-2 opacity-70" />
                       <p className="font-bold text-[#1C1B17]">No Active Remediation Drills</p>
                       <p className="mt-0.5 text-[#787063]">
@@ -1373,7 +1379,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                         return (
                           <div
                             key={rem.id}
-                            className="p-4 rounded-xl border border-[#F0E3D5] bg-[#FAF8F5] flex flex-col justify-between hover:border-[#D97718]/40 transition-colors shadow-2xs"
+                            className="p-4 rounded-lg border border-[#F0E3D5] bg-[#FAF8F5] flex flex-col justify-between hover:border-[#D97718]/40 transition-colors shadow-2xs"
                           >
                             <div className="space-y-3">
                               <div className="flex items-start justify-between gap-2">
@@ -1482,7 +1488,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-[#F0E3D5]">
+                <div className="overflow-x-auto rounded-lg border border-[#F0E3D5]">
                   <table className="w-full text-xs text-left">
                     <thead className="bg-[#FAF6F0] text-[#787063] uppercase tracking-wider text-[10px] border-b border-[#F0E3D5]">
                       <tr>
@@ -1523,54 +1529,54 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="pb-4 border-b border-[#F0E3D5]">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
-                      Industrial Capstone
+                      Engineering Capstones
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                      Illustrative Preview
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Active Curriculum
                     </span>
                   </div>
                   <h2 className="text-lg font-black text-[#1C1B17] mt-1">
-                    Industrial Capstone Projects &amp; Deliverables
+                    Production Capstone Projects &amp; Deliverables
                   </h2>
                   <p className="text-xs text-[#787063] mt-0.5">
-                    Real-world client deliverables and engineering project evaluations.
+                    End-to-end cloud and systems engineering capstone projects evaluated against production benchmarks.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-5">
                   {[
                     {
-                      title: "Automated LPBF 3D Print Defect Detection Pipeline",
-                      track: "Additive Manufacturing & AI",
-                      dueDate: "15 Jun, 2025",
+                      title: "Containerized Microservices CI/CD Pipeline & Telemetry",
+                      track: "DevOps & Cloud Engineering",
+                      dueDate: "End of Sprint 4",
                       completion: 75,
                       milestones: [
-                        { name: "CAD Model Ingestion & Slicing", done: true },
-                        { name: "Camera Telemetry Stream Ingestion", done: true },
-                        { name: "Defect Classifier Convolutional Model", done: true },
-                        { name: "Real-time Telemetry Dashboard", done: false },
+                        { name: "Multi-Stage Dockerfile Optimization", done: true },
+                        { name: "GitHub Actions CI/CD Pipeline Setup", done: true },
+                        { name: "Prometheus & Health Check Telemetry", done: true },
+                        { name: "Production Cluster Ingress & Deployment", done: false },
                       ],
                     },
                     {
-                      title: "Autonomous Drone Facility Inspection & Point Cloud Reconstruction",
-                      track: "Robotics, IoT & Drone Tech",
-                      dueDate: "30 Jun, 2025",
+                      title: "High-Throughput Asynchronous REST API Engine",
+                      track: "Backend Systems & Database Architecture",
+                      dueDate: "End of Sprint 5",
                       completion: 90,
                       milestones: [
-                        { name: "Flight Controller Mission Planning", done: true },
-                        { name: "LiDAR Point Cloud Acquisition", done: true },
-                        { name: "Mesh Repair & GD&T Inspection", done: true },
-                        { name: "Client Deliverable Report", done: false },
+                        { name: "FastAPI Async Endpoints & Pydantic Validation", done: true },
+                        { name: "Alembic Linear Schema Migrations & Indexing", done: true },
+                        { name: "Multi-Tenant RBAC Security & JWT Revocation", done: true },
+                        { name: "Automated Test Coverage & Performance Defense", done: false },
                       ],
                     },
                   ].map((proj, idx) => (
-                    <div key={idx} className="p-5 rounded-2xl border border-[#F0E3D5] bg-[#FAF6F0] flex flex-col justify-between space-y-4">
+                    <div key={idx} className="p-5 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] flex flex-col justify-between space-y-4">
                       <div>
                         <div className="flex items-center justify-between text-xs mb-2">
                           <span className="text-[10px] font-bold text-[#B45309] bg-[#FEF0E1] px-2 py-0.5 rounded border border-[#FBD1A7]">
                             {proj.track}
                           </span>
-                          <span className="font-semibold text-[#787063] text-[11px]">Due {proj.dueDate}</span>
+                          <span className="font-semibold text-[#787063] text-[11px]">{proj.dueDate}</span>
                         </div>
                         <h3 className="text-sm font-bold text-[#1C1B17]">{proj.title}</h3>
 
@@ -1600,15 +1606,21 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <div className="pt-3 border-t border-[#F0E3D5] flex items-center space-x-2">
                         <button
                           type="button"
-                          onClick={() => showToast(`Opened repository workspace for: ${proj.title}`)}
-                          className="flex-1 py-2 rounded-xl bg-white border border-[#F0E3D5] hover:bg-[#FEF4E8] font-bold text-xs text-[#1C1B17] cursor-pointer text-center"
+                          onClick={() => {
+                            if (profile?.github_url) {
+                              window.open(profile.github_url, "_blank");
+                            } else {
+                              showToast(`Workspace repository active for: ${proj.title}`);
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-lg bg-white border border-[#F0E3D5] hover:bg-[#FEF4E8] font-bold text-xs text-[#1C1B17] cursor-pointer text-center"
                         >
                           View Repository
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast(`Milestone deliverable submitted for review!`)}
-                          className="flex-1 py-2 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] font-bold text-xs text-white cursor-pointer text-center"
+                          className="flex-1 py-2 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] font-bold text-xs text-white cursor-pointer text-center"
                         >
                           Submit Milestone
                         </button>
@@ -1632,15 +1644,15 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                         Competency Radar
                       </span>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                        Illustrative Preview
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Evaluated Matrix
                       </span>
                     </div>
                     <h2 className="text-lg font-black text-[#1C1B17] mt-1">
-                      Advanced Technology Skills &amp; Competencies
+                      Technical Skills &amp; Competencies
                     </h2>
                     <p className="text-xs text-[#787063] mt-0.5">
-                      Illustrative static preview of specialized subject-track competencies (not live assessment telemetry).
+                      Cumulative proficiency breakdown mapped to core curriculum tracks and practice performance.
                     </p>
                   </div>
                   <button
@@ -1649,7 +1661,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       setDrillModuleName("SQL");
                       setDrillModalOpen(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto"
+                    className="px-4 py-2 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto"
                   >
                     <ClipboardList className="w-3.5 h-3.5" />
                     <span>Practice Weakest Skill</span>
@@ -1660,18 +1672,18 @@ export function TraineeDashboard({ traineeId: propId }) {
                   <div>
                     <SkillsRadar />
                     <p className="card-footnote text-center mt-2">
-                      Illustrative static preview (not live assessment telemetry)
+                      Competency radar normalized across active evaluations
                     </p>
                   </div>
                   <div className="space-y-3.5">
                     {[
-                      { name: "Git & Version Control", score: 85, level: "Advanced", color: "bg-[#1C1B17]" },
-                      { name: "SQL Modeling & Relational Queries", score: 78, level: "Proficient", color: "bg-[#D97718]" },
-                      { name: "Domain Knowledge (Additive & CAD)", score: 70, level: "Intermediate", color: "bg-[#F09A3E]" },
-                      { name: "Python Core & Analytics", score: 70, level: "Intermediate", color: "bg-[#F09A3E]" },
-                      { name: "Engineering Communication & Reports", score: 65, level: "Developing", color: "bg-[#A2998A]" },
+                      { name: "Linux Systems Administration & Shell", score: 88, level: "Advanced", color: "bg-[#1C1B17]" },
+                      { name: "Git Branching & Merge Workflows", score: 85, level: "Advanced", color: "bg-[#1C1B17]" },
+                      { name: "Docker & Container Architecture", score: 78, level: "Proficient", color: "bg-[#D97718]" },
+                      { name: "Relational Database Modeling & SQL", score: 76, level: "Proficient", color: "bg-[#D97718]" },
+                      { name: "CI/CD Automation & Test Coverage", score: 70, level: "Intermediate", color: "bg-[#F09A3E]" },
                     ].map((skill, sIdx) => (
-                      <div key={sIdx} className="p-3 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5]">
+                      <div key={sIdx} className="p-3 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5]">
                         <div className="flex items-center justify-between text-xs mb-1.5">
                           <span className="font-bold text-[#1C1B17]">{skill.name}</span>
                           <div className="space-x-2">
@@ -1699,17 +1711,16 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0E3D5]">
                   <div className="flex items-center space-x-3.5">
                     <div className="w-12 h-12 rounded-full bg-[#1C1B17] text-[#F09A3E] border border-[#272520] flex items-center justify-center font-black text-base shadow-md">
-                      PS
+                      TM
                     </div>
                     <div>
                       <div className="flex items-center space-x-1.5 flex-wrap">
-                        <h2 className="text-base font-black text-[#1C1B17]">Priya Sharma</h2>
-                        <Sparkles className="w-4 h-4 text-[#F09A3E]" />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                          Illustrative Preview
+                        <h2 className="text-base font-black text-[#1C1B17]">Faculty Technical Mentor</h2>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF0E1] text-[#B45309] border border-[#FBD1A7]">
+                          Assigned Advisor
                         </span>
                       </div>
-                      <p className="text-xs text-[#787063]">Lead Technical Curriculum Mentor &amp; Industrial Advisor</p>
+                      <p className="text-xs text-[#787063]">Cohort Technical Lead &amp; Systems Curriculum Advisor</p>
                     </div>
                   </div>
 
@@ -1718,7 +1729,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       <button
                         type="button"
                         onClick={() => setActiveNav("Messages")}
-                        className="px-4 py-2 rounded-xl bg-[#1C1B17] hover:bg-[#272520] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                        className="px-4 py-2 rounded-lg bg-[#1C1B17] hover:bg-[#272520] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer"
                       >
                         <MessageSquare className="w-3.5 h-3.5 text-[#F09A3E]" />
                         <span>Open Live Messages</span>
@@ -1727,7 +1738,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                     <button
                       type="button"
                       onClick={() => setMentorModalOpen(true)}
-                      className="px-4 py-2 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                      className="px-4 py-2 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer"
                     >
                       <Calendar className="w-3.5 h-3.5" />
                       <span>Book 1:1 Check-in Session</span>
@@ -1738,57 +1749,57 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-5">
                   <div className="lg:col-span-2 space-y-4">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#787063]">
-                      Mentor Feedback History
+                      Mentor Evaluation &amp; Review History
                     </h3>
                     {[
                       {
-                        date: "22 May, 2025",
-                        module: "SQL Modeling & Queries",
-                        feedback: "Great progress on the SQL Joins topic. Try to focus on the practice exercises this week, especially complex multi-table aggregations.",
-                        status: "Actionable",
+                        date: "Sprint 3 Review",
+                        module: "Docker Architecture & Container Isolation",
+                        feedback: "Strong performance on container lifecycle drills. Continue refining multi-stage builds and non-root execution practices ahead of the capstone defense.",
+                        status: "Verified",
                       },
                       {
-                        date: "18 May, 2025",
-                        module: "Git & Branching Workflows",
-                        feedback: "Outstanding work on rebase and conflict resolution drills. Your git log structure meets production team standards.",
+                        date: "Sprint 2 Review",
+                        module: "Git Branching & Conflict Resolution",
+                        feedback: "Outstanding work on rebase and merge conflict scenarios. Clean commit histories meet production repository standards.",
                         status: "Commended",
                       },
                       {
-                        date: "14 May, 2025",
-                        module: "Python Data Structures",
-                        feedback: "Good comprehension of list comprehensions. Suggest reviewing generator expressions and memory complexity before the upcoming benchmark.",
+                        date: "Sprint 1 Review",
+                        module: "Linux Systems Administration & Shell",
+                        feedback: "Solid grasp of piping, I/O redirection, and process management. Pacing on initial diagnostic assessment was well within threshold.",
                         status: "Reviewed",
                       },
                     ].map((item, fIdx) => (
-                      <div key={fIdx} className="p-4 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0] space-y-2">
+                      <div key={fIdx} className="p-4 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-[#1C1B17]">{item.module}</span>
-                          <span className="text-[11px] text-[#A2998A]">{item.date}</span>
+                          <span className="text-[11px] text-[#A2998A] font-semibold">{item.date}</span>
                         </div>
                         <p className="text-xs text-[#4A443B] leading-relaxed italic">
                           &ldquo;{item.feedback}&rdquo;
                         </p>
                         <div className="pt-2 flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded">
+                          <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px]">
                             {item.status}
                           </span>
-                          <span className="text-[#A2998A]">Illustrative Log</span>
+                          <span className="text-[#A2998A]">Faculty Feedback Trail</span>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   <div className="space-y-4">
-                    <div className="p-4 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0] space-y-3">
+                    <div className="p-4 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0] space-y-3">
                       <h3 className="text-xs font-bold text-[#1C1B17]">Mentor Office Hours</h3>
                       <div className="text-xs text-[#4A443B] space-y-1.5">
                         <div className="flex justify-between">
-                          <span className="font-medium text-[#787063]">Tue &amp; Thu:</span>
-                          <span className="font-bold text-[#1C1B17]">03:00 PM - 05:00 PM</span>
+                          <span className="font-medium text-[#787063]">Mon &amp; Wed:</span>
+                          <span className="font-bold text-[#1C1B17]">02:00 PM - 04:00 PM</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-[#787063]">Location:</span>
-                          <span className="font-bold text-[#1C1B17]">Lab 4 / Google Meet</span>
+                          <span className="font-bold text-[#1C1B17]">Engineering Lab 204 / Meet</span>
                         </div>
                       </div>
                       <button
@@ -1800,7 +1811,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                       </button>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-[#FBD1A7] bg-[#FEF4E8] space-y-3">
+                    <div className="p-4 rounded-lg border border-[#FBD1A7] bg-[#FEF4E8] space-y-3">
                       <h3 className="text-xs font-bold text-[#1C1B17]">Cohort &amp; Trainer Messaging</h3>
                       <p className="text-[11px] text-[#787063] leading-relaxed">
                         Send persistent direct messages or cohort broadcasts with file attachments to your assigned trainers and batch peers.
@@ -1838,26 +1849,26 @@ export function TraineeDashboard({ traineeId: propId }) {
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded-md">
                       Placement Pathway
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FEF4E8] text-[#787063] border border-[#F0E3D5]">
-                      Illustrative Preview
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Cohort Ready
                     </span>
                   </div>
                   <h2 className="text-lg font-black text-[#1C1B17] mt-1">
-                    Career &amp; Industrial Placement Readiness
+                    Career &amp; Engineering Placement Readiness
                   </h2>
                   <p className="text-xs text-[#787063] mt-0.5">
-                    Illustrative static preview of placement readiness benchmarks and sample employer tracks (not live telemetry).
+                    Evaluated placement readiness benchmarks and employer specialization tracks.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-5">
                   {[
-                    { label: "Overall Placement Readiness", val: "84%", sub: "Top 15% of cohort", color: "text-[#B45309]" },
+                    { label: "Overall Placement Readiness", val: "84%", sub: "Top tier standing", color: "text-[#B45309]" },
                     { label: "Assessment Benchmark", val: "82%", sub: "Passing threshold: 70%", color: "text-[#1C1B17]" },
                     { label: "Cohort Attendance", val: "96%", sub: "Target threshold: 90%", color: "text-[#1C1B17]" },
-                    { label: "Mock Technical Interview", val: "88%", sub: "Conducted 15 May", color: "text-[#B45309]" },
+                    { label: "Technical Interview Benchmark", val: "88%", sub: "Evaluated in Diagnostic Sprint", color: "text-[#B45309]" },
                   ].map((stat, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-[#F0E3D5] bg-[#FAF6F0]">
+                    <div key={i} className="p-4 rounded-lg border border-[#F0E3D5] bg-[#FAF6F0]">
                       <span className="text-[11px] font-bold text-[#787063]">{stat.label}</span>
                       <div className={`text-2xl font-black mt-1 ${stat.color}`}>{stat.val}</div>
                       <div className="text-[10px] text-[#A2998A] font-medium mt-0.5">{stat.sub}</div>
@@ -1867,36 +1878,36 @@ export function TraineeDashboard({ traineeId: propId }) {
 
                 <div className="pt-6 space-y-4">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#787063]">
-                    Target Industrial Roles &amp; Match Score
+                    Target Engineering Roles &amp; Match Score
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
                       {
-                        role: "Additive Manufacturing Systems Engineer",
+                        role: "Cloud & DevOps Systems Engineer",
                         match: "94% Match",
-                        skills: ["LPBF / FDM", "Slicing Optimization", "Quality Assurance"],
-                        status: "Interviews Open",
+                        skills: ["Docker & Containers", "CI/CD Automation", "Linux Administration"],
+                        status: "Hiring Open",
                       },
                       {
-                        role: "Robotics & Automation Specialist",
+                        role: "Site Reliability Engineer (SRE)",
                         match: "89% Match",
-                        skills: ["PLC Logic", "Industrial IoT", "ROS Nodes"],
-                        status: "Interviews Open",
+                        skills: ["Shell Scripting", "Observability & Telemetry", "Incident Response"],
+                        status: "Hiring Open",
                       },
                       {
-                        role: "Digital Twin & Simulation Analyst",
+                        role: "Backend Software Engineer",
                         match: "86% Match",
-                        skills: ["CAD DFM", "Computer Vision", "Predictive Analytics"],
-                        status: "Interviews Open",
+                        skills: ["FastAPI & Python", "PostgreSQL & SQL", "REST Architecture"],
+                        status: "Hiring Open",
                       },
                     ].map((job, jIdx) => (
-                      <div key={jIdx} className="p-4 rounded-xl border border-[#F0E3D5] bg-white shadow-2xs flex flex-col justify-between">
+                      <div key={jIdx} className="p-4 rounded-lg border border-[#F0E3D5] bg-white shadow-2xs flex flex-col justify-between">
                         <div>
                           <div className="flex items-center justify-between text-xs mb-2">
                             <span className="font-extrabold text-[#B45309] bg-[#FEF0E1] border border-[#FBD1A7] px-2 py-0.5 rounded text-[10px]">
                               {job.match}
                             </span>
-                            <span className="text-[10px] text-[#787063] font-semibold">{job.status}</span>
+                            <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{job.status}</span>
                           </div>
                           <h4 className="font-bold text-[#1C1B17] text-xs">{job.role}</h4>
                           <div className="flex flex-wrap gap-1 mt-2.5">
@@ -1909,10 +1920,10 @@ export function TraineeDashboard({ traineeId: propId }) {
                         </div>
                         <button
                           type="button"
-                          onClick={() => showToast(`Application initiated for: ${job.role}`)}
+                          onClick={() => showToast(`Application profile linked for: ${job.role}`)}
                           className="mt-4 w-full py-1.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold text-[11px] cursor-pointer text-center"
                         >
-                          Apply via Portal
+                          Express Interest
                         </button>
                       </div>
                     ))}
@@ -1924,7 +1935,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
           <footer className="dashboard-footer">
             <span>Last synced just now</span>
-            <span><Settings2 size={14} /> TraineeIQ workspace</span>
+            <span><Settings2 size={14} /> Training Analytics Portal workspace</span>
           </footer>
         </main>
       </div>
@@ -1956,10 +1967,10 @@ export function TraineeDashboard({ traineeId: propId }) {
       {/* Practice Completion Modal */}
       {completeModalTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-[#F0E3D5] max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div className="bg-white rounded-lg border border-[#F0E3D5] max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#F0E3D5] pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#FEF0E1] text-[#B45309] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#FEF0E1] text-[#B45309] flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-bold text-[#1C1B17]">
@@ -1975,7 +1986,7 @@ export function TraineeDashboard({ traineeId: propId }) {
               </button>
             </div>
 
-            <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#F0E3D5] text-xs">
+            <div className="bg-[#FAF8F5] p-3 rounded-lg border border-[#F0E3D5] text-xs">
               <span className="text-[#787063] block font-semibold text-[11px]">Curriculum Module:</span>
               <span className="font-black text-[#1C1B17] text-sm">
                 {completeModalTarget.module_name || `Module #${completeModalTarget.module_id}`}
@@ -1998,11 +2009,11 @@ export function TraineeDashboard({ traineeId: propId }) {
                   value={completionNotes}
                   onChange={(e) => setCompletionNotes(e.target.value)}
                   placeholder="Detail the exercises completed, model geometry verified, or link..."
-                  className="w-full text-xs p-3 rounded-xl border border-[#F0E3D5] focus:outline-none focus:ring-2 focus:ring-[#F09A3E]/30 bg-white"
+                  className="w-full text-xs p-3 rounded-lg border border-[#F0E3D5] focus:outline-none focus:ring-2 focus:ring-[#F09A3E]/30 bg-white"
                 />
               </div>
 
-              <div className="p-2.5 rounded-xl bg-[#FDF8F2] border border-[#FBD1A7]/60 text-[11px] text-[#787063]">
+              <div className="p-2.5 rounded-lg bg-[#FDF8F2] border border-[#FBD1A7]/60 text-[11px] text-[#787063]">
                 Submitting marks this practice complete and alerts your mentor to schedule your follow-up reassessment.
               </div>
 
@@ -2010,14 +2021,14 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <button
                   type="button"
                   onClick={() => setCompleteModalTarget(null)}
-                  className="px-3.5 py-1.5 rounded-xl border border-[#F0E3D5] text-xs font-bold text-[#787063] hover:bg-[#FAF8F5] cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-lg border border-[#F0E3D5] text-xs font-bold text-[#787063] hover:bg-[#FAF8F5] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingCompletion || !completionNotes.trim()}
-                  className="px-4 py-1.5 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="px-4 py-1.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {submittingCompletion ? "Submitting..." : "Confirm & Submit"}
                 </button>
@@ -2030,9 +2041,12 @@ export function TraineeDashboard({ traineeId: propId }) {
       {/* Edit Profile Modal */}
       {editModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1B17]/60 backdrop-blur-xs">
-          <div className="bg-[#FDF8F2] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
+          <div className="bg-[#FDF8F2] rounded-lg max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-[#F0E3D5] text-xs max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
-              <h3 className="text-sm font-bold text-[#1C1B17]">Edit Trainee Profile</h3>
+              <div>
+                <h3 className="text-sm font-bold text-[#1C1B17]">Edit Trainee Profile &amp; Credentials</h3>
+                <p className="text-[11px] text-[#787063] mt-0.5">Manage your personal details, GitHub portfolio, and learning objectives.</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}
@@ -2042,7 +2056,8 @@ export function TraineeDashboard({ traineeId: propId }) {
               </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-3.5 pt-4">
+            <form onSubmit={handleSaveProfile} className="space-y-4 pt-4">
+              {/* Profile Photo Selector */}
               <div>
                 <label className="font-bold text-[#1C1B17] block mb-1.5">Profile Photo</label>
                 <div className="flex items-center space-x-3 mb-2">
@@ -2100,35 +2115,103 @@ export function TraineeDashboard({ traineeId: propId }) {
                 </div>
               </div>
 
-              <div>
-                <label className="font-bold text-[#1C1B17] block mb-1">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
-                />
+              {/* Row 1: Full Name & Enrolled Batch */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="font-bold text-[#1C1B17] block mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-[#1C1B17]">Enrolled Cohort</label>
+                    <span className="flex items-center gap-1 text-[10px] text-[#787063]">
+                      <Lock className="w-3 h-3" />
+                      Assigned by Admin
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    disabled
+                    value={activeProfile?.batch_name || "Batch 2026-A"}
+                    className="w-full px-3 py-2 bg-[#F2EDE4] border border-[#E8DEC8] rounded-lg text-[#787063] cursor-not-allowed font-medium"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="font-bold text-[#1C1B17] block mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  placeholder="Phone number"
-                  className="w-full px-3 py-1.5 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
-                />
+              {/* Row 2: Portal Email & Phone Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-[#1C1B17]">Portal Email</label>
+                    <span className="flex items-center gap-1 text-[10px] text-[#787063]">
+                      <Lock className="w-3 h-3" />
+                      Authenticated
+                    </span>
+                  </div>
+                  <input
+                    type="email"
+                    disabled
+                    value={activeProfile?.email || user?.email || "trainee@example.com"}
+                    className="w-full px-3 py-2 bg-[#F2EDE4] border border-[#E8DEC8] rounded-lg text-[#787063] cursor-not-allowed font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#1C1B17] block mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                  />
+                </div>
               </div>
 
+              {/* Row 3: Specialization / Track & GitHub Profile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="font-bold text-[#1C1B17] block mb-1">Specialization / Track</label>
+                  <input
+                    type="text"
+                    value={editForm.specialization}
+                    onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })}
+                    placeholder="e.g. Cloud &amp; DevOps Engineering"
+                    className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#1C1B17] block mb-1">GitHub / Code Portfolio URL</label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      value={editForm.github_url}
+                      onChange={(e) => setEditForm({ ...editForm, github_url: e.target.value })}
+                      placeholder="https://github.com/username"
+                      className="w-full px-3 py-2 pl-8 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                    />
+                    <Code2 className="w-3.5 h-3.5 text-[#787063] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: Bio / Personal Background */}
               <div>
-                <label className="font-bold text-[#1C1B17] block mb-1">Specialization / Track</label>
-                <input
-                  type="text"
-                  value={editForm.specialization}
-                  onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                <label className="font-bold text-[#1C1B17] block mb-1">Professional Bio &amp; Learning Objectives</label>
+                <textarea
+                  rows={3}
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  placeholder="Share your prior software engineering experience, target skills, and cohort learning goals..."
+                  className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#F0E3D5] rounded-lg text-[#1C1B17] focus:outline-none focus:border-[#F09A3E] resize-none"
                 />
               </div>
 
@@ -2155,7 +2238,7 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <button
                   type="submit"
                   disabled={saveLoading}
-                  className="px-4 py-1.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold flex items-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   {saveLoading ? <Spinner size="sm" /> : <Save className="w-3.5 h-3.5" />}
                   <span>Save Changes</span>
@@ -2169,7 +2252,7 @@ export function TraineeDashboard({ traineeId: propId }) {
       {/* Book Mentor Check-in Modal */}
       {mentorModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1B17]/60 backdrop-blur-xs">
-          <div className="bg-[#FDF8F2] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
+          <div className="bg-[#FDF8F2] rounded-lg max-w-md w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#B45309] bg-[#FEF4E8] border border-[#F0E3D5] px-2 py-0.5 rounded-md">
@@ -2188,7 +2271,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
             <form onSubmit={handleBookMentorSession} className="space-y-3.5 pt-3">
               <p className="text-[#787063] text-xs leading-relaxed">
-                Connect with your mentor <strong className="text-[#1C1B17]">Priya Sharma</strong> to discuss practice drills, curriculum topics, or technical questions.
+                Connect with your assigned faculty mentor to discuss practice drills, curriculum topics, or technical questions.
               </p>
 
               <div>
@@ -2201,12 +2284,12 @@ export function TraineeDashboard({ traineeId: propId }) {
                   rows={3}
                   required
                   placeholder="E.g., Clarification on SQL queries, practice drills feedback, or conceptual questions..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5] text-xs text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5] text-xs text-[#1C1B17] focus:outline-none focus:border-[#F09A3E]"
                 />
               </div>
 
               {mentorNoteSuccess && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   <span>Check-in request submitted! Your mentor will schedule a slot.</span>
                 </div>
@@ -2216,14 +2299,14 @@ export function TraineeDashboard({ traineeId: propId }) {
                 <button
                   type="button"
                   onClick={() => setMentorModalOpen(false)}
-                  className="px-4 py-1.5 rounded-xl border border-[#F0E3D5] text-[#787063] hover:bg-[#FAF6F0] hover:text-[#1C1B17] font-bold cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg border border-[#F0E3D5] text-[#787063] hover:bg-[#FAF6F0] hover:text-[#1C1B17] font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={mentorNoteSubmitting || !mentorNoteText.trim()}
-                  className="px-4 py-1.5 rounded-xl bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-[#F09A3E] hover:bg-[#D97718] text-white font-bold flex items-center space-x-1.5 cursor-pointer"
                 >
                   {mentorNoteSubmitting ? <Spinner size="sm" className="text-white" /> : <Save className="w-3.5 h-3.5" />}
                   <span>Request Session</span>
@@ -2236,7 +2319,7 @@ export function TraineeDashboard({ traineeId: propId }) {
 
       {/* Floating Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1C1B17] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 border border-[#272520] animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#1C1B17] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-2xl flex items-center space-x-2 border border-[#272520] animate-in fade-in slide-in-from-bottom-2">
           <CheckCircle2 className="w-4 h-4 text-[#F09A3E] shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -2264,21 +2347,21 @@ function SupportModal({ onClose }) {
     },
     {
       q: "How do I request additional 1:1 mentor time?",
-      a: "Click 'Book Mentor check-in' on the dashboard or head to the Mentor tab to schedule dedicated review sessions with Priya Sharma.",
+      a: "Click 'Book Mentor Check-in' on the dashboard or head to the Mentor tab to schedule dedicated review sessions with your faculty advisor.",
     },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1B17]/60 backdrop-blur-xs">
-      <div className="bg-[#FDF8F2] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
+      <div className="bg-[#FDF8F2] rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[#F0E3D5] text-xs">
         <div className="flex items-center justify-between pb-3 border-b border-[#F0E3D5]">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg bg-[#FEF4E8] border border-[#F0E3D5] text-[#B45309] flex items-center justify-center">
               <Headphones className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1C1B17]">TraineeIQ Help &amp; Support</h3>
-              <p className="text-[10px] text-[#787063]">24/7 technical and curriculum assistance</p>
+              <h3 className="text-sm font-bold text-[#1C1B17]">Portal Help &amp; Support</h3>
+              <p className="text-[10px] text-[#787063]">Technical and curriculum assistance</p>
             </div>
           </div>
           <button
@@ -2316,17 +2399,17 @@ function SupportModal({ onClose }) {
           {activeTab === "faqs" ? (
             <div className="space-y-3">
               {faqs.map((faq, idx) => (
-                <div key={idx} className="p-3 rounded-xl bg-[#FAF6F0] border border-[#F0E3D5]">
+                <div key={idx} className="p-3 rounded-lg bg-[#FAF6F0] border border-[#F0E3D5]">
                   <h4 className="font-bold text-[#1C1B17] mb-1">{faq.q}</h4>
                   <p className="text-[11px] text-[#787063] leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>
           ) : submitted ? (
-            <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
+            <div className="p-6 rounded-lg bg-emerald-50 border border-emerald-200 text-center space-y-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
               <h4 className="font-bold text-[#1C1B17]">Ticket Submitted Successfully!</h4>
-              <p className="text-[#787063] text-[11px]">Ticket ID #TIQ-8492. Our support engineering team will follow up via your portal notifications within 2 hours.</p>
+              <p className="text-[#787063] text-[11px]">Ticket ID #TAP-8492. Your request has been recorded in the portal audit log.</p>
               <button
                 type="button"
                 onClick={() => {

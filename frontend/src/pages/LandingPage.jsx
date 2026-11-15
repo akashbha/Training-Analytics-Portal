@@ -26,7 +26,6 @@ import { KeyFeaturesBentoSection } from "../components/landing/KeyFeaturesBentoS
 import { LeadershipAndMissionSection } from "../components/landing/LeadershipAndMissionSection.jsx";
 import { FaqAccordionSection } from "../components/landing/FaqAccordionSection.jsx";
 import { useRevealOnScroll } from "../components/landing/useRevealOnScroll.js";
-import mentorReviewImg from "../assets/mentor-review.jpg";
 
 const IMPACT_CARDS = [
   {
@@ -63,18 +62,16 @@ const ARCH_STAGES = {
   frontend: {
     label: "Presentation Layer",
     tech: "React 18 · Vite · Tailwind",
-    desc: "Modular dashboards with explicit loading, empty, and error contracts plus WebSocket sync.",
-    code: `// Real-time cohort assessment subscription
-const ws = new WebSocket(\`\${WS_BASE}/ws/live\`);
-ws.onmessage = (event) => {
-  const payload = JSON.parse(event.data);
-  if (payload.type === "session_recorded") refreshCohort();
-};`,
+    desc: "Modular role-guarded dashboards with explicit loading, empty, and error contracts.",
+    code: `// Role-based route guard
+const { user, isAdmin, isStaff } = useAuth();
+if (!user) return <Navigate to="/login" replace />;
+if (requireAdmin && !isAdmin) return <Navigate to="/dashboard" replace />;`,
   },
   api: {
     label: "Core API & Advisory ML",
-    tech: "FastAPI · Pydantic · Scikit-Learn",
-    desc: "Strict server-verified RBAC, rate-limited auth, and Random Forest risk prediction with explicit rule fallback.",
+    tech: "FastAPI · Pydantic · SQLAlchemy",
+    desc: "Strict server-verified RBAC, multi-tenant cohort boundaries, and advisory-only risk heuristics.",
     code: `@router.get("/batches/{batch_id}/summary")
 def get_batch_summary(
     batch_id: int,
@@ -85,8 +82,8 @@ def get_batch_summary(
   },
   database: {
     label: "Relational Schema",
-    tech: "SQLAlchemy 2.0 · Postgres / SQLite",
-    desc: "Normalized 3NF tables with database check constraints, composite indexes, and Alembic tracking.",
+    tech: "PostgreSQL 16 · SQLAlchemy · Alembic",
+    desc: "Normalized 3NF relational tables with database check constraints, partial anti-gaming indexes, and Alembic tracking.",
     code: `__table_args__ = (
     CheckConstraint("score >= 0", name="chk_score_non_neg"),
     CheckConstraint("errors >= 0", name="chk_errors_non_neg"),
@@ -98,26 +95,26 @@ def get_batch_summary(
 
 const WORKSPACE_SHOWCASE = [
   {
-    rolePill: "Learner Role",
+    rolePill: "Learner Persona",
     title: "Trainee Portal",
-    subtitle: "Inspect personal assessment history, skill mastery gaps, and direct trainer feedback.",
-    highlights: ["Scoped self-only routes", "Private mentor & batch threads"],
+    subtitle: "Inspect personal module history, competency mastery gaps, and access DevOps video curriculum.",
+    highlights: ["Practice vs. Graded Assessment Split", "CLI Playbooks & Capstone Submissions"],
     gradient: "from-[#222B3A] via-[#1C2330] to-[#151A24]",
     Icon: GraduationCap,
   },
   {
-    rolePill: "Staff Role",
+    rolePill: "Instructor Persona",
     title: "Trainer Console",
-    subtitle: "Review cohort readiness, module error hotspots, misconception clusters, and remediations.",
-    highlights: ["Live cohort leaderboard", "Guided intervention tracking"],
+    subtitle: "Review cohort readiness, module error hotspots, competency radar arcs, and remediation notes.",
+    highlights: ["Multi-Tenant Cohort Sandboxing", "Advisory-Only ML Performance Telemetry"],
     gradient: "from-[#2B2621] via-[#211E1A] to-[#181613]",
     Icon: BarChart3,
   },
   {
-    rolePill: "Operations Role",
+    rolePill: "Governance Persona",
     title: "Admin Governance",
-    subtitle: "Provision accounts safely, manage trainer batch staffing, and inspect full audit trails.",
-    highlights: ["Last-admin protection", "Service & ML health checks"],
+    subtitle: "Provision accounts safely, assign trainers to cohort batches, and inspect immutable audit logs.",
+    highlights: ["Least-Privilege Role Separation", "Security & System Health Logging"],
     gradient: "from-[#202938] via-[#1A212D] to-[#131821]",
     Icon: Users,
   },
@@ -127,20 +124,11 @@ export function LandingPage() {
   const { user, isAdmin, isStaff, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [portalEmail, setPortalEmail] = useState("");
-  const [leadForm, setLeadForm] = useState({
-    name: "",
-    email: "",
-    cohort: "Cloud & DevOps",
-    message: "",
-  });
-  const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [activeStage, setActiveStage] = useState("api");
 
   const [impactRef, impactVisible] = useRevealOnScroll();
   const [darkSplitRef, darkSplitVisible] = useRevealOnScroll();
   const [aboutRef, aboutVisible] = useRevealOnScroll();
-  const [workspacesRef, workspacesVisible] = useRevealOnScroll();
 
   const dashboardPath = isAdmin
     ? "/admin"
@@ -155,32 +143,10 @@ export function LandingPage() {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handlePortalForward = (e) => {
-    e.preventDefault();
-    if (user) {
-      navigate(dashboardPath);
-      return;
-    }
-    const cleanEmail = portalEmail.trim();
-    if (cleanEmail) {
-      navigate(`/login?email=${encodeURIComponent(cleanEmail)}`);
-    } else {
-      navigate("/login");
-    }
-  };
-
-  const handleLeadSubmit = (e) => {
-    e.preventDefault();
-    setLeadSubmitted(true);
-    setTimeout(() => {
-      navigate(leadForm.email ? `/login?email=${encodeURIComponent(leadForm.email)}` : "/login");
-    }, 1200);
-  };
-
   return (
     <div className="min-h-screen bg-[#F6F4F0] text-[#1C1B17] font-sans selection:bg-[#E45826] selection:text-white overflow-x-hidden">
       {/* =========================================================================
-          1. FLOATING FROSTED PILL NAVBAR (5U AI Reference Top Bar - Frame 000)
+          1. FLOATING FROSTED PILL NAVBAR
           ========================================================================= */}
       <div className="sticky top-4 z-50 px-4 sm:px-6 pointer-events-none">
         <header className="pointer-events-auto max-w-5xl mx-auto rounded-full bg-[#ECEAE5]/90 backdrop-blur-md border border-black/[0.06] shadow-[0_10px_30px_-14px_rgba(28,27,23,0.22)] px-3 sm:px-4 py-2 flex items-center justify-between gap-3">
@@ -191,7 +157,10 @@ export function LandingPage() {
               className="flex items-center gap-2.5 group focus:outline-none cursor-pointer"
             >
               <span className="w-8 h-8 rounded-full bg-[#1C2331] text-white text-[11px] font-black tracking-tight flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                TIQ
+                TAP
+              </span>
+              <span className="hidden sm:inline font-bold text-xs tracking-tight text-[#1C1B17]">
+                Training Analytics Portal
               </span>
             </button>
 
@@ -212,24 +181,17 @@ export function LandingPage() {
               </button>
               <button
                 type="button"
-                onClick={() => scrollToSection("impact")}
+                onClick={() => scrollToSection("workspaces")}
                 className="hover:text-[#1C1B17] transition-colors cursor-pointer"
               >
-                Impact
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection("workflows")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
-              >
-                Workflows
+                Workspaces
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection("about")}
                 className="hover:text-[#1C1B17] transition-colors cursor-pointer"
               >
-                Platform
+                Architecture
               </button>
               <button
                 type="button"
@@ -247,8 +209,8 @@ export function LandingPage() {
               onClick={() => scrollToSection("architecture")}
               className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-black/[0.06] text-[10px] font-bold uppercase tracking-wider text-[#1C1B17] hover:bg-white transition-colors cursor-pointer"
             >
-              <span className="text-[#E45826]">NEWS</span>
-              <span>TIQ 2.0 PUBLISHED</span>
+              <span className="text-[#E45826]">STATUS</span>
+              <span>222 TESTS PASSING</span>
               <ChevronRight className="w-3 h-3 text-[#787063]" />
             </button>
 
@@ -271,9 +233,9 @@ export function LandingPage() {
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-1.5 rounded-full bg-white hover:bg-[#1C2331] hover:text-white text-[#1C1B17] text-[11px] font-bold uppercase tracking-wider border border-black/[0.06] transition-all cursor-pointer shadow-xs"
+                className="px-4 py-1.5 rounded-full bg-[#E45826] hover:bg-[#cf4c1e] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer"
               >
-                Book a Demo
+                Sign In
               </Link>
             )}
           </div>
@@ -281,24 +243,24 @@ export function LandingPage() {
       </div>
 
       {/* =========================================================================
-          2. HERO SECTION (Warm Stone Surface + 3D Orbital Conveyor Ring - Frame 000-004)
+          2. HERO SECTION
           ========================================================================= */}
       <section className="relative pt-10 sm:pt-14 pb-12 sm:pb-16 overflow-hidden border-b border-black/[0.05]">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Hero Copy + Interactive Role Deck */}
+          {/* Left Hero Copy */}
           <div className="lg:col-span-6 z-10 py-4">
             <span className="inline-block px-3 py-1 rounded-md bg-[#FBEAE2] text-[10px] font-bold uppercase tracking-[0.14em] text-[#E45826] mb-5">
-              FROM RUBRIC TO REMEDIATION
+              TECHNICAL COHORT PERFORMANCE & GOVERNANCE
             </span>
 
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-semibold text-[#1C1B17] tracking-[-0.03em] leading-[1.06]">
-              AI Workforce.
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold text-[#1C1B17] tracking-[-0.03em] leading-[1.08]">
+              Training Analytics Portal.
               <br />
-              Built for Tech Teams.
+              <span className="text-[#5C5549]">Built for Engineering Cohorts.</span>
             </h1>
 
             <p className="mt-5 text-sm sm:text-base text-[#5C5549] max-w-md leading-relaxed">
-              They read, evaluate and act across viva sessions, code repositories and LMS signals so your instructional staff don&apos;t have to.
+              Objective drill telemetry, competency radar tracking, and ethical advisory-only ML to support instructors and accelerate trainee mastery.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -306,7 +268,7 @@ export function LandingPage() {
                 to={user ? dashboardPath : "/login"}
                 className="px-6 py-3 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-[0_12px_24px_-10px_rgba(228,88,38,0.65)] transition-all hover:-translate-y-0.5 inline-flex items-center gap-2 cursor-pointer"
               >
-                <span>Contact Us</span>
+                <span>{user ? "Open Dashboard" : "Sign In to Portal"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
 
@@ -322,7 +284,7 @@ export function LandingPage() {
             <InteractiveRoleDeck />
           </div>
 
-          {/* Right Orbital Conveyor Arc + Vertical Metric Strip */}
+          {/* Right Orbital Conveyor Arc */}
           <div className="lg:col-span-6">
             <OrbitalRing />
           </div>
@@ -330,21 +292,21 @@ export function LandingPage() {
       </section>
 
       {/* =========================================================================
-          3. DEEP NAVY TELEMETRY INGESTION SECTION (Exact Replica of Frame 006)
+          3. DEEP NAVY TELEMETRY INGESTION SECTION
           ========================================================================= */}
       <div id="telemetry">
         <TelemetryIngestionSection />
       </div>
 
       {/* =========================================================================
-          4. 4 KEY FEATURES BENTO DECK (Exact Replica of Frame 008 with Datacenter Photo)
+          4. KEY FEATURES BENTO DECK
           ========================================================================= */}
       <div id="features">
         <KeyFeaturesBentoSection />
       </div>
 
       {/* =========================================================================
-          5. STEPPED WATERFALL IMPACT SECTION (Exact Replica of Frame 016)
+          5. STEPPED WATERFALL IMPACT SECTION
           ========================================================================= */}
       <section id="impact" className="py-20 sm:py-28 px-6 sm:px-10 max-w-6xl mx-auto">
         <div
@@ -353,13 +315,13 @@ export function LandingPage() {
         >
           <div className="text-center max-w-2xl mx-auto">
             <span className="inline-block px-3 py-1 rounded-md bg-[#EAE7E1] text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549]">
-              BUSINESS IMPACT
+              MEASURABLE RESULTS
             </span>
             <h2 className="font-display mt-4 text-3xl sm:text-4xl lg:text-[2.6rem] font-semibold tracking-tight text-[#1C1B17]">
-              Scaling Training <span className="font-normal text-[#5C5549]">Without Hiring</span>
+              Optimizing Cohort Training with Verified Data
             </h2>
             <p className="mt-3 text-sm text-[#787063]">
-              Instructional bandwidth per batch was down 33% since 2011. We&apos;re flipping that trend with verified metrics.
+              Eliminate arbitrary grading with objective performance metrics and targeted remediation loops.
             </p>
           </div>
 
@@ -384,182 +346,122 @@ export function LandingPage() {
       </section>
 
       {/* =========================================================================
-          6. INTERACTIVE WORKFLOW & POLICY CONFIGURATOR (Frames 020-022)
+          6. INTERACTIVE WORKFLOW SECTION
           ========================================================================= */}
       <div className="border-t border-black/[0.05]">
         <WorkflowPreviewSection onInspectArchitecture={() => scrollToSection("architecture")} />
       </div>
 
       {/* =========================================================================
-          7. DARK SPLIT LEAD CAPTURE / PORTAL ACCESS WITH REAL PHOTO (Frame 010)
+          7. THREE ROLE-BASED WORKSPACES (Replaces fake customer spotlight & lead form)
           ========================================================================= */}
-      <section className="bg-[#1C2433] py-20 sm:py-24 px-6 sm:px-10 border-b border-white/10">
+      <section id="workspaces" className="bg-[#1C2433] py-20 sm:py-24 px-6 sm:px-10 border-b border-white/10 text-white">
         <div
           ref={darkSplitRef}
-          className={`tiq-reveal ${darkSplitVisible ? "tiq-revealed" : ""} max-w-5xl mx-auto rounded-3xl bg-[#141B28] border border-white/10 p-5 sm:p-7 shadow-[0_32px_70px_-24px_rgba(0,0,0,0.65)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch`}
+          className={`tiq-reveal ${darkSplitVisible ? "tiq-revealed" : ""} max-w-6xl mx-auto space-y-12`}
         >
-          {/* Left Photographic Panel with Testimonial (Matching Frame 010) */}
-          <div className="lg:col-span-6 rounded-2xl relative overflow-hidden min-h-[400px] flex flex-col justify-between p-6 border border-white/10 group">
-            <img
-              src={mentorReviewImg}
-              alt="Mentors reviewing technical diagnostics"
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#141B28]/95 via-[#141B28]/60 to-[#141B28]/30 pointer-events-none" />
-
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-[#FBD1A7]">
-                CUSTOMER SPOTLIGHT
-              </span>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E45826] tiq-pulse-dot" />
-            </div>
-
-            {/* Testimonial Quote (Matching Video Frame 010) */}
-            <div className="relative z-10 space-y-3 p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white">
-              <h4 className="text-sm font-bold text-white">Feels Like an Extension of Our Team</h4>
-              <p className="text-[11px] text-white/80 leading-relaxed">
-                &ldquo;We were hesitant about automated diagnostics at first, but TraineeIQ blends right into our viva workflow. The portal spots error patterns clearly and gives mentors exact action items.&rdquo;
-              </p>
-              <div className="flex items-center gap-2 pt-2 border-t border-white/10">
-                <div className="w-7 h-7 rounded-full bg-[#E45826] text-white font-black text-[10px] flex items-center justify-center">
-                  SC
-                </div>
-                <div className="text-[10px]">
-                  <div className="font-bold text-white">Dr. Sarah Chen</div>
-                  <div className="text-white/60">Dean of Engineering @ Tech Academy</div>
-                </div>
-              </div>
-            </div>
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="inline-block px-3 py-1 rounded-md bg-white/10 text-[10px] font-bold uppercase tracking-[0.14em] text-white/75 mb-3">
+              ROLE ARCHITECTURE
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">
+              Three Portals. One Integrated Relational Store.
+            </h2>
+            <p className="mt-3 text-xs sm:text-sm text-white/70 leading-relaxed">
+              Every persona operates within authenticated boundaries, backed by least-privilege permissions and audit logging.
+            </p>
           </div>
 
-          {/* Right Lead Capture Form Panel (Matching Frame 010) */}
-          <div className="lg:col-span-6 p-2 sm:p-4 flex flex-col justify-center">
-            <span className="inline-block self-start px-3 py-1 rounded-md bg-white/10 text-[10px] font-bold uppercase tracking-[0.14em] text-white/75 mb-3">
-              BOOK A DEMO
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-white tracking-tight leading-snug">
-              Your Digital Workforce for Technical Training
-            </h2>
-            <p className="mt-2 text-xs sm:text-sm text-white/65 leading-relaxed">
-              TraineeIQ automates the repetitive, manual work behind every cohort, from collecting rubric evaluations to preparing practice sets and tracking mastery.
-            </p>
-
-            <form onSubmit={handleLeadSubmit} className="mt-6 space-y-3.5">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
-                  FULL NAME *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={leadForm.name}
-                  onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
-                  placeholder="John Doe"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/15 text-xs text-white placeholder-white/35 focus:outline-none focus:border-[#E45826] transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
-                  WORK E-MAIL *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={leadForm.email}
-                  onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
-                  placeholder="john@company.com"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/15 text-xs text-white placeholder-white/35 focus:outline-none focus:border-[#E45826] transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
-                  COHORT / TRACK
-                </label>
-                <input
-                  type="text"
-                  value={leadForm.cohort}
-                  onChange={(e) => setLeadForm({ ...leadForm, cohort: e.target.value })}
-                  placeholder="e.g. Cloud & DevOps"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/15 text-xs text-white placeholder-white/35 focus:outline-none focus:border-[#E45826] transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1">
-                  MESSAGE
-                </label>
-                <textarea
-                  rows={2}
-                  value={leadForm.message}
-                  onChange={(e) => setLeadForm({ ...leadForm, message: e.target.value })}
-                  placeholder="Tell us about your cohort size or training goals..."
-                  className="w-full px-4 py-2 rounded-xl bg-white/[0.06] border border-white/15 text-xs text-white placeholder-white/35 focus:outline-none focus:border-[#E45826] transition-colors resize-none"
-                />
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full py-3 px-5 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {WORKSPACE_SHOWCASE.map((ws) => {
+              const Icon = ws.Icon;
+              return (
+                <div
+                  key={ws.title}
+                  className="rounded-3xl bg-[#141B28] border border-white/10 p-7 flex flex-col justify-between min-h-[320px] shadow-xl hover:-translate-y-1 transition-all"
                 >
-                  {leadSubmitted ? (
-                    <span className="flex items-center gap-1.5 text-white">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Request Forwarded! Redirecting...</span>
-                    </span>
-                  ) : (
-                    <span>Submit & Launch Portal</span>
-                  )}
-                </button>
-              </div>
-            </form>
+                  <div>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-[#E45826]">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-white/60 px-2.5 py-1 rounded-full bg-white/5 border border-white/10">
+                        {ws.rolePill}
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-white tracking-tight">{ws.title}</h3>
+                    <p className="text-xs text-white/70 mt-2 leading-relaxed">{ws.subtitle}</p>
+
+                    <div className="mt-6 space-y-2">
+                      {ws.highlights.map((h) => (
+                        <div key={h} className="flex items-center gap-2 text-xs text-white/85">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-white/10">
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#E45826] hover:text-[#f06e3e] transition-colors"
+                    >
+                      <span>Sign In as {ws.title.split(" ")[0]}</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          8. LEADERSHIP, MISSION & PHOTOGRAPHY (Exact Replica of Frames 024-032)
+          8. VERIFIED SYSTEM STATS & ARCHITECTURAL PILLARS
           ========================================================================= */}
       <div id="about">
-        {/* Full-Bleed Architectural Banner with 4 KPIs (Frame 024) */}
+        {/* Full-Bleed Architectural Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2536] via-[#263C52] to-[#1D283A] py-20 sm:py-24 px-6 sm:px-10 text-white border-b border-white/10">
           <div
             ref={aboutRef}
             className={`tiq-reveal ${aboutVisible ? "tiq-revealed" : ""} max-w-6xl mx-auto relative z-10 space-y-6`}
           >
             <span className="inline-block px-3 py-1 rounded bg-white/15 text-[10px] font-bold uppercase tracking-[0.14em] text-white/90">
-              WHO WE ARE
+              VERIFIED SYSTEM METRICS
             </span>
-            <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight">ABOUT TRAINEEIQ</h2>
+            <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight">
+              ENGINEERED FOR RIGOR
+            </h2>
             <p className="text-sm sm:text-base text-white/80 max-w-xl leading-relaxed">
-              At TraineeIQ, we&apos;re building the future of technical education with AI empowering training teams worldwide to scale smarter and faster.
+              Every capability is backed by passing automated test suites, linear schema migrations, and explicit security assertions.
             </p>
 
-            {/* 4 KPI Banner Strip (Matching Frame 024) */}
+            {/* 4 KPI Banner Strip */}
             <div className="pt-8 grid grid-cols-2 lg:grid-cols-4 gap-6 border-t border-white/15">
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white">120x +</div>
-                <div className="text-xs text-white/70 mt-1">Diagnostic Velocity</div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white">222 Passed</div>
+                <div className="text-xs text-white/70 mt-1">Backend Pytest Specs</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white">100%</div>
-                <div className="text-xs text-white/70 mt-1">Role-Guarded Security</div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white">26 Passed</div>
+                <div className="text-xs text-white/70 mt-1">Frontend Vitest Specs</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white">10x</div>
-                <div className="text-xs text-white/70 mt-1">Mentor Feedback Speed</div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white">20 Models</div>
+                <div className="text-xs text-white/70 mt-1">Relational Schema</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white">24/7</div>
-                <div className="text-xs text-white/70 mt-1">Live Telemetry Uptime</div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white">0 Errors</div>
+                <div className="text-xs text-white/70 mt-1">Production Vite Build</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mission, Values, Vision, and 4 Portrait Cards */}
+        {/* Architectural Pillars Section */}
         <LeadershipAndMissionSection />
       </div>
 
@@ -629,50 +531,50 @@ export function LandingPage() {
       </section>
 
       {/* =========================================================================
-          10. ACCORDION FAQ SECTION (Exact Replica of Frame 012)
+          10. ACCORDION FAQ SECTION
           ========================================================================= */}
       <div id="faq">
         <FaqAccordionSection />
       </div>
 
       {/* =========================================================================
-          11. CLOSING CALL TO ACTION + BENTO MEGA FOOTER (Frame 012 & 035)
+          11. CLOSING CALL TO ACTION & FOOTER
           ========================================================================= */}
       <footer className="relative bg-gradient-to-b from-[#2A3343] via-[#3B4454] to-[#232A37] text-white pt-20 pb-10 px-6 sm:px-10 overflow-hidden">
-        {/* Top Centered CTA (Matching Frame 012) */}
+        {/* Top Centered CTA */}
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">
-            Let&apos;s Upgrade Your
+            Ready to Review Your
             <br />
-            Team with AI.
+            Training Cohort?
           </h2>
           <p className="mt-4 text-xs sm:text-sm text-white/75 max-w-md mx-auto leading-relaxed">
-            Let TraineeIQ Agents handle the busywork, so your instructional team can focus on what truly moves your cohorts forward.
+            Access multi-cohort competency radar telemetry, session notes, and the verified DevOps learning path.
           </p>
           <div className="mt-7">
             <Link
               to={user ? dashboardPath : "/login"}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer"
             >
-              <span>{user ? "Open Dashboard" : "Book a Demo"}</span>
+              <span>{user ? "Open Dashboard" : "Sign In to Portal"}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
-        {/* Collaborators Partner Bar (Matching Frame 012) */}
+        {/* Collaborators Partner Bar */}
         <div className="max-w-5xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[11px] text-white/60">
           <div>
-            <div className="font-bold text-white/85">Collaborators & Integrations</div>
-            <div>Over a hundred reliable partner ecosystems supported.</div>
+            <div className="font-bold text-white/85">Technical Architecture Stack</div>
+            <div>Built with verified, modern open-source technologies.</div>
           </div>
           <div className="flex flex-wrap items-center gap-6 font-bold uppercase tracking-widest text-white/70 text-[10px]">
             <span>FastAPI</span>
             <span>React 18</span>
             <span>PostgreSQL</span>
             <span>Docker</span>
-            <span>WebSockets</span>
-            <span>Scikit-Learn</span>
+            <span>SQLAlchemy</span>
+            <span>Alembic</span>
           </div>
         </div>
 
@@ -680,7 +582,7 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
           <div className="rounded-2xl bg-white/[0.08] border border-white/10 p-5 flex flex-col justify-between min-h-[160px]">
             <div className="w-9 h-9 rounded-lg bg-white text-[#1C2331] text-xs font-black flex items-center justify-center">
-              TIQ
+              TAP
             </div>
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
@@ -713,7 +615,7 @@ export function LandingPage() {
                   onClick={() => scrollToSection("telemetry")}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  › Live Ingestion
+                  › Live Telemetry
                 </button>
               </li>
               <li>
@@ -722,7 +624,7 @@ export function LandingPage() {
                   onClick={() => scrollToSection("features")}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  › Key Features
+                  › Core Features
                 </button>
               </li>
               <li>
@@ -772,7 +674,7 @@ export function LandingPage() {
                 From Raw Drill Logs to Guided Action
               </div>
               <p className="text-[11px] text-white/60 mt-1 line-clamp-2">
-                Full audit logging, RBAC session checks, and live WebSocket assessment telemetry.
+                Full audit logging, RBAC session checks, and advisory-only ML telemetry.
               </p>
             </div>
           </div>
@@ -781,15 +683,7 @@ export function LandingPage() {
         {/* Copyright Row */}
         <div className="max-w-5xl mx-auto mt-10 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-white/50 relative z-10">
           <span>© 2026 Training Analytics Portal</span>
-          <span>TraineeIQ Engineering Cohort System</span>
-        </div>
-
-        {/* Repeating Watermark Pattern Backdrop (Matching Frame 035) */}
-        <div
-          aria-hidden="true"
-          className="mt-8 select-none pointer-events-none text-center text-[10px] font-bold tracking-[0.55em] text-white/[0.06] leading-loose uppercase overflow-hidden whitespace-nowrap"
-        >
-          TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ · TRAINEEIQ
+          <span>Technical Cohort Governance System</span>
         </div>
       </footer>
     </div>

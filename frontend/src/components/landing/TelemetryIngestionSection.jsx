@@ -88,14 +88,14 @@ export function TelemetryIngestionSection() {
           <div className="lg:col-span-5 space-y-7">
             <div>
               <span className="inline-block px-3 py-1 rounded bg-white/10 text-[10px] font-bold uppercase tracking-[0.14em] text-[#FBD1A7] mb-4">
-                FROM DRILL TO INVOICE
+                FROM DRILL TO MASTERY
               </span>
               <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-semibold tracking-tight text-white leading-tight">
-                See how TraineeIQ gets cohort mastery done.
+                See how the portal drives cohort mastery.
               </h2>
               <p className="mt-3.5 text-xs sm:text-sm text-white/70 leading-relaxed">
-                TraineeIQ deploys automated diagnostics across your training operations, giving mentors real-time
-                intelligence, error clustering, and intervention accuracy with zero manual logging.
+                The Training Analytics Portal provides objective diagnostics across cohort operations, giving mentors real-time
+                intelligence, error clustering, and intervention tracking with zero manual logging.
               </p>
             </div>
 
@@ -208,7 +208,7 @@ export function TelemetryIngestionSection() {
                     <span className="text-base">📍</span>
                     <div>
                       <div className="font-bold text-[#1C1B17]">Batch A → Cloud & DevOps Track</div>
-                      <div className="text-[10px] text-[#787063]">Assigned to Trainer Priya Sharma</div>
+                      <div className="text-[10px] text-[#787063]">Assigned Faculty Mentor • Cloud Track</div>
                     </div>
                   </div>
 

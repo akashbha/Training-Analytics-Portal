@@ -164,7 +164,7 @@ export function Layout({ children }) {
               <div className="w-8 h-8 rounded-xl bg-[#272520] border border-[#F09A3E]/30 flex items-center justify-center shrink-0">
                 <GraduationCap size={20} className="text-[#F09A3E]" />
               </div>
-              <span className="truncate">{isAdmin ? "Admin" : isTrainer ? "Trainer" : "TraineeIQ"}</span>
+              <span className="truncate">{isAdmin ? "Admin Portal" : isTrainer ? "Trainer Console" : "Trainee Portal"}</span>
             </Link>
           ) : (
             <Link to="/" className="brand-mark--compact mx-auto">
@@ -312,7 +312,7 @@ export function Layout({ children }) {
 
               {profileOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#F0E3D5] py-2 z-50 animate-in fade-in duration-100"
+                  className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-[#F0E3D5] py-2 z-50 animate-in fade-in duration-100"
                   onClick={() => setProfileOpen(false)}
                 >
                   <div className="px-4 py-2 border-b border-[#F0E3D5]">
@@ -360,7 +360,7 @@ export function Layout({ children }) {
       {/* Change Password Modal */}
       {pwdModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#F0E3D5] p-6 relative">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-2xl border border-[#F0E3D5] p-6 relative">
             <button
               onClick={() => setPwdModalOpen(false)}
               className="absolute top-4 right-4 text-[#A2998A] hover:text-[#1C1B17] cursor-pointer"
