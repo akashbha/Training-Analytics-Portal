@@ -18,7 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import "./../components/landing/landingAnimations.css";
-import { OrbitalRing } from "../components/landing/OrbitalRing.jsx";
+import { OrbitalRing, OrbitalScreenArc, HeroMetricsColumn } from "../components/landing/OrbitalRing.jsx";
 import { InteractiveRoleDeck } from "../components/landing/InteractiveRoleDeck.jsx";
 import { WorkflowPreviewSection } from "../components/landing/WorkflowPreviewSection.jsx";
 import { TelemetryIngestionSection } from "../components/landing/TelemetryIngestionSection.jsx";
@@ -146,86 +146,86 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F6F4F0] text-[#1C1B17] font-sans selection:bg-[#E45826] selection:text-white overflow-x-hidden">
       {/* =========================================================================
-          1. FLOATING FROSTED PILL NAVBAR
+          1. UNBOXED MINIMAL TOP NAVBAR (1:1 with reference)
           ========================================================================= */}
-      <div className="sticky top-4 z-50 px-4 sm:px-6 pointer-events-none">
-        <header className="pointer-events-auto max-w-5xl mx-auto rounded-full bg-[#ECEAE5]/90 backdrop-blur-md border border-black/[0.06] shadow-[0_10px_30px_-14px_rgba(28,27,23,0.22)] px-3 sm:px-4 py-2 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4 sm:gap-6">
+      <div className="w-full z-50 pt-6 pb-2 px-6 sm:px-10 lg:px-14">
+        <header className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-6 sm:gap-10">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex items-center gap-2.5 group focus:outline-none cursor-pointer"
+              className="flex items-center gap-3 group focus:outline-none cursor-pointer"
             >
-              <span className="w-8 h-8 rounded-full bg-[#1C2331] text-white text-[11px] font-black tracking-tight flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <span className="w-11 h-11 rounded-full bg-[#1C2331] text-white text-xs font-black tracking-wider flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                 TAP
-              </span>
-              <span className="hidden sm:inline font-bold text-xs tracking-tight text-[#1C1B17]">
-                Training Analytics Portal
               </span>
             </button>
 
-            <nav className="hidden md:flex items-center gap-5 text-[11px] font-bold uppercase tracking-wider text-[#5C5549]">
+            <nav className="hidden md:flex items-center gap-7 sm:gap-8 text-xs font-bold uppercase tracking-wider text-[#35312B]">
               <button
                 type="button"
                 onClick={() => scrollToSection("telemetry")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
+                className="hover:text-black transition-colors cursor-pointer"
               >
                 Telemetry
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection("features")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
+                className="hover:text-black transition-colors cursor-pointer"
               >
                 Features
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection("workspaces")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
+                className="hover:text-black transition-colors cursor-pointer"
               >
                 Workspaces
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection("about")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
+                className="hover:text-black transition-colors cursor-pointer"
               >
                 Architecture
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection("faq")}
-                className="hover:text-[#1C1B17] transition-colors cursor-pointer"
+                className="hover:text-black transition-colors cursor-pointer"
               >
                 FAQ
               </button>
             </nav>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-4 sm:gap-6">
             <button
               type="button"
               onClick={() => scrollToSection("architecture")}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-black/[0.06] text-[10px] font-bold uppercase tracking-wider text-[#1C1B17] hover:bg-white transition-colors cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-2 text-xs font-medium cursor-pointer"
             >
-              <span className="text-[#E45826]">STATUS</span>
-              <span>222 TESTS PASSING</span>
-              <ChevronRight className="w-3 h-3 text-[#787063]" />
+              <span className="text-[#E45826] bg-[#FCECE6] px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider">
+                NEWS
+              </span>
+              <span className="text-[#4B5563] font-semibold text-[13px]">
+                222 TESTS PASSING &rsaquo;
+              </span>
             </button>
 
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   to={dashboardPath}
-                  className="px-4 py-1.5 rounded-full bg-[#1C2331] hover:bg-[#111620] text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-neutral-50 text-[#1C1B17] text-xs font-bold uppercase tracking-wider border border-black/10 shadow-xs hover:shadow-sm transition-all cursor-pointer"
                 >
                   Open Portal
                 </Link>
                 <button
                   type="button"
                   onClick={logout}
-                  className="px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-[11px] font-bold uppercase tracking-wider text-[#5C5549] border border-black/[0.08] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full bg-transparent hover:bg-black/5 text-xs font-bold uppercase tracking-wider text-[#5C5549] transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -233,7 +233,7 @@ export function LandingPage() {
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-1.5 rounded-full bg-[#E45826] hover:bg-[#cf4c1e] text-white text-[11px] font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer"
+                className="px-7 py-2.5 rounded-full bg-white hover:bg-neutral-50 text-[#1C1B17] text-xs font-bold uppercase tracking-wider border border-black/10 shadow-xs hover:shadow-sm transition-all cursor-pointer"
               >
                 Sign In
               </Link>
@@ -243,30 +243,29 @@ export function LandingPage() {
       </div>
 
       {/* =========================================================================
-          2. HERO SECTION
+          2. HERO SECTION (Full-height hero matching reference preview)
           ========================================================================= */}
-      <section className="relative pt-10 sm:pt-14 pb-12 sm:pb-16 overflow-hidden border-b border-black/[0.05]">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <section className="relative min-h-[calc(100vh-80px)] flex items-center pt-6 sm:pt-10 pb-12 sm:pb-16 border-b border-black/[0.05] overflow-hidden">
+        {/* Sweeping Circular Conveyor Ramp with 3D Pucks and Speed Blur */}
+        <OrbitalScreenArc />
+
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full z-10">
           {/* Left Hero Copy */}
           <div className="lg:col-span-6 z-10 py-4">
-            <span className="inline-block px-3 py-1 rounded-md bg-[#FBEAE2] text-[10px] font-bold uppercase tracking-[0.14em] text-[#E45826] mb-5">
-              TECHNICAL COHORT PERFORMANCE & GOVERNANCE
-            </span>
-
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold text-[#1C1B17] tracking-[-0.03em] leading-[1.08]">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.35rem] font-bold text-[#1C1B17] tracking-tight leading-[1.08]">
               Training Analytics Portal.
               <br />
-              <span className="text-[#5C5549]">Built for Engineering Cohorts.</span>
+              <span className="text-[#555047]">Built for Engineering Cohorts.</span>
             </h1>
 
-            <p className="mt-5 text-sm sm:text-base text-[#5C5549] max-w-md leading-relaxed">
+            <p className="mt-5 text-sm sm:text-base text-[#555047] max-w-md leading-relaxed">
               Objective drill telemetry, competency radar tracking, and ethical advisory-only ML to support instructors and accelerate trainee mastery.
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3.5">
               <Link
                 to={user ? dashboardPath : "/login"}
-                className="px-6 py-3 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-[0_12px_24px_-10px_rgba(228,88,38,0.65)] transition-all hover:-translate-y-0.5 inline-flex items-center gap-2 cursor-pointer"
+                className="px-7 py-3.5 rounded-xl bg-[#E45826] hover:bg-[#cf4c1e] text-white text-xs font-bold uppercase tracking-wider shadow-[0_12px_24px_-10px_rgba(228,88,38,0.55)] transition-all hover:-translate-y-0.5 inline-flex items-center gap-2 cursor-pointer"
               >
                 <span>{user ? "Open Dashboard" : "Sign In to Portal"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -275,7 +274,7 @@ export function LandingPage() {
               <button
                 type="button"
                 onClick={() => scrollToSection("telemetry")}
-                className="px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-black/[0.08] text-xs font-bold uppercase tracking-wider text-[#1C1B17] transition-colors cursor-pointer"
+                className="px-6 py-3.5 rounded-xl bg-white hover:bg-[#faf9f6] border border-black/[0.08] text-xs font-bold uppercase tracking-wider text-[#1C1B17] shadow-xs transition-colors cursor-pointer"
               >
                 See Telemetry
               </button>
@@ -284,9 +283,9 @@ export function LandingPage() {
             <InteractiveRoleDeck />
           </div>
 
-          {/* Right Orbital Conveyor Arc */}
-          <div className="lg:col-span-6">
-            <OrbitalRing />
+          {/* Right Performance Metrics Column inside concave pocket */}
+          <div className="lg:col-span-6 relative flex items-center justify-end w-full z-10 pointer-events-auto">
+            <HeroMetricsColumn />
           </div>
         </div>
       </section>

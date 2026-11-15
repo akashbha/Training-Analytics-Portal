@@ -87,9 +87,6 @@ export function TelemetryIngestionSection() {
           {/* Left Column: Interactive Step Selector */}
           <div className="lg:col-span-5 space-y-7">
             <div>
-              <span className="inline-block px-3 py-1 rounded bg-white/10 text-[10px] font-bold uppercase tracking-[0.14em] text-[#FBD1A7] mb-4">
-                FROM DRILL TO MASTERY
-              </span>
               <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-semibold tracking-tight text-white leading-tight">
                 See how the portal drives cohort mastery.
               </h2>

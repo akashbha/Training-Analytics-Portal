@@ -41,7 +41,7 @@ export function InteractiveRoleDeck() {
   };
 
   return (
-    <div className="mt-10 sm:mt-12 max-w-[290px] select-none">
+    <div className="mt-8 sm:mt-10 max-w-[290px] select-none">
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#787063]">
           YOUR WORKSPACE
@@ -73,7 +73,7 @@ export function InteractiveRoleDeck() {
           }
         }}
         aria-label="Cycle portal workspace card"
-        className="relative h-[142px] cursor-pointer group"
+        className="relative h-[138px] cursor-pointer group"
       >
         {ROLE_CARDS.map((card, idx) => {
           const offset = (idx - activeIndex + ROLE_CARDS.length) % ROLE_CARDS.length;
@@ -88,7 +88,7 @@ export function InteractiveRoleDeck() {
           return (
             <div
               key={card.id}
-              className={`absolute inset-0 rounded-2xl p-4 border transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              className={`absolute inset-0 rounded-xl p-4 border transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 isFront
                   ? "bg-white border-black/[0.08] shadow-[0_18px_38px_-14px_rgba(28,27,23,0.18)] z-30 group-hover:-translate-y-0.5"
                   : offset === 1
@@ -125,4 +125,3 @@ export function InteractiveRoleDeck() {
     </div>
   );
 }
-

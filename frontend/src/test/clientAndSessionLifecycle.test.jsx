@@ -341,8 +341,8 @@ describe("Real apiClient interceptors, session lifecycle, 404 contract, and KPI 
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: /welcome back/i })).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(/signed out in another tab/i);
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(/signed out in another tab/i);
   });
 
   it("7. Analytics 404 surfaces error (never empty success) while 200 empty shows clean empty state", async () => {

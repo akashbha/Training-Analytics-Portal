@@ -32,9 +32,6 @@ export function KeyFeaturesBentoSection() {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-xl">
-            <span className="inline-block px-3 py-1 rounded bg-[#EAE7E1] text-[10px] font-bold uppercase tracking-[0.14em] text-[#5C5549] mb-3">
-              PLATFORM HIGHLIGHTS
-            </span>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-semibold tracking-tight text-[#1C1B17] leading-tight">
               Key Features Powering Technical Training
             </h2>
