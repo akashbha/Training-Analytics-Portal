@@ -6,12 +6,16 @@ export const HERO_STATS = [
   { metric: "3NF", label: "Constraint-Backed Store" },
 ];
 
+// Exact tapered curved wedge matching the circular arc R=593 of the conveyor track
+const CURVED_TRAIL_D =
+  "M -0.0 -35.0 L -25.8 -31.9 L -51.3 -27.8 L -76.6 -22.6 L -101.5 -16.4 L -126.0 -9.2 L -150.1 -1.1 L -173.8 8.1 L -196.9 18.2 L -219.5 29.1 L -241.6 41.0 L -263.0 53.7 L -256.9 66.3 L -233.9 58.5 L -210.8 51.7 L -187.4 45.8 L -164.0 41.0 L -140.5 37.2 L -116.9 34.4 L -93.3 32.5 L -69.8 31.7 L -46.4 31.8 L -23.1 32.9 L -0.0 35.0 Z";
+
 /**
- * Sweeping 3D Conveyor Ramp with high-speed gliding pucks and cinematic blur trails.
+ * Sweeping 3D Conveyor Ramp with high-speed gliding pucks and cinematic curved blur trails.
  * Faithfully matches the exact 5U AI reference (Image 2 & reference video):
- * - Open sweeping circular conveyor ramp (208px wide) entering from bottom (X: 55-60%) and sweeping up to exit right (Y: 20-25%)
+ * - Open sweeping circular conveyor ramp (208px wide) entering from bottom and sweeping up to exit right
  * - Zero return loop (leaving the metrics area wide open in the bottom-right quadrant)
- * - 3D extruded cylindrical pucks with real depth, glowing white icons, and aerodynamic motion blur speed tails
+ * - 3D extruded cylindrical pucks with real depth and aerodynamic curved motion blur speed tails
  * - Native 60 FPS compositor-accelerated SVG motion
  */
 export function OrbitalScreenArc() {
@@ -63,23 +67,23 @@ export function OrbitalScreenArc() {
             />
           </filter>
 
-          {/* Aerodynamic Speed Blur Filter */}
-          <filter id="trailSpeedBlur" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="13" />
+          {/* Aerodynamic Speed Blur Filter for Curved Wedge */}
+          <filter id="wedgeBlur" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="10" />
           </filter>
 
           {/* 3D Puck Face Lighting Gradient */}
-          <linearGradient id="puckFaceGrad" x1="25%" y1="10%" x2="75%" y2="90%">
-            <stop offset="0%" stopColor="#2A334D" />
-            <stop offset="100%" stopColor="#161C2C" />
+          <linearGradient id="puckFaceGrad" x1="20%" y1="10%" x2="80%" y2="90%">
+            <stop offset="0%" stopColor="#2A344E" />
+            <stop offset="100%" stopColor="#141926" />
           </linearGradient>
 
-          {/* Directional Speed Trail Gradient */}
-          <linearGradient id="trailGrad" x1="100%" y1="50%" x2="0%" y2="50%">
-            <stop offset="0%" stopColor="#151B2B" stopOpacity="0.85" />
-            <stop offset="35%" stopColor="#1A2337" stopOpacity="0.55" />
-            <stop offset="75%" stopColor="#232E47" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#151B2B" stopOpacity="0" />
+          {/* Directional Speed Trail Gradient along curved chord */}
+          <linearGradient id="wedgeGrad" x1="0" y1="0" x2="-260" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#101624" stopOpacity="0.85" />
+            <stop offset="30%" stopColor="#161F33" stopOpacity="0.6" />
+            <stop offset="70%" stopColor="#1C263E" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#101624" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -111,36 +115,29 @@ export function OrbitalScreenArc() {
         />
 
         {/* =========================================================================
-            PUCK 1: 3D Extruded Cylinder + Speed Trail (Telemetry Stream)
+            PUCK 1: 3D Extruded Cylinder + Curved Speed Trail (Telemetry Stream)
             ========================================================================= */}
         <g>
           <animateMotion dur="12s" repeatCount="indefinite" rotate="auto">
             <mpath href="#orbitalCenterPath" />
           </animateMotion>
 
-          {/* Smoky curved aerodynamic speed blur tail trailing behind puck */}
-          <path
-            d="M 0 0 Q -90 12 -180 32"
-            stroke="url(#trailGrad)"
-            strokeWidth="68"
-            strokeLinecap="round"
-            filter="url(#trailSpeedBlur)"
-            fill="none"
-          />
+          {/* Curved aerodynamic speed blur tail wrapping along the circular track */}
+          <path d={CURVED_TRAIL_D} fill="url(#wedgeGrad)" filter="url(#wedgeBlur)" />
 
           {/* Puck Contact Shadow */}
-          <ellipse cx="4" cy="12" rx="36" ry="32" fill="rgba(15,20,32,0.35)" />
+          <ellipse cx="4" cy="12" rx="38" ry="32" fill="rgba(15,20,32,0.35)" />
 
           {/* 3D Extrusion Side Wall */}
-          <ellipse cx="0" cy="6" rx="34" ry="34" fill="#0C101A" />
-          <path d="M -34 0 L -34 6 A 34 34 0 0 0 34 6 L 34 0 Z" fill="#0F1422" />
+          <ellipse cx="0" cy="6" rx="36" ry="34" fill="#0A0D15" />
+          <path d="M -36 0 L -36 6 A 36 34 0 0 0 36 6 L 36 0 Z" fill="#0D111C" />
 
           {/* 3D Puck Top Face */}
           <ellipse
             cx="0"
             cy="0"
-            rx="34"
-            ry="34"
+            rx="36"
+            ry="33"
             fill="url(#puckFaceGrad)"
             stroke="rgba(255,255,255,0.22)"
             strokeWidth="1.5"
@@ -155,36 +152,29 @@ export function OrbitalScreenArc() {
         </g>
 
         {/* =========================================================================
-            PUCK 2: 3D Extruded Cylinder + Speed Trail (Execution / Code Stack)
+            PUCK 2: 3D Extruded Cylinder + Curved Speed Trail (Execution / Code Stack)
             ========================================================================= */}
         <g>
           <animateMotion dur="12s" begin="-4s" repeatCount="indefinite" rotate="auto">
             <mpath href="#orbitalCenterPath" />
           </animateMotion>
 
-          {/* Smoky curved aerodynamic speed blur tail trailing behind puck */}
-          <path
-            d="M 0 0 Q -90 12 -180 32"
-            stroke="url(#trailGrad)"
-            strokeWidth="68"
-            strokeLinecap="round"
-            filter="url(#trailSpeedBlur)"
-            fill="none"
-          />
+          {/* Curved aerodynamic speed blur tail wrapping along the circular track */}
+          <path d={CURVED_TRAIL_D} fill="url(#wedgeGrad)" filter="url(#wedgeBlur)" />
 
           {/* Puck Contact Shadow */}
-          <ellipse cx="4" cy="12" rx="36" ry="32" fill="rgba(15,20,32,0.35)" />
+          <ellipse cx="4" cy="12" rx="38" ry="32" fill="rgba(15,20,32,0.35)" />
 
           {/* 3D Extrusion Side Wall */}
-          <ellipse cx="0" cy="6" rx="34" ry="34" fill="#0C101A" />
-          <path d="M -34 0 L -34 6 A 34 34 0 0 0 34 6 L 34 0 Z" fill="#0F1422" />
+          <ellipse cx="0" cy="6" rx="36" ry="34" fill="#0A0D15" />
+          <path d="M -36 0 L -36 6 A 36 34 0 0 0 36 6 L 36 0 Z" fill="#0D111C" />
 
           {/* 3D Puck Top Face */}
           <ellipse
             cx="0"
             cy="0"
-            rx="34"
-            ry="34"
+            rx="36"
+            ry="33"
             fill="url(#puckFaceGrad)"
             stroke="rgba(255,255,255,0.22)"
             strokeWidth="1.5"
@@ -204,36 +194,29 @@ export function OrbitalScreenArc() {
         </g>
 
         {/* =========================================================================
-            PUCK 3: 3D Extruded Cylinder + Speed Trail (Platform Governance / Teams)
+            PUCK 3: 3D Extruded Cylinder + Curved Speed Trail (Platform Governance / Teams)
             ========================================================================= */}
         <g>
           <animateMotion dur="12s" begin="-8s" repeatCount="indefinite" rotate="auto">
             <mpath href="#orbitalCenterPath" />
           </animateMotion>
 
-          {/* Smoky curved aerodynamic speed blur tail trailing behind puck */}
-          <path
-            d="M 0 0 Q -90 12 -180 32"
-            stroke="url(#trailGrad)"
-            strokeWidth="68"
-            strokeLinecap="round"
-            filter="url(#trailSpeedBlur)"
-            fill="none"
-          />
+          {/* Curved aerodynamic speed blur tail wrapping along the circular track */}
+          <path d={CURVED_TRAIL_D} fill="url(#wedgeGrad)" filter="url(#wedgeBlur)" />
 
           {/* Puck Contact Shadow */}
-          <ellipse cx="4" cy="12" rx="36" ry="32" fill="rgba(15,20,32,0.35)" />
+          <ellipse cx="4" cy="12" rx="38" ry="32" fill="rgba(15,20,32,0.35)" />
 
           {/* 3D Extrusion Side Wall */}
-          <ellipse cx="0" cy="6" rx="34" ry="34" fill="#0C101A" />
-          <path d="M -34 0 L -34 6 A 34 34 0 0 0 34 6 L 34 0 Z" fill="#0F1422" />
+          <ellipse cx="0" cy="6" rx="36" ry="34" fill="#0A0D15" />
+          <path d="M -36 0 L -36 6 A 36 34 0 0 0 36 6 L 36 0 Z" fill="#0D111C" />
 
           {/* 3D Puck Top Face */}
           <ellipse
             cx="0"
             cy="0"
-            rx="34"
-            ry="34"
+            rx="36"
+            ry="33"
             fill="url(#puckFaceGrad)"
             stroke="rgba(255,255,255,0.22)"
             strokeWidth="1.5"
@@ -252,15 +235,15 @@ export function OrbitalScreenArc() {
 }
 
 /**
- * Three vertical performance metrics stacked inside the curve on the right.
+ * Three vertical performance metrics nestled deeply inside the concave circle hollow.
  * Exact typography, leading, and open whitespace matching Image 2.
  */
 export function HeroMetricsColumn() {
   return (
-    <div className="relative z-10 flex flex-col justify-center space-y-8 sm:space-y-10 lg:space-y-12 pr-4 sm:pr-8 lg:pr-14 pointer-events-auto text-left">
+    <div className="relative z-10 flex flex-col justify-end space-y-6 sm:space-y-7 lg:space-y-8 pr-4 sm:pr-8 lg:pr-14 pointer-events-auto text-left">
       {HERO_STATS.map((item) => (
         <div key={item.metric}>
-          <div className="text-3xl sm:text-4xl lg:text-[2.85rem] font-bold tracking-tight text-[#1C1B17] leading-none">
+          <div className="text-3xl sm:text-4xl lg:text-[2.65rem] font-bold tracking-tight text-[#1C1B17] leading-none">
             {item.metric}
           </div>
           <div className="text-xs sm:text-[13px] text-[#787063] font-medium mt-1.5 leading-snug">

@@ -283,8 +283,8 @@ export function LandingPage() {
             <InteractiveRoleDeck />
           </div>
 
-          {/* Right Performance Metrics Column inside concave pocket */}
-          <div className="lg:col-span-6 relative flex items-center justify-end w-full z-10 pointer-events-auto">
+          {/* Right Performance Metrics Column deeply inside the concave circle hollow */}
+          <div className="lg:col-span-6 relative flex items-end justify-end w-full h-full pb-8 sm:pb-12 lg:pb-16 z-10 pointer-events-auto">
             <HeroMetricsColumn />
           </div>
         </div>
